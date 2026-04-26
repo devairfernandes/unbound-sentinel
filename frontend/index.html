@@ -31,6 +31,9 @@
             <li onclick="showSection('benchmark', this)">
                 <i data-lucide="zap"></i> <span>Benchmark</span>
             </li>
+            <li onclick="showSection('about', this)">
+                <i data-lucide="award"></i> <span>Sobre o Sistema</span>
+            </li>
         </ul>
         
         <div class="server-status">
@@ -330,6 +333,38 @@
                 <div class="benchmark-info" style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
                     <p><strong>Como funciona:</strong> Realizamos 5 consultas para domínios diferentes (Google, Facebook, etc) em cada servidor e calculamos a média de tempo de resposta em milissegundos (ms).</p>
                     <p><em>Quanto menor o valor, mais rápida é a navegação para o usuário final.</em></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about-section" style="display:none;">
+            <div class="panel" style="max-width: 800px; margin: 0 auto; text-align: center; padding: 3rem 2rem;">
+                <div style="width: 80px; height: 80px; background: rgba(56,189,248,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+                    <i data-lucide="shield-check" style="width: 40px; height: 40px; color: var(--accent-primary);"></i>
+                </div>
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem; background: linear-gradient(90deg, #f8fafc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Unbound Sentinel Dashboard</h2>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">Monitoramento avançado e segurança para servidores DNS.</p>
+                
+                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <span class="noc-label">Versão do Sistema</span>
+                            <div class="noc-value" style="font-size: 1.2rem; margin-top: 4px;">v1.0.1</div>
+                        </div>
+                        <div>
+                            <span class="noc-label">Licença</span>
+                            <div class="noc-value" style="font-size: 1.2rem; margin-top: 4px; color: var(--accent-success);">Premium / Pro</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Desenvolvedor</h3>
+                <div style="display: inline-flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem 3rem;">
+                    <h4 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Devair Fernandes</h4>
+                    <p style="color: var(--text-muted); margin-bottom: 1rem;">Especialista em Redes e Sistemas Linux</p>
+                    <a href="https://wa.me/5569992214709" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; padding: 0.6rem 1.2rem;">
+                        <i data-lucide="phone"></i> Contato WhatsApp
+                    </a>
                 </div>
             </div>
         </section>
