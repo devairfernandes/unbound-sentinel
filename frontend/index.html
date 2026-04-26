@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unbound Sentinel | DNS NOC</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    <nav class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield-check" class="icon-logo"></i>
+            <span>SENTINEL DNS</span>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+        <ul class="nav-links">
+            <li class="active" onclick="showSection('dashboard', this)">
+                <i data-lucide="layout-dashboard"></i> <span>Painel Geral</span>
+            </li>
+            <li onclick="showSection('config', this)">
+                <i data-lucide="settings"></i> <span>Configurações</span>
+            </li>
+            <li onclick="showSection('logs', this)">
+                <i data-lucide="info"></i> <span>Sistema</span>
+            </li>
+            <li onclick="showSection('benchmark', this)">
+                <i data-lucide="zap"></i> <span>Benchmark</span>
+            </li>
+        </ul>
+        
+        <div class="server-status">
+            <div class="status-indicator online"></div>
+            <span>168.197.8.70</span>
+        </div>
+
+        <div class="sidebar-actions">
+            <button id="btn-update-system" class="sidebar-action-btn success" style="display:none;" onclick="startSystemUpdate()">
+                <i data-lucide="download-cloud" style="color:#10b981;"></i> <span style="color:#10b981;font-weight:700;">Atualização Disponível</span>
+            </button>
+            <button class="sidebar-action-btn" onclick="toggleTVMode()">
+                <i data-lucide="tv"></i> <span>Modo TV</span>
+            </button>
+            <button class="sidebar-action-btn" onclick="serviceAction('reload')">
+                <i data-lucide="refresh-cw"></i> <span>Recarregar</span>
+            </button>
+            <button class="sidebar-action-btn danger" onclick="serviceAction('restart')">
+                <i data-lucide="power"></i> <span>Reiniciar</span>
+            </button>
+        </div>
+
+        <div class="developer-info">
+            <p>Desenvolvido por:</p>
+            <strong>Devair Fernandes</strong>
+            <a href="https://wa.me/5569992214709" target="_blank" class="wa-link">
+                <i data-lucide="phone"></i> 69 99221-4709
+            </a>
+            <div class="logout-container">
+                <button class="btn btn-logout" onclick="logout()">
+                    <i data-lucide="log-out"></i> SAIR
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="content">
+        <header>
+            <div class="welcome">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <h1>MONITOR NOC DNS</h1>
+                    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+                </div>
+                <p id="uptime">Uptime: --</p>
+            </div>
+            <div id="tv-clock">00:00:00</div>
+        </header>
+
+        <section id="dashboard-section" class="active-section">
+            <!-- NOC Top Summary -->
+            <div class="noc-grid">
+                <div class="noc-card success" id="card-queries">
+                    <div class="noc-label">Consultas</div>
+                    <div class="noc-value" id="total-queries">0</div>
+                </div>
+                <div class="noc-card info" id="card-hits">
+                    <div class="noc-label">Cache Hit</div>
+                    <div class="noc-value" id="hit-rate">0%</div>
+                </div>
+                <div class="noc-card warning" id="card-misses">
+                    <div class="noc-label">Misses</div>
+                    <div class="noc-value" id="total-misses">0</div>
+                </div>
+                <div class="noc-card danger" id="card-servfail">
+                    <div class="noc-label">ServFail</div>
+                    <div class="noc-value" id="total-servfail">0</div>
+                </div>
+                <div class="noc-card info" id="card-cpu">
+                    <div class="noc-label">Uso CPU</div>
+                    <div class="noc-value" id="cpu-brief">0%</div>
+                </div>
+                <div class="noc-card info" id="card-mem">
+                    <div class="noc-label">Uso Mem</div>
+                    <div class="noc-value" id="mem-brief">0%</div>
+                </div>
+                <div class="noc-card info" id="card-ipv4">
+                    <div class="noc-label">IPv4</div>
+                    <div class="noc-value" id="ipv4-queries">0</div>
+                </div>
+                <div class="noc-card success" id="card-ipv6">
+                    <div class="noc-label">IPv6</div>
+                    <div class="noc-value" id="ipv6-queries">0</div>
+                </div>
+                <div class="noc-card info" id="card-bandwidth">
+                    <div class="noc-label">Tráfego</div>
+                    <div class="noc-value" id="net-brief">0.0</div>
+                </div>
+            </div>
+
+            <!-- Row 1: Top Analysis (Domains & Clients) -->
+            <div class="dashboard-layout row-2-cols">
+                <div class="panel" id="panel-domains">
+                    <div class="panel-header">
+                        <h3>TOP 10 DOMÍNIOS</h3>
+                        <i data-lucide="globe"></i>
+                    </div>
+                    <div id="top-domains-list" class="bar-list"></div>
+                </div>
+                <div class="panel" id="panel-clients">
+                    <div class="panel-header">
+                        <h3>TOP CLIENTES</h3>
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div id="top-clients-list" class="bar-list"></div>
+                </div>
+            </div>
+
+            <!-- Row 2: Distribution & Trends -->
+            <div class="dashboard-layout row-3-cols">
+                <div class="panel" id="panel-types">
+                    <div class="panel-header">
+                        <h3>TIPOS DE CONSULTA</h3>
+                        <i data-lucide="pie-chart"></i>
+                    </div>
+                    <div id="typeChart"></div>
+                </div>
+                <div class="panel" id="panel-latency">
+                    <div class="panel-header">
+                        <h3>LATÊNCIA (HISTOGRAMA)</h3>
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div id="latencyChart"></div>
+                </div>
+                <div class="panel" id="panel-tps">
+                    <div class="panel-header">
+                        <h3>HISTÓRICO DE REQUISIÇÕES (TPS)</h3>
+                        <i data-lucide="trending-up"></i>
+                    </div>
+                    <div id="requestHistoryChart"></div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: System Health Graphs -->
+            <div class="bottom-charts">
+                <div class="panel" id="panel-network">
+                    <div class="panel-header">
+                        <h3>TRÁFEGO DE REDE (Mbps)</h3>
+                    </div>
+                    <div id="netTrendChart"></div>
+                </div>
+                <div class="panel" id="panel-rcode">
+                    <div class="panel-header">
+                        <h3>DISTRIBUIÇÃO RCODE</h3>
+                    </div>
+                    <div id="rcodeChart"></div>
+                </div>
+                <div class="panel" id="panel-system">
+                    <div class="panel-header">
+                        <h3>RECURSOS DO SISTEMA</h3>
+                    </div>
+                    <div id="systemTrendChart"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="config-section">
+            <div class="config-intro">
+                <h2>DNS Sentinel | Central de Configurações</h2>
+                <p>Selecione o módulo que deseja administrar</p>
+            </div>
+
+            <!-- Grid de Cards de Configuração -->
+            <div class="config-grid">
+                <div class="config-card" onclick="openConfigModule('unbound')">
+                    <div class="card-icon"><i data-lucide="shield"></i></div>
+                    <div class="card-info">
+                        <h3>Unbound DNS</h3>
+                        <p>Gerenciar arquivos .conf e controles de acesso.</p>
+                    </div>
+                </div>
+                <div class="config-card" onclick="openConfigModule('firewall')">
+                    <div class="card-icon"><i data-lucide="lock"></i></div>
+                    <div class="card-info">
+                        <h3>Firewall (Security)</h3>
+                        <p>Regras de filtragem e proteção de portas.</p>
+                    </div>
+                </div>
+                <div class="config-card" onclick="openConfigModule('network')">
+                    <div class="card-icon"><i data-lucide="network"></i></div>
+                    <div class="card-info">
+                        <h3>Rede (Interfaces)</h3>
+                        <p>Configurar IPs, IPv6 e rotas do servidor.</p>
+                    </div>
+                </div>
+                <div class="config-card" onclick="openConfigModule('layout')">
+                    <div class="card-icon"><i data-lucide="layout"></i></div>
+                    <div class="card-info">
+                        <h3>Layout do Painel</h3>
+                        <p>Escolher quais gráficos e cards exibir na tela.</p>
+                    </div>
+                </div>
+                <div class="config-card" onclick="openConfigModule('credentials')">
+                    <div class="card-icon" style="background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.3);"><i data-lucide="key-round" style="color:#a855f7;"></i></div>
+                    <div class="card-info">
+                        <h3>Credenciais & SSH</h3>
+                        <p>Alterar usuário, senha e conexão SSH do servidor.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Área Dinâmica do Editor/Módulo -->
+            <div id="config-module-area" class="module-area" style="display:none;">
+                <div class="module-header">
+                    <button class="btn-back" onclick="closeConfigModule()">
+                        <i data-lucide="chevron-left"></i> Voltar
+                    </button>
+                    <h2 id="module-title">Editar Configuração</h2>
+                    <select id="config-selector" onchange="loadConfig()">
+                        <option value="unbound.conf">unbound.conf</option>
+                        <option value="local-zone.conf">local-zone.conf</option>
+                        <option value="forward-zone.conf">forward-zone.conf</option>
+                        <option value="access-control.conf">access-control.conf</option>
+                    </select>
+                </div>
+                
+                <div class="editor-container">
+                    <textarea id="config-editor" spellcheck="false"></textarea>
+                    <div id="firewall-view" class="module-content" style="display:none;"></div>
+                    <div id="network-view" class="module-content" style="display:none;"></div>
+                    <div id="layout-view" class="module-content" style="display:none;">
+                        <div class="layout-settings">
+                            <div class="layout-group">
+                                <h4>CARDS SUPERIORES (NOC)</h4>
+                                <div class="toggle-list" id="noc-toggles"></div>
+                            </div>
+                            <div class="layout-group">
+                                <h4>GRÁFICOS E PAINÉIS</h4>
+                                <div class="toggle-list" id="panel-toggles"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="credentials-view" class="module-content" style="display:none;"></div>
+                </div>
+                <div class="editor-actions">
+                    <button class="btn btn-primary" onclick="saveConfig()">APLICAR ALTERAÇÕES</button>
+                    <p id="save-status"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="logs-section">
+            <div class="system-grid">
+                <div class="sys-info-box">
+                    <h3>CARGA DE CPU</h3>
+                    <div id="cpuFullChart"></div>
+                    <p id="cpu-text-full">--</p>
+                </div>
+                <div class="sys-info-box">
+                    <h3>USO DE MEMÓRIA</h3>
+                    <div id="memFullChart"></div>
+                    <p id="mem-text-full">--</p>
+                </div>
+                <div class="sys-info-box">
+                    <h3>DISCO E LIMPEZA</h3>
+                    <div class="progress-bar"><div id="disk-progress" class="progress"></div></div>
+                    <p id="disk-text" style="margin: 0.5rem 0;">--</p>
+                    <div class="switch-container">
+                        <span>Limpeza Automática (>90%)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="auto-cleanup-toggle" onchange="toggleAutoCleanup()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button class="btn btn-secondary" onclick="clearLogs()" style="margin-top: 1rem; width: 100%;">FORÇAR LIMPEZA DE LOGS</button>
+                </div>
+                <div class="sys-info-box">
+                    <h3>SEGURANÇA DNSSEC</h3>
+                    <div class="dnssec-stats">
+                        <div class="dnssec-item"><span class="legend-dot" style="background:var(--accent-success)"></span> Seguro: <strong id="dnssec-secure">0</strong></div>
+                    </div>
+                </div>
+                <div class="sys-info-box" style="grid-column: span 2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin:0">TERMINAL DE LOGS (REAL-TIME)</h3>
+                        <span class="status-tag">ATIVO</span>
+                    </div>
+                    <div id="log-terminal" class="terminal-view">Carregando logs...</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="benchmark-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Sentinel Speed Test | Benchmark DNS</h2>
+                    <p>Compara o tempo de resposta do seu servidor local contra os gigantes globais.</p>
+                </div>
+                <div class="benchmark-controls" style="margin: 2rem 0; display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-primary" id="run-benchmark-btn" onclick="runBenchmark()">
+                        <i data-lucide="play"></i> INICIAR TESTE DE PERFORMANCE
+                    </button>
+                    <div id="benchmark-loader" style="display:none; color: var(--accent-primary);">
+                        <i data-lucide="refresh-cw" class="icon-spin"></i> Rodando testes em 5 domínios globais...
+                    </div>
+                </div>
+                <div id="benchmarkChart" style="min-height: 400px;"></div>
+                <div class="benchmark-info" style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    <p><strong>Como funciona:</strong> Realizamos 5 consultas para domínios diferentes (Google, Facebook, etc) em cada servidor e calculamos a média de tempo de resposta em milissegundos (ms).</p>
+                    <p><em>Quanto menor o valor, mais rápida é a navegação para o usuário final.</em></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i data-lucide="lock" class="icon-lock"></i>
+                <h2>Área Restrita</h2>
+                <p>Insira suas credenciais para continuar</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Usuário</label>
+                    <input type="text" id="login-user" placeholder="admin">
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-pass" placeholder="••••••••">
+                </div>
+                <div id="login-error" class="error-text"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogin()">CANCELAR</button>
+                <button class="btn btn-primary" onclick="attemptLogin()">ACESSAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
