@@ -42,9 +42,6 @@
         </div>
 
         <div class="sidebar-actions">
-            <button id="btn-update-system" class="sidebar-action-btn success" style="display:none;" onclick="startSystemUpdate()">
-                <i data-lucide="download-cloud" style="color:#10b981;"></i> <span style="color:#10b981;font-weight:700;">Atualização Disponível</span>
-            </button>
             <button class="sidebar-action-btn" onclick="toggleTVMode()">
                 <i data-lucide="tv"></i> <span>Modo TV</span>
             </button>
@@ -79,7 +76,12 @@
                 </div>
                 <p id="uptime">Uptime: --</p>
             </div>
-            <div id="tv-clock">00:00:00</div>
+            <div style="display:flex;align-items:center;gap:1.5rem;">
+                <button id="btn-update-system" class="btn btn-primary" style="display:none;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;font-weight:bold;animation:livePulse 2s infinite;padding:0.6rem 1.2rem;" onclick="startSystemUpdate()">
+                    <i data-lucide="download-cloud"></i> Atualização Disponível
+                </button>
+                <div id="tv-clock">00:00:00</div>
+            </div>
         </header>
 
         <section id="dashboard-section" class="active-section">
