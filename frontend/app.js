@@ -1332,6 +1332,7 @@ async function promptLicenseKey() {
     try {
         const res = await apiFetch('/api/system/license', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key })
         });
         if (res && res.message) {
