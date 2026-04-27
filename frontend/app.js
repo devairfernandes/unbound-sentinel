@@ -1291,12 +1291,13 @@ async function checkLicenseStatus() {
         const res = await apiFetch('/api/system/license');
         if (!res) return;
         
-        const isPro = res.status.type === 'pro' && res.status.valid;
-        currentFeatures = res.status.features || { tv: false, config: false, update: false, charts: false };
+        const data = await res.json();
+        const isPro = data.status.type === 'pro' && data.status.valid;
+        currentFeatures = data.status.features || { tv: false, config: false, update: false, charts: false };
         
         const display = document.getElementById('license-display');
         if (display) {
-            display.innerText = res.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
+            display.innerText = data.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
             display.style.color = isPro ? 'var(--accent-success)' : 'var(--accent-primary)';
         }
 
@@ -1335,8 +1336,9 @@ async function promptLicenseKey() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key })
         });
-        if (res && res.message) {
-            alert(res.message + "\nStatus: " + res.status.client);
+        const data = await res.json();
+        if (data && data.message) {
+            alert(data.message + "\nStatus: " + (data.status ? data.status.client : ''));
             window.location.reload();
         }
     } catch (err) {

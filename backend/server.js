@@ -194,7 +194,7 @@ app.post('/api/system/license', auth, async (req, res) => {
 app.get('/api/system/check-update', auth, async (req, res) => {
     try {
         const localPkg = require(path.join(__dirname, '..', 'package.json'));
-        const response = await fetch('https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/package.json');
+        const response = await fetch(`https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/package.json?t=${Date.now()}`);
         const remotePkg = await response.json();
         
         const isUpdateAvailable = remotePkg.version !== localPkg.version;
