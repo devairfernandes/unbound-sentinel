@@ -41,21 +41,38 @@ let currentLicenseStatus = {
 
 async function validateLicenseRemote() {
     try {
-        if (LICENSE_KEY === 'FREE') {
+        console.log(`[Licença] Iniciando validação remota para chave: ${LICENSE_KEY}`);
+        if (LICENSE_KEY === 'FREE' || !LICENSE_KEY) {
             currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis', features: { tv: false, config: false, update: false, charts: false } };
             return;
         }
-        const res = await fetch(`https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json?t=${Date.now()}`);
+        
+        const url = `https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json?t=${Date.now()}`;
+        const res = await fetch(url);
         const db = await res.json();
         
         const lic = db[LICENSE_KEY];
         if (lic && lic.status === 'active') {
-            currentLicenseStatus = { type: lic.type, valid: true, client: lic.client, features: lic.features || { tv: lic.type==='pro', config: lic.type==='pro', update: lic.type==='pro', charts: lic.type==='pro' } };
+            // ... (lógica de expiração que já colocamos antes)
+            let isExpired = false;
+            if (lic.expires_at && lic.expires_at !== 'never') {
+                const expDate = new Date(lic.expires_at);
+                if (new Date() > expDate) isExpired = true;
+            }
+
+            if (isExpired) {
+                currentLicenseStatus = { type: 'free', valid: false, client: lic.client + ' (EXPIRADA)', features: { tv: false, config: false, update: false, charts: false } };
+                console.warn(`[Licença] Chave ${LICENSE_KEY} expirou.`);
+            } else {
+                currentLicenseStatus = { type: lic.type, valid: true, client: lic.client, features: lic.features || { tv: lic.type==='pro', config: lic.type==='pro', update: lic.type==='pro', charts: lic.type==='pro' } };
+                console.log(`[Licença] Ativada com sucesso: ${lic.client} [${lic.type.toUpperCase()}]`);
+            }
         } else {
-            currentLicenseStatus = { type: 'free', valid: false, client: 'Licença Inválida/Revogada', features: { tv: false, config: false, update: false, charts: false } };
+            console.warn(`[Licença] Chave ${LICENSE_KEY} não encontrada no banco de dados do GitHub.`);
+            currentLicenseStatus = { type: 'free', valid: false, client: 'Licença Inválida', features: { tv: false, config: false, update: false, charts: false } };
         }
     } catch (err) {
-        console.error('Falha ao validar licença remota:', err.message);
+        console.error('[Licença] Falha crítica na validação remota:', err.message);
     }
 }
 // Validate on startup

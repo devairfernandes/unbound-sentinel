@@ -1381,7 +1381,7 @@ checkLicenseStatus().then(checkForSystemUpdate); // Verifica licença e depois a
 setInterval(refreshAll, 10000);
 setInterval(updateClock, 1000);
 setInterval(checkForSystemUpdate, 3600000); // Verifica atualizações a cada 1 hora
-setInterval(checkLicenseStatus, 3600000); // Re-valida a licença a cada 1 hora
+setInterval(checkLicenseStatus, 60000); // Re-valida a licença a cada 1 minuto (mais responsivo)
 
 // Double click to exit TV mode
 document.addEventListener('dblclick', () => {
