@@ -835,11 +835,11 @@ function buildLayoutConfigurator() {
         const item = document.getElementById('toggle-item-' + id);
         if (checkbox.checked) {
             delete hidden[id];
-            if (el) el.style.display = '';
+            if (el) el.classList.remove('hidden-widget');
             if (item) item.classList.remove('hidden-item');
         } else {
             hidden[id] = true;
-            if (el) el.style.display = 'none';
+            if (el) el.classList.add('hidden-widget');
             if (item) item.classList.add('hidden-item');
         }
         localStorage.setItem('sentinel_hidden_widgets', JSON.stringify(hidden));
@@ -861,7 +861,7 @@ function buildLayoutConfigurator() {
                 </div>
                 <label class="switch">
                     <input type="checkbox" ${visible ? 'checked' : ''}
-                        onchange="(function(cb){ const h=JSON.parse(localStorage.getItem('sentinel_hidden_widgets')||'{}'); const el=document.getElementById('${w.id}'); const item=document.getElementById('toggle-item-${w.id}'); if(cb.checked){delete h['${w.id}'];if(el)el.style.display='';if(item)item.classList.remove('hidden-item');}else{h['${w.id}']=true;if(el)el.style.display='none';if(item)item.classList.add('hidden-item');} localStorage.setItem('sentinel_hidden_widgets',JSON.stringify(h)); })(this)">
+                        onchange="(function(cb){ const h=JSON.parse(localStorage.getItem('sentinel_hidden_widgets')||'{}'); const el=document.getElementById('${w.id}'); const item=document.getElementById('toggle-item-${w.id}'); if(cb.checked){delete h['${w.id}'];if(el)el.classList.remove('hidden-widget');if(item)item.classList.remove('hidden-item');}else{h['${w.id}']=true;if(el)el.classList.add('hidden-widget');if(item)item.classList.add('hidden-item');} localStorage.setItem('sentinel_hidden_widgets',JSON.stringify(h)); })(this)">
                     <span class="slider"></span>
                 </label>
             `;
@@ -879,7 +879,7 @@ function applyStoredLayout() {
     const hidden = JSON.parse(localStorage.getItem('sentinel_hidden_widgets') || '{}');
     Object.keys(hidden).forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
+        if (el) el.classList.add('hidden-widget');
     });
 }
 applyStoredLayout();
@@ -1262,17 +1262,24 @@ if (isCollapsed) document.querySelector('.sidebar').classList.add('collapsed');
 
 function toggleTVMode() {
     document.body.classList.toggle('tv-mode');
+    const isTV = document.body.classList.contains('tv-mode');
+    localStorage.setItem('sentinel_tv_mode', isTV);
     
     // Auto-exit full screen if already in it, or enter it
-    if (document.body.classList.contains('tv-mode')) {
+    if (isTV) {
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(() => {});
         }
     } else {
-        if (document.exitFullscreen) {
+        if (document.fullscreenElement && document.exitFullscreen) {
             document.exitFullscreen().catch(() => {});
         }
     }
+}
+
+// Restore TV Mode on load
+if (localStorage.getItem('sentinel_tv_mode') === 'true') {
+    document.body.classList.add('tv-mode');
 }
 
 function updateClock() {

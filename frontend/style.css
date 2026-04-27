@@ -1056,3 +1056,5 @@ body.tv-mode #tv-clock {
 
 .pass-eye-btn svg { width: 16px; height: 16px; }
 .pass-eye-btn:hover { color: var(--text-secondary); }
+
+.hidden-widget { display: none !important; }
