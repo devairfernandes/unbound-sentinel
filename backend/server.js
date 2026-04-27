@@ -594,4 +594,24 @@ setInterval(monitorHistory, 10000); // Sincronizado com o refresh do frontend
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Dashboard running on port ${PORT}`));
+app.post('/api/system/update', auth, async (req, res) => {
+    const { exec } = require('child_process');
+    console.log('[Update] Iniciando atualização automática via Dashboard...');
+    
+    // Comando para atualizar (considerando que o git já vai estar instalado)
+    const cmd = 'cd /opt/unbound-dashboard && git fetch --all && git reset --hard origin/main && systemctl restart unbound-dashboard';
+    
+    exec(cmd, (err, stdout, stderr) => {
+        if (err) {
+            console.error('[Update] Erro ao atualizar:', stderr);
+            return res.status(500).json({ error: 'Falha ao executar atualização.' });
+        }
+        console.log('[Update] Sucesso:', stdout);
+        res.json({ message: 'Sistema atualizado com sucesso! Reiniciando...' });
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`\n🚀 Sentinel Backend rodando na porta ${PORT}`);
+    validateLicenseRemote();
+});

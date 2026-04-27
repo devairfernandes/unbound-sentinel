@@ -1325,9 +1325,29 @@ function showUpdateToast(version, desc) {
     toast.innerHTML = `
         <div style="background: var(--accent-primary); width: 10px; height: 10px; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
         <div style="font-size: 0.85rem; font-weight: 500;">Nova versão disponível (${version})</div>
-        <button onclick="location.reload()" style="background: #fff; color: #000; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 0.75rem;">ATUALIZAR AGORA</button>
+        <button onclick="runSystemUpdate()" id="btn-toast-update" style="background: #fff; color: #000; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 0.75rem;">ATUALIZAR AGORA</button>
     `;
     document.body.appendChild(toast);
+}
+
+async function runSystemUpdate() {
+    const btn = document.getElementById('btn-toast-update');
+    if (btn) {
+        btn.innerText = 'ATUALIZANDO...';
+        btn.disabled = true;
+    }
+    try {
+        const res = await apiFetch('/api/system/update', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Atualização iniciada!');
+        setTimeout(() => location.reload(), 3000);
+    } catch (e) {
+        alert('Erro ao atualizar: ' + e.message);
+        if (btn) {
+            btn.innerText = 'ATUALIZAR AGORA';
+            btn.disabled = false;
+        }
+    }
 }
 
 async function checkLicenseStatus() {
