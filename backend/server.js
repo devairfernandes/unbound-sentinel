@@ -60,8 +60,8 @@ async function validateLicenseRemote() {
 }
 // Validate on startup
 validateLicenseRemote();
-// Re-validate every hour
-setInterval(validateLicenseRemote, 3600000);
+// Re-validate every 5 minutes
+setInterval(validateLicenseRemote, 5 * 60 * 1000);
 
 const auth = (req, res, next) => {
     const authHeader = req.headers.authorization;
