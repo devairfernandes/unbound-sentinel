@@ -4,3 +4,5 @@ scratch/
 deploy-*.js
 *.zip
 *.tar.gz
+license-manager/
+Iniciar-Gerenciador.bat

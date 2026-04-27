@@ -1,0 +1,9 @@
+{
+    "SENTINEL-FREE-DEFAULT": {
+        "client": "Licença Padrão (Grátis)",
+        "type": "free",
+        "status": "active",
+        "created_at": "2026-04-26T00:00:00.000Z",
+        "expires_at": "never"
+    }
+}
