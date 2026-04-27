@@ -1284,34 +1284,41 @@ function updateClock() {
 }
 
 // ===== LICENÇA & RESTRIÇÕES =====
-let isProVersion = false;
+let currentFeatures = { tv: false, config: false, update: false, charts: false };
 
 async function checkLicenseStatus() {
     try {
         const res = await apiFetch('/api/system/license');
         if (!res) return;
         
-        isProVersion = res.status.type === 'pro' && res.status.valid;
+        const isPro = res.status.type === 'pro' && res.status.valid;
+        currentFeatures = res.status.features || { tv: false, config: false, update: false, charts: false };
         
         const display = document.getElementById('license-display');
         if (display) {
-            display.innerText = res.status.client + (isProVersion ? ' (PRO)' : ' (GRÁTIS)');
-            display.style.color = isProVersion ? 'var(--accent-success)' : 'var(--accent-primary)';
+            display.innerText = res.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
+            display.style.color = isPro ? 'var(--accent-success)' : 'var(--accent-primary)';
         }
 
-        // Lock Features
+        // Lock Features based on detailed permissions
         const updateBtn = document.getElementById('btn-update-system');
         const configMenu = document.querySelector('li[onclick*="config"]');
         const tvMenu = document.querySelector('button[onclick*="toggleTVMode"]');
 
-        if (!isProVersion) {
-            if (updateBtn) updateBtn.style.display = 'none'; // Never show update button for free
-            if (configMenu) configMenu.innerHTML = '<i data-lucide="lock"></i> <span>Configurações (PRO)</span>';
-            if (tvMenu) tvMenu.innerHTML = '<i data-lucide="lock"></i> <span>Modo TV (PRO)</span>';
-        } else {
-            if (configMenu) configMenu.innerHTML = '<i data-lucide="settings"></i> <span>Configurações</span>';
-            if (tvMenu) tvMenu.innerHTML = '<i data-lucide="tv"></i> <span>Modo TV</span>';
+        if (!currentFeatures.update && updateBtn) updateBtn.style.display = 'none';
+        
+        if (!currentFeatures.config && configMenu) {
+            configMenu.innerHTML = '<i data-lucide="lock"></i> <span>Configurações</span>';
+        } else if (currentFeatures.config && configMenu) {
+            configMenu.innerHTML = '<i data-lucide="settings"></i> <span>Configurações</span>';
         }
+
+        if (!currentFeatures.tv && tvMenu) {
+            tvMenu.innerHTML = '<i data-lucide="lock"></i> <span>Modo TV</span>';
+        } else if (currentFeatures.tv && tvMenu) {
+            tvMenu.innerHTML = '<i data-lucide="tv"></i> <span>Modo TV</span>';
+        }
+
         if (window.lucide) lucide.createIcons();
     } catch (err) {
         console.error('Erro ao checar licença', err);
@@ -1339,8 +1346,8 @@ async function promptLicenseKey() {
 // Intercept locked features
 const originalShowSection = showSection;
 showSection = async function(id, element) {
-    if (id === 'config' && !isProVersion) {
-        alert("A área de Configurações é exclusiva para usuários do plano PRO.\nAdquira uma licença para desbloquear.");
+    if (id === 'config' && !currentFeatures.config) {
+        alert("A área de Configurações está bloqueada na sua licença.\nEntre em contato com o administrador para liberar.");
         return;
     }
     return originalShowSection(id, element);
@@ -1348,8 +1355,8 @@ showSection = async function(id, element) {
 
 const originalToggleTVMode = toggleTVMode;
 toggleTVMode = function() {
-    if (!isProVersion) {
-        alert("O Modo TV (NOC View) é exclusivo para usuários do plano PRO.\nAdquira uma licença para desbloquear.");
+    if (!currentFeatures.tv) {
+        alert("O Modo TV (NOC View) está bloqueado na sua licença.\nEntre em contato com o administrador para liberar.");
         return;
     }
     return originalToggleTVMode();
