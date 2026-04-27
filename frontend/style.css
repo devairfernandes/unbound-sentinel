@@ -1,19 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-:root {
-    --bg-color: #030712;
-    --sidebar-bg: #0b0f1a;
-    --card-bg: rgba(17, 24, 39, 0.7);
-    --card-border: rgba(255, 255, 255, 0.08);
+    --bg-color: #020617;
+    --sidebar-bg: rgba(15, 23, 42, 0.7);
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.2);
     --accent-primary: #38bdf8;
-    --accent-success: #10b981;
-    --accent-warning: #fbbf24;
-    --accent-danger: #f43f5e;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #475569;
-    --glass-bg: rgba(15, 23, 42, 0.6);
-    --glass-blur: blur(12px);
+    --accent-neon: #00f2ff;
+    --text-primary: #ffffff;
+    --text-secondary: #cbd5e1;
+    --glass-blur: blur(25px);
 }
 
 * {
@@ -25,13 +21,43 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(ellipse at top right, #0c4a6e 0%, #030712 45%),
-                radial-gradient(ellipse at bottom left, #1e1b4b 0%, transparent 50%);
-    background-attachment: fixed;
+    background: #020617;
     color: var(--text-primary);
     display: flex;
     height: 100vh;
     overflow: hidden;
+    position: relative;
+}
+
+/* Efeito de profundidade no fundo (Círculos de Vidro) */
+body::before, body::after {
+    content: "";
+    position: fixed;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: -1;
+    opacity: 0.4; /* Mais brilho para aparecer no vidro */
+    animation: float 15s infinite alternate ease-in-out;
+}
+
+body::before {
+    background: radial-gradient(circle, #0ea5e9, #6366f1);
+    top: -300px;
+    right: -200px;
+}
+
+body::after {
+    background: radial-gradient(circle, #a855f7, #ec4899);
+    bottom: -300px;
+    left: -200px;
+    animation-delay: -7s;
+}
+
+@keyframes float {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    100% { transform: translate(150px, 100px) scale(1.2) rotate(15deg); }
 }
 
 /* ===== PARTICLE CANVAS ===== */
@@ -47,15 +73,17 @@ body {
 /* Sidebar - Ultra Slim & Premium */
 .sidebar {
     width: 260px;
-    background-color: var(--sidebar-bg);
+    background: var(--sidebar-bg);
     display: flex;
     flex-direction: column;
     padding: 1.5rem 1.25rem;
-    border-right: 1px solid var(--card-border);
-    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 100;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.2);
 }
 
 .sidebar.collapsed {
@@ -378,17 +406,20 @@ header {
 .noc-card {
     background: var(--card-bg);
     backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--card-border);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     padding: 1.25rem;
-    border-radius: 12px;
+    border-radius: 16px;
     position: relative;
     overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .noc-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* Colored glow on hover per card type */
@@ -447,20 +478,35 @@ header {
 .row-3-cols { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
 .panel {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.03);
     backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--card-border);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
 }
 
 .panel:hover {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(56,189,248,0.12);
-    border-color: rgba(56,189,248,0.2);
+    transform: scale(1.01);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-neon);
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+}
+
+.panel::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
+    transform: rotate(45deg);
+    pointer-events: none;
 }
 
 .panel-header {
