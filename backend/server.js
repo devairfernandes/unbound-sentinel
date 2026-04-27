@@ -25,8 +25,38 @@ const globalHistory = {
 };
 let lastStatsTotal = 0;
 
-let ADMIN_USER = process.env.DASH_USER || 'admin';
-let ADMIN_PASS = process.env.DASH_PASS || 'sentinel2026';
+const ENV_PATH = path.join(__dirname, '..', '.env');
+const envConfig = require('dotenv').config({ path: ENV_PATH }).parsed || {};
+
+let ADMIN_USER = envConfig.DASH_USER || 'admin';
+let ADMIN_PASS = envConfig.DASH_PASS || 'sentinel2026';
+let LICENSE_KEY = envConfig.SENTINEL_LICENSE_KEY || 'FREE';
+
+let currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis' };
+
+async function validateLicenseRemote() {
+    try {
+        if (LICENSE_KEY === 'FREE') {
+            currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis' };
+            return;
+        }
+        const res = await fetch('https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json');
+        const db = await res.json();
+        
+        const lic = db[LICENSE_KEY];
+        if (lic && lic.status === 'active') {
+            currentLicenseStatus = { type: lic.type, valid: true, client: lic.client };
+        } else {
+            currentLicenseStatus = { type: 'free', valid: false, client: 'Licença Inválida/Revogada' };
+        }
+    } catch (err) {
+        console.error('Falha ao validar licença remota:', err.message);
+    }
+}
+// Validate on startup
+validateLicenseRemote();
+// Re-validate every hour
+setInterval(validateLicenseRemote, 3600000);
 
 const auth = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -129,6 +159,30 @@ app.post('/api/settings/credentials', auth, (req, res) => {
         res.json({ message: 'Configurações salvas com sucesso! Faça login novamente.' });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao salvar .env: ' + err.message });
+    }
+});
+
+// ===== LICENÇA =====
+app.get('/api/system/license', auth, (req, res) => {
+    res.json({
+        key: LICENSE_KEY === 'FREE' ? '' : LICENSE_KEY,
+        status: currentLicenseStatus
+    });
+});
+
+app.post('/api/system/license', auth, async (req, res) => {
+    const { key } = req.body;
+    let env = readEnvFile();
+    const newKey = key || 'FREE';
+    env = updateEnvKey(env, 'SENTINEL_LICENSE_KEY', newKey);
+    LICENSE_KEY = newKey;
+    
+    try {
+        fs.writeFileSync(ENV_PATH, env, 'utf8');
+        await validateLicenseRemote();
+        res.json({ message: 'Licença atualizada!', status: currentLicenseStatus });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao salvar licença: ' + err.message });
     }
 });
 

@@ -1283,15 +1283,88 @@ function updateClock() {
     }
 }
 
+// ===== LICENÇA & RESTRIÇÕES =====
+let isProVersion = false;
+
+async function checkLicenseStatus() {
+    try {
+        const res = await apiFetch('/api/system/license');
+        if (!res) return;
+        
+        isProVersion = res.status.type === 'pro' && res.status.valid;
+        
+        const display = document.getElementById('license-display');
+        if (display) {
+            display.innerText = res.status.client + (isProVersion ? ' (PRO)' : ' (GRÁTIS)');
+            display.style.color = isProVersion ? 'var(--accent-success)' : 'var(--accent-primary)';
+        }
+
+        // Lock Features
+        const updateBtn = document.getElementById('btn-update-system');
+        const configMenu = document.querySelector('li[onclick*="config"]');
+        const tvMenu = document.querySelector('button[onclick*="toggleTVMode"]');
+
+        if (!isProVersion) {
+            if (updateBtn) updateBtn.style.display = 'none'; // Never show update button for free
+            if (configMenu) configMenu.innerHTML = '<i data-lucide="lock"></i> <span>Configurações (PRO)</span>';
+            if (tvMenu) tvMenu.innerHTML = '<i data-lucide="lock"></i> <span>Modo TV (PRO)</span>';
+        } else {
+            if (configMenu) configMenu.innerHTML = '<i data-lucide="settings"></i> <span>Configurações</span>';
+            if (tvMenu) tvMenu.innerHTML = '<i data-lucide="tv"></i> <span>Modo TV</span>';
+        }
+        if (window.lucide) lucide.createIcons();
+    } catch (err) {
+        console.error('Erro ao checar licença', err);
+    }
+}
+
+async function promptLicenseKey() {
+    const key = prompt("Digite a sua Chave de Ativação (PRO):");
+    if (key === null) return;
+    
+    try {
+        const res = await apiFetch('/api/system/license', {
+            method: 'POST',
+            body: JSON.stringify({ key })
+        });
+        if (res && res.message) {
+            alert(res.message + "\nStatus: " + res.status.client);
+            window.location.reload();
+        }
+    } catch (err) {
+        alert("Erro ao validar licença.");
+    }
+}
+
+// Intercept locked features
+const originalShowSection = showSection;
+showSection = async function(id, element) {
+    if (id === 'config' && !isProVersion) {
+        alert("A área de Configurações é exclusiva para usuários do plano PRO.\nAdquira uma licença para desbloquear.");
+        return;
+    }
+    return originalShowSection(id, element);
+};
+
+const originalToggleTVMode = toggleTVMode;
+toggleTVMode = function() {
+    if (!isProVersion) {
+        alert("O Modo TV (NOC View) é exclusivo para usuários do plano PRO.\nAdquira uma licença para desbloquear.");
+        return;
+    }
+    return originalToggleTVMode();
+};
+
 initCharts();
 setInitialLoading();
 fetchHistory(); // Carrega o histórico persistente do backend
 refreshAll();
-checkForSystemUpdate(); // Verifica atualizações no GitHub ao iniciar
+checkLicenseStatus().then(checkForSystemUpdate); // Verifica licença e depois atualização
 
 setInterval(refreshAll, 10000);
 setInterval(updateClock, 1000);
 setInterval(checkForSystemUpdate, 3600000); // Verifica atualizações a cada 1 hora
+setInterval(checkLicenseStatus, 3600000); // Re-valida a licença a cada 1 hora
 
 // Double click to exit TV mode
 document.addEventListener('dblclick', () => {
