@@ -1,15 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    --bg-color: #020617;
-    --sidebar-bg: rgba(15, 23, 42, 0.7);
-    --card-bg: rgba(255, 255, 255, 0.03);
-    --card-border: rgba(255, 255, 255, 0.12);
-    --glass-border: rgba(255, 255, 255, 0.2);
+:root {
+    --bg-color: #030712;
+    --sidebar-bg: #0b0f1a;
+    --card-bg: #111827;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --accent-primary: #38bdf8;
-    --accent-neon: #00f2ff;
+    --accent-neon: #38bdf8;
     --text-primary: #ffffff;
     --text-secondary: #cbd5e1;
-    --glass-blur: blur(25px);
+    --glass-blur: none;
 }
 
 * {
@@ -38,8 +39,8 @@ body::before, body::after {
     border-radius: 50%;
     filter: blur(100px);
     z-index: -1;
-    opacity: 0.4; /* Mais brilho para aparecer no vidro */
-    animation: float 15s infinite alternate ease-in-out;
+    opacity: 0; /* Desativado */
+    /* animacao removida */
 }
 
 body::before {
