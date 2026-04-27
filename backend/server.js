@@ -122,7 +122,6 @@ function parseStats(stdout) {
 }
 
 // ===== CREDENTIALS & SSH SETTINGS =====
-const ENV_PATH = path.join(__dirname, '..', '.env');
 
 function readEnvFile() {
     try { return fs.readFileSync(ENV_PATH, 'utf8'); } catch { return ''; }
