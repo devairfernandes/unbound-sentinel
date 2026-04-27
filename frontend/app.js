@@ -1293,6 +1293,43 @@ function updateClock() {
 // ===== LICENÇA & RESTRIÇÕES =====
 let currentFeatures = { tv: false, config: false, update: false, charts: false };
 
+// ===== SISTEMA DE ATUALIZAÇÃO =====
+let currentVersion = "2.0.0"; // Versão base
+
+async function checkForSystemUpdate() {
+    try {
+        const res = await fetch('/version.json?t=' + Date.now());
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        if (data.version !== currentVersion && currentVersion !== "2.0.0") {
+            showUpdateToast(data.version, data.description);
+        }
+        currentVersion = data.version;
+    } catch (e) {}
+}
+
+function showUpdateToast(version, desc) {
+    if (document.getElementById('update-toast')) return;
+    
+    const toast = document.createElement('div');
+    toast.id = 'update-toast';
+    toast.style = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(56, 189, 248, 0.2); backdrop-filter: blur(20px);
+        border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 50px;
+        padding: 10px 20px; color: #fff; z-index: 9999;
+        display: flex; align-items: center; gap: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideDown 0.5s ease;
+    `;
+    toast.innerHTML = `
+        <div style="background: var(--accent-primary); width: 10px; height: 10px; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+        <div style="font-size: 0.85rem; font-weight: 500;">Nova versão disponível (${version})</div>
+        <button onclick="location.reload()" style="background: #fff; color: #000; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 0.75rem;">ATUALIZAR AGORA</button>
+    `;
+    document.body.appendChild(toast);
+}
+
 async function checkLicenseStatus() {
     try {
         const res = await apiFetch('/api/system/license');
@@ -1380,7 +1417,7 @@ checkLicenseStatus().then(checkForSystemUpdate); // Verifica licença e depois a
 
 setInterval(refreshAll, 10000);
 setInterval(updateClock, 1000);
-setInterval(checkForSystemUpdate, 3600000); // Verifica atualizações a cada 1 hora
+setInterval(checkForSystemUpdate, 30000); // Verifica atualizações a cada 30 segundos
 setInterval(checkLicenseStatus, 60000); // Re-valida a licença a cada 1 minuto (mais responsivo)
 
 // Double click to exit TV mode
