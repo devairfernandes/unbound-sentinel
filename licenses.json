@@ -1,7 +1,7 @@
 {
     "OUROMAX-FREE-Q743": {
         "client": "Ouromax",
-        "type": "free",
+        "type": "pro",
         "status": "active",
         "created_at": "2026-04-27T01:33:16.881Z",
         "expires_at": "never"
