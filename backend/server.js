@@ -32,22 +32,27 @@ let ADMIN_USER = envConfig.DASH_USER || 'admin';
 let ADMIN_PASS = envConfig.DASH_PASS || 'sentinel2026';
 let LICENSE_KEY = envConfig.SENTINEL_LICENSE_KEY || 'FREE';
 
-let currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis' };
+let currentLicenseStatus = { 
+    type: 'free', 
+    valid: true, 
+    client: 'Versão Grátis',
+    features: { tv: false, config: false, update: false, charts: false }
+};
 
 async function validateLicenseRemote() {
     try {
         if (LICENSE_KEY === 'FREE') {
-            currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis' };
+            currentLicenseStatus = { type: 'free', valid: true, client: 'Versão Grátis', features: { tv: false, config: false, update: false, charts: false } };
             return;
         }
-        const res = await fetch('https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json');
+        const res = await fetch(`https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json?t=${Date.now()}`);
         const db = await res.json();
         
         const lic = db[LICENSE_KEY];
         if (lic && lic.status === 'active') {
-            currentLicenseStatus = { type: lic.type, valid: true, client: lic.client };
+            currentLicenseStatus = { type: lic.type, valid: true, client: lic.client, features: lic.features || { tv: lic.type==='pro', config: lic.type==='pro', update: lic.type==='pro', charts: lic.type==='pro' } };
         } else {
-            currentLicenseStatus = { type: 'free', valid: false, client: 'Licença Inválida/Revogada' };
+            currentLicenseStatus = { type: 'free', valid: false, client: 'Licença Inválida/Revogada', features: { tv: false, config: false, update: false, charts: false } };
         }
     } catch (err) {
         console.error('Falha ao validar licença remota:', err.message);
@@ -172,7 +177,7 @@ app.get('/api/system/license', auth, (req, res) => {
 app.post('/api/system/license', auth, async (req, res) => {
     const { key } = req.body;
     let env = readEnvFile();
-    const newKey = key || 'FREE';
+    const newKey = (key || 'FREE').trim();
     env = updateEnvKey(env, 'SENTINEL_LICENSE_KEY', newKey);
     LICENSE_KEY = newKey;
     
