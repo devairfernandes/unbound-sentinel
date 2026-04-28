@@ -42,10 +42,10 @@ O Unbound Sentinel é uma interface web profissional projetada para administrar 
 - **Produção**: O serviço roda via Systemd na porta 3000.
 
 ## 📡 Detalhes do Servidor de Produção
-- **IP**: 168.197.8.70
-- **Porta SSH**: 51386
+- **IP**: Configurado via ambiente
+- **Porta SSH**: Configurada via ambiente
 - **Diretório de Instalação**: `/opt/unbound-dashboard`
 - **Caminho Unbound**: `/etc/unbound/`
 
 ---
-*Última Atualização: 24/04/2026 - Implementação da Trava de Segurança e Otimização DNS em andamento.*
+*Última Atualização: 28/04/2026 - Remoção de credenciais expostas para segurança.*
