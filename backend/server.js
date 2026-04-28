@@ -31,6 +31,7 @@ const envConfig = require('dotenv').config({ path: ENV_PATH }).parsed || {};
 let ADMIN_USER = envConfig.DASH_USER || 'admin';
 let ADMIN_PASS = envConfig.DASH_PASS || 'sentinel2026';
 let LICENSE_KEY = envConfig.SENTINEL_LICENSE_KEY || 'FREE';
+let GITHUB_TOKEN = envConfig.GITHUB_TOKEN || '';
 
 let currentLicenseStatus = { 
     type: 'free', 
@@ -48,7 +49,10 @@ async function validateLicenseRemote() {
         }
         
         const url = `https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/licenses.json?t=${Date.now()}`;
-        const res = await fetch(url);
+        const fetchOptions = GITHUB_TOKEN ? { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } } : {};
+        const res = await fetch(url, fetchOptions);
+        
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
         const db = await res.json();
         
         const lic = db[LICENSE_KEY];
@@ -160,7 +164,8 @@ app.get('/api/settings/credentials', auth, (req, res) => {
         dashUser: ADMIN_USER,
         sshHost: sshConfig.host,
         sshPort: sshConfig.port,
-        sshUser: sshConfig.username
+        sshUser: sshConfig.username,
+        githubToken: GITHUB_TOKEN ? '********' : ''
     });
 });
 
@@ -174,6 +179,10 @@ app.post('/api/settings/credentials', auth, (req, res) => {
     if (sshPort)   { env = updateEnvKey(env, 'SSH_PORT',  sshPort);  sshConfig.port = parseInt(sshPort); }
     if (sshUser)   { env = updateEnvKey(env, 'SSH_USER',  sshUser);  sshConfig.username = sshUser; }
     if (sshPass)   { env = updateEnvKey(env, 'SSH_PASS',  sshPass);  sshConfig.password = sshPass; }
+    if (req.body.githubToken !== undefined) { 
+        env = updateEnvKey(env, 'GITHUB_TOKEN', req.body.githubToken); 
+        GITHUB_TOKEN = req.body.githubToken; 
+    }
 
     try {
         fs.writeFileSync(ENV_PATH, env, 'utf8');
@@ -211,7 +220,10 @@ app.post('/api/system/license', auth, async (req, res) => {
 app.get('/api/system/check-update', auth, async (req, res) => {
     try {
         const localPkg = require(path.join(__dirname, '..', 'package.json'));
-        const response = await fetch(`https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/package.json?t=${Date.now()}`);
+        const fetchOptions = GITHUB_TOKEN ? { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } } : {};
+        const response = await fetch(`https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/package.json?t=${Date.now()}`, fetchOptions);
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const remotePkg = await response.json();
         
         const isUpdateAvailable = remotePkg.version !== localPkg.version;
@@ -222,7 +234,8 @@ app.get('/api/system/check-update', auth, async (req, res) => {
             newVersion: remotePkg.version 
         });
     } catch (e) {
-        res.status(500).json({ error: 'Falha ao verificar atualizações no GitHub' });
+        console.error('Update check error:', e);
+        res.status(500).json({ error: 'Falha ao verificar atualizações no GitHub. Se for privado, configure o GITHUB_TOKEN.' });
     }
 });
 
@@ -230,18 +243,24 @@ app.post('/api/system/update', auth, (req, res) => {
     try {
         res.json({ message: 'Atualização iniciada. O painel ficará indisponível por alguns segundos enquanto reinicia.' });
         
-        // Dispara o script de atualização em background após 1 segundo
         setTimeout(() => {
+            // Se houver token, usamos a API do GitHub para baixar o arquivo do repositório privado
+            const downloadUrl = GITHUB_TOKEN 
+                ? `https://api.github.com/repos/devairfernandes/unbound-sentinel/tarball/main`
+                : `https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz`;
+            
+            const authHeader = GITHUB_TOKEN ? `-H "Authorization: token ${GITHUB_TOKEN}"` : '';
+
             const updateScript = `
                 cd /opt/unbound-dashboard &&
-                curl -sL -o update.tar.gz https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz &&
+                curl -sL ${authHeader} -o update.tar.gz ${downloadUrl} &&
                 tar -xzf update.tar.gz --strip-components=1 &&
                 rm update.tar.gz &&
                 npm install --omit=dev &&
                 systemctl restart unbound-dashboard
             `;
-            exec(updateScript, (err) => {
-                if (err) console.error('Erro na atualização:', err);
+            exec(updateScript, (err, stdout, stderr) => {
+                if (err) console.error('Erro na atualização:', stderr);
             });
         }, 1000);
     } catch (e) {
@@ -594,22 +613,7 @@ setInterval(monitorHistory, 10000); // Sincronizado com o refresh do frontend
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 const PORT = process.env.PORT || 3000;
-app.post('/api/system/update', auth, async (req, res) => {
-    const { exec } = require('child_process');
-    console.log('[Update] Iniciando atualização automática via Dashboard...');
-    
-    // Comando para atualizar (considerando que o git já vai estar instalado)
-    const cmd = 'cd /opt/unbound-dashboard && git fetch --all && git reset --hard origin/main && systemctl restart unbound-dashboard';
-    
-    exec(cmd, (err, stdout, stderr) => {
-        if (err) {
-            console.error('[Update] Erro ao atualizar:', stderr);
-            return res.status(500).json({ error: 'Falha ao executar atualização.' });
-        }
-        console.log('[Update] Sucesso:', stdout);
-        res.json({ message: 'Sistema atualizado com sucesso! Reiniciando...' });
-    });
-});
+// Remover rota de update duplicada para evitar conflitos
 
 app.listen(PORT, () => {
     console.log(`\n🚀 Sentinel Backend rodando na porta ${PORT}`);

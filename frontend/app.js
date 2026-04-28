@@ -719,6 +719,21 @@ function renderCredentials() {
                             </div>
                         </div>
                     </div>
+                    </div>
+                </div>
+
+                <!-- GitHub Integration -->
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="github" style="color:#f8fafc;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Repositório Privado (Auto-Update)</h3>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:1rem;">
+                        <div>
+                            <label class="cred-label">GitHub Personal Access Token (Deixe em branco se for repositório público)</label>
+                            <input id="cred-github-token" type="password" class="cred-input" placeholder="${data.githubToken ? 'Token já configurado (********)' : 'ghp_...'}" autocomplete="new-password">
+                        </div>
+                    </div>
                 </div>
 
                 <div style="display:flex;align-items:center;gap:1rem;">
@@ -757,6 +772,7 @@ async function saveCredentials() {
     const sshPort  = document.getElementById('cred-ssh-port')?.value.trim();
     const sshUser  = document.getElementById('cred-ssh-user')?.value.trim();
     const sshPass  = document.getElementById('cred-ssh-pass')?.value.trim();
+    const githubToken = document.getElementById('cred-github-token')?.value.trim();
 
     if (dashUser) payload.dashUser = dashUser;
     if (dashPass) payload.dashPass = dashPass;
@@ -764,6 +780,7 @@ async function saveCredentials() {
     if (sshPort)  payload.sshPort  = sshPort;
     if (sshUser)  payload.sshUser  = sshUser;
     if (sshPass)  payload.sshPass  = sshPass;
+    if (githubToken) payload.githubToken = githubToken;
 
     if (Object.keys(payload).length === 0) {
         status.style.color = 'var(--accent-warning)';
