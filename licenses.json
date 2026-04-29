@@ -1,8 +1,20 @@
 {
-    "OUROMAX-FREE-Q743": {
-        "client": "Ouromax",
+    "SENTINEL-HPIYZ73E8": {
+        "client": "NOC_OuroMax",
+        "type": "free",
+        "expiry": "2026-10-16",
+        "valid": true,
+        "features": {
+            "tv": false,
+            "config": false,
+            "update": false,
+            "charts": false
+        }
+    },
+    "SENTINEL-FULL-NOTEBOOK": {
+        "client": "Master Notebook",
         "type": "pro",
-        "expiry": "",
+        "expiry": "2030-12-31",
         "valid": true,
         "features": {
             "tv": true,
