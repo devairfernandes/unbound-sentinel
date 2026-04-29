@@ -20,7 +20,8 @@
             "tv": true,
             "config": true,
             "update": true,
-            "charts": true
+            "charts": true,
+            "globe": true
         }
     }
 }
