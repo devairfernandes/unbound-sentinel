@@ -5,8 +5,8 @@
         "expiry": "2026-10-16",
         "valid": true,
         "features": {
-            "tv": true,
-            "config": true,
+            "tv": false,
+            "config": false,
             "update": true,
             "charts": true
         }
