@@ -8,7 +8,9 @@
             "tv": false,
             "config": false,
             "update": true,
-            "charts": true
+            "charts": true,
+            "globe": false,
+            "benchmark": false
         }
     },
     "SENTINEL-FULL-NOTEBOOK": {
