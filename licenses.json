@@ -9,7 +9,7 @@
             "config": true,
             "update": true,
             "charts": true,
-            "globe": false,
+            "globe": true,
             "benchmark": true
         }
     },
