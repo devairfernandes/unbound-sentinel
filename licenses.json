@@ -1,14 +1,14 @@
 {
     "SENTINEL-HPIYZ73E8": {
         "client": "NOC_OuroMax",
-        "type": "pro",
+        "type": "free",
         "expiry": "2026-10-16",
         "valid": true,
         "features": {
             "tv": false,
             "config": false,
-            "update": true,
-            "charts": true,
+            "update": false,
+            "charts": false,
             "globe": false,
             "benchmark": false
         }
@@ -23,7 +23,8 @@
             "config": true,
             "update": true,
             "charts": true,
-            "globe": true
+            "globe": true,
+            "benchmark": true
         }
     }
 }
