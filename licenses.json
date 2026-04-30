@@ -1,16 +1,16 @@
 {
     "SENTINEL-HPIYZ73E8": {
         "client": "NOC_OuroMax",
-        "type": "free",
+        "type": "pro",
         "expiry": "2026-10-16",
         "valid": true,
         "features": {
-            "tv": false,
-            "config": false,
-            "update": false,
-            "charts": false,
+            "tv": true,
+            "config": true,
+            "update": true,
+            "charts": true,
             "globe": false,
-            "benchmark": false
+            "benchmark": true
         }
     },
     "SENTINEL-FULL-NOTEBOOK": {
