@@ -1,9 +1,0 @@
-[
-    {
-        "name": "Servidor Produção 01",
-        "host": "IP_DO_SERVIDOR",
-        "port": 22,
-        "user": "USUARIO_SSH",
-        "pass": "SENHA_SSH"
-    }
-]

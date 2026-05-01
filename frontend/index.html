@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unbound Sentinel | DNS NOC</title>
-    <link rel="stylesheet" href="style.css?v=2.0">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="//unpkg.com/globe.gl"></script>
 </head>
 <body>
     <canvas id="particle-canvas"></canvas>
@@ -19,20 +20,29 @@
             </button>
         </div>
         <ul class="nav-links">
-            <li class="active" onclick="showSection('dashboard', this)">
+            <li class="active client-only" onclick="showSection('dashboard', this)">
                 <i data-lucide="layout-dashboard"></i> <span>Painel Geral</span>
+            </li>
+            <li onclick="showSection('monitoring', this)" class="master-only" style="display:none;">
+                <i data-lucide="monitor"></i> <span>Monitoramento</span>
+            </li>
+            <li onclick="showSection('servers', this)" class="master-only" style="display:none;">
+                <i data-lucide="server"></i> <span>Gestão de Clientes</span>
+            </li>
+            <li onclick="showSection('licenses', this)" class="master-only" style="display:none;">
+                <i data-lucide="key"></i> <span>Gestão de Licenças</span>
             </li>
             <li onclick="showSection('config', this)">
                 <i data-lucide="settings"></i> <span>Configurações</span>
             </li>
-            <li onclick="showSection('logs', this)">
-                <i data-lucide="info"></i> <span>Sistema</span>
+            <li onclick="showSection('logs', this)" class="client-only">
+                <i data-lucide="activity"></i> <span>Sistema</span>
             </li>
-            <li onclick="showSection('benchmark', this)">
+            <li onclick="showSection('benchmark', this)" class="client-only">
                 <i data-lucide="zap"></i> <span>Benchmark</span>
             </li>
             <li onclick="showSection('about', this)">
-                <i data-lucide="award"></i> <span>Sobre o Sistema</span>
+                <i data-lucide="info"></i> <span>Sobre o Sistema</span>
             </li>
         </ul>
         
@@ -41,7 +51,7 @@
             <span id="server-ip-display">Servidor NOC</span>
         </div>
 
-        <div class="sidebar-actions">
+        <div class="sidebar-actions client-only">
             <button class="sidebar-action-btn" onclick="toggleTVMode()">
                 <i data-lucide="tv"></i> <span>Modo TV</span>
             </button>
@@ -189,6 +199,18 @@
                     <div id="systemTrendChart"></div>
                 </div>
             </div>
+            <!-- Sentinel Global Traffic Globe -->
+            <div class="panel globe-panel" style="margin-top: 1.5rem; margin-bottom: 1.5rem; padding: 0; overflow: hidden; position: relative; height: 500px; border-radius: 20px;">
+                <div class="panel-header" style="position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <h3 style="margin:0; font-size: 0.9rem; letter-spacing: 1px;">SENTINEL GLOBAL TRAFFIC</h3>
+                    <div style="font-size: 0.7rem; opacity: 0.7;">Monitoramento de Resolução Mundial</div>
+                </div>
+                <div id="sentinel-globe" style="width: 100%; height: 100%;"></div>
+                <div class="globe-stats" style="position: absolute; bottom: 20px; right: 20px; z-index: 10; text-align: right;">
+                    <div id="globe-queries" style="font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: 800; color: var(--accent-primary);">0</div>
+                    <div style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Consultas em Tempo Real</div>
+                </div>
+            </div>
         </section>
 
         <section id="config-section">
@@ -227,11 +249,25 @@
                         <p>Escolher quais gráficos e cards exibir na tela.</p>
                     </div>
                 </div>
-                <div class="config-card" onclick="openConfigModule('credentials')">
+                <div class="config-card" onclick="openConfigModule('static-dns')">
+                    <div class="card-icon" style="background:rgba(14,165,233,0.15);border-color:rgba(14,165,233,0.3);"><i data-lucide="server-off" style="color:#0ea5e9;"></i></div>
+                    <div class="card-info">
+                        <h3>Sistemas Internos (Static)</h3>
+                        <p>Domínios locais que funcionam sem internet.</p>
+                    </div>
+                </div>
+                <div class="config-card master-only" onclick="openConfigModule('credentials')">
                     <div class="card-icon" style="background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.3);"><i data-lucide="key-round" style="color:#a855f7;"></i></div>
                     <div class="card-info">
                         <h3>Credenciais & SSH</h3>
                         <p>Alterar usuário, senha e conexão SSH do servidor.</p>
+                    </div>
+                </div>
+                <div class="config-card master-only" id="ddns-card" onclick="openConfigModule('ddns')">
+                    <div class="card-icon" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);"><i data-lucide="globe-2" style="color:#f59e0b;"></i></div>
+                    <div class="card-info">
+                        <h3>Acesso Externo (DDNS)</h3>
+                        <p>Configurar acesso via domínio (DuckDNS, No-IP).</p>
                     </div>
                 </div>
             </div>
@@ -248,6 +284,7 @@
                         <option value="local-zone.conf">local-zone.conf</option>
                         <option value="forward-zone.conf">forward-zone.conf</option>
                         <option value="access-control.conf">access-control.conf</option>
+                        <option value="static-dns.conf">static-dns.conf</option>
                     </select>
                 </div>
                 
@@ -268,10 +305,82 @@
                         </div>
                     </div>
                     <div id="credentials-view" class="module-content" style="display:none;"></div>
+                    <div id="ddns-view" class="module-content" style="display:none;"></div>
                 </div>
                 <div class="editor-actions">
                     <button class="btn btn-primary" onclick="saveConfig()">APLICAR ALTERAÇÕES</button>
                     <p id="save-status"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="monitoring-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Clientes Online (Real-Time)</h2>
+                    <p>Monitore o status e a saúde de todos os servidores Sentinel ativos.</p>
+                </div>
+                <div class="servers-toolbar" style="margin: 1.5rem 0;">
+                    <div style="display:flex; align-items:center; gap:10px; color:var(--accent-success); font-weight:bold;">
+                        <span class="live-dot" style="margin:0"></span> <span id="online-count">0</span> CLIENTES ATIVOS
+                    </div>
+                </div>
+                <div class="terminal-view" style="padding:0; border-radius:12px; overflow:hidden;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>CLIENTE / HOSTNAME</th>
+                                <th>IP</th>
+                                <th>VERSÃO</th>
+                                <th>STATUS</th>
+                                <th>ÚLTIMO SINAL</th>
+                                <th>AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-clients-list">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="servers-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Gestão Multi-Servidor (Clientes)</h2>
+                    <p>Gerencie e faça deploy para múltiplos nós Unbound diretamente do seu painel.</p>
+                </div>
+                <div class="servers-toolbar" style="margin: 1.5rem 0; display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="addNewServer()">
+                        <i data-lucide="plus"></i> ADICIONAR NOVO SERVIDOR
+                    </button>
+                    <button class="btn btn-secondary" onclick="runGlobalDeploy()" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:var(--accent-success);">
+                        <i data-lucide="send"></i> DEPLOY PARA TODOS
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadServers()">
+                        <i data-lucide="refresh-cw"></i> ATUALIZAR LISTA
+                    </button>
+                </div>
+                <div id="servers-list" class="servers-grid">
+                    <!-- Servidores serão injetados aqui -->
+                </div>
+            </div>
+        </section>
+
+        <section id="licenses-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Central de Licenças (Master)</h2>
+                    <p>Gerencie as chaves de ativação que seus clientes utilizam.</p>
+                </div>
+                <div class="servers-toolbar" style="margin: 1.5rem 0;">
+                    <button class="btn btn-primary" onclick="addNewLicense()">
+                        <i data-lucide="plus"></i> GERAR NOVA CHAVE
+                    </button>
+                </div>
+                <div id="licenses-list" class="servers-grid">
+                    <!-- Licenças serão injetadas aqui -->
                 </div>
             </div>
         </section>
@@ -323,18 +432,26 @@
                     <h2>Sentinel Speed Test | Benchmark DNS</h2>
                     <p>Compara o tempo de resposta do seu servidor local contra os gigantes globais.</p>
                 </div>
-                <div class="benchmark-controls" style="margin: 2rem 0; display: flex; align-items: center; gap: 1rem;">
+                <div class="benchmark-controls" style="margin: 2rem 0; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <div class="input-group" style="margin:0; flex-grow: 1; min-width: 250px;">
+                        <input type="text" id="benchmark-target" placeholder="Digite um domínio ou IP para testar (ex: uol.com.br)" style="width:100%; padding: 0.75rem 1rem;">
+                    </div>
                     <button class="btn btn-primary" id="run-benchmark-btn" onclick="runBenchmark()">
-                        <i data-lucide="play"></i> INICIAR TESTE DE PERFORMANCE
+                        <i data-lucide="play"></i> INICIAR TESTE
                     </button>
                     <div id="benchmark-loader" style="display:none; color: var(--accent-primary);">
-                        <i data-lucide="refresh-cw" class="icon-spin"></i> Rodando testes em 5 domínios globais...
+                        <i data-lucide="refresh-cw" class="icon-spin"></i> Testando performance...
                     </div>
                 </div>
-                <div id="benchmarkChart" style="min-height: 400px;"></div>
+                <div id="benchmarkChart" style="min-height: 400px; margin-bottom: 3rem;"></div>
+
+                <div id="benchmark-results" class="benchmark-grid" style="display:none;">
+                    <!-- Injetado via JS -->
+                </div>
+
                 <div class="benchmark-info" style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
-                    <p><strong>Como funciona:</strong> Realizamos 5 consultas para domínios diferentes (Google, Facebook, etc) em cada servidor e calculamos a média de tempo de resposta em milissegundos (ms).</p>
-                    <p><em>Quanto menor o valor, mais rápida é a navegação para o usuário final.</em></p>
+                    <p><strong>Como funciona:</strong> Realizamos consultas reais para múltiplos domínios globais e calculamos a latência exata de resolução.</p>
+                    <p><em>Um Sentinel Rank A+ indica que seu servidor está otimizado para performance máxima.</em></p>
                 </div>
             </div>
         </section>
@@ -401,5 +518,8 @@
 
     <script src="app.js?v=1.0.11"></script>
     <script>lucide.createIcons();</script>
+    <button id="exit-tv-btn" onclick="toggleTVMode()">
+        <i data-lucide="minimize-2"></i> <span>SAIR DO MODO TV</span>
+    </button>
 </body>
 </html>

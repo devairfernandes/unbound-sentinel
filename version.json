@@ -1,5 +1,5 @@
 {
-    "version": "2.2.0",
-    "description": "Retorno ao tema Escuro Sólido (Maior legibilidade) e sistema de update pronto.",
-    "date": "2026-04-27"
+    "version": "1.0.12",
+    "description": "Implementação de Módulo de Sistemas Internos (DNS Estático) com suporte a arquivos isolados.",
+    "date": "2026-04-29"
 }

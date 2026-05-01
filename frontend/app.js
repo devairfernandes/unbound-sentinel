@@ -374,13 +374,16 @@ async function fetchHistory() {
         if (!res.ok) return;
         const data = await res.json();
         
+        const isFree = currentFeatures.isFree;
+        const limit = isFree ? 10 : data.requests.length; 
+
         // Sincroniza o histórico local com o do backend
-        history.requests = data.requests;
-        history.net_rx = data.net_rx;
-        history.net_tx = data.net_tx;
-        history.cpu = data.cpu;
-        history.mem = data.mem;
-        history.labels = data.labels;
+        history.requests = data.requests.slice(-limit);
+        history.net_rx = data.net_rx.slice(-limit);
+        history.net_tx = data.net_tx.slice(-limit);
+        history.cpu = data.cpu.slice(-limit);
+        history.mem = data.mem.slice(-limit);
+        history.labels = data.labels.slice(-limit);
 
         // Atualiza os gráficos imediatamente
         if (charts.reqHistory) charts.reqHistory.updateSeries([{ data: history.requests }]);
@@ -435,6 +438,9 @@ function updateDashboard(data) {
 
         const ipv6El = document.getElementById('ipv6-queries');
         if (ipv6El) animateValue(ipv6El, ipv6Count.toLocaleString('pt-BR'));
+
+        const globeQueriesEl = document.getElementById('globe-queries');
+        if (globeQueriesEl) animateValue(globeQueriesEl, totalQueries.toLocaleString('pt-BR'));
 
 
 
@@ -558,7 +564,8 @@ function renderTopBars(id, items) {
     }
     const max = Math.max(...items.map(i => i.count));
     container.innerHTML = items.map(item => `
-        <div class="bar-item">
+        <div class="bar-item ${id === 'top-clients-list' ? 'clickable' : ''}" 
+             ${id === 'top-clients-list' ? `onclick="openClientDrilldown('${item.name}')"` : ''}>
             <div class="bar-name" title="${item.name}">${item.name}</div>
             <div class="bar-wrapper">
                 <div class="bar-fill" style="width: ${(item.count/max*100).toFixed(1)}%"></div>
@@ -570,7 +577,7 @@ function renderTopBars(id, items) {
 
 async function showSection(id, element) {
     if (!element) return;
-    if (id === 'config' && !authCredentials) {
+    if ((id === 'config' || id === 'servers') && !authCredentials) {
         showLogin();
         return;
     }
@@ -580,6 +587,8 @@ async function showSection(id, element) {
     if (section) section.classList.add('active-section');
     element.classList.add('active');
     if (id === 'config') loadConfig();
+    if (id === 'servers') loadServers();
+    if (id === 'licenses') loadLicenses();
 }
 
 function openConfigModule(module) {
@@ -598,6 +607,16 @@ function openConfigModule(module) {
     if (module === 'unbound') {
         title.innerText = 'Configuração Unbound';
         document.getElementById('config-selector').style.display = 'block';
+        document.getElementById('config-editor').style.display = 'block';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.querySelector('.editor-actions').style.display = 'flex';
+        loadConfig();
+    } else if (module === 'static-dns') {
+        title.innerText = 'Sistemas Internos (Static DNS)';
+        document.getElementById('config-selector').style.display = 'block';
+        document.getElementById('config-selector').value = 'static-dns.conf';
         document.getElementById('config-editor').style.display = 'block';
         document.getElementById('firewall-view').style.display = 'none';
         document.getElementById('network-view').style.display = 'none';
@@ -654,8 +673,20 @@ function openConfigModule(module) {
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
         document.getElementById('credentials-view').style.display = 'block';
+        document.getElementById('ddns-view').style.display = 'none';
         document.querySelector('.editor-actions').style.display = 'none';
         renderCredentials();
+    } else if (module === 'ddns') {
+        title.innerText = 'Acesso Externo & DDNS';
+        document.getElementById('config-selector').style.display = 'none';
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.getElementById('credentials-view').style.display = 'none';
+        document.getElementById('ddns-view').style.display = 'block';
+        document.querySelector('.editor-actions').style.display = 'none';
+        renderDDNS();
     }
 }
 
@@ -722,6 +753,20 @@ function renderCredentials() {
                     </div>
                 </div>
 
+                <!-- Master Server (Self-Hosted Update/License) -->
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="server" style="color:var(--accent-primary);width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Servidor Master (Self-Hosted)</h3>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:1rem;">
+                        <div>
+                            <label class="cred-label">URL do Master (ex: http://seu-dominio.duckdns.org:3000)</label>
+                            <input id="cred-master-url" type="text" class="cred-input" value="${data.masterUrl || ''}" placeholder="Deixe em branco para usar o GitHub">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- GitHub Integration -->
                 <div style="margin-bottom:2rem;">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
@@ -773,6 +818,7 @@ async function saveCredentials() {
     const sshUser  = document.getElementById('cred-ssh-user')?.value.trim();
     const sshPass  = document.getElementById('cred-ssh-pass')?.value.trim();
     const githubToken = document.getElementById('cred-github-token')?.value.trim();
+    const masterUrl = document.getElementById('cred-master-url')?.value.trim();
 
     if (dashUser) payload.dashUser = dashUser;
     if (dashPass) payload.dashPass = dashPass;
@@ -781,6 +827,7 @@ async function saveCredentials() {
     if (sshUser)  payload.sshUser  = sshUser;
     if (sshPass)  payload.sshPass  = sshPass;
     if (githubToken) payload.githubToken = githubToken;
+    if (masterUrl !== undefined) payload.masterUrl = masterUrl;
 
     if (Object.keys(payload).length === 0) {
         status.style.color = 'var(--accent-warning)';
@@ -1147,7 +1194,27 @@ async function loadConfig() {
     try {
         const res = await apiFetch(`${API_BASE}/config/${file}`);
         const data = await res.json();
-        editor.value = data.content;
+        
+        if (file === 'static-dns.conf' && (!data.content || data.content.trim() === '')) {
+            editor.value = `# ==========================================================
+#  SENTINEL DNS - SISTEMAS INTERNOS (STATIC)
+#  Estes domínios continuam funcionando mesmo sem internet.
+# ==========================================================
+
+# 1. Defina a zona como 'static'
+# local-zone: "meusistema.lan" static
+
+# 2. Adicione os registros A (IP)
+# local-data: "meusistema.lan IN A 192.168.1.10"
+# local-data: "erp.meusistema.lan IN A 192.168.1.11"
+
+# 3. Exemplo de DNS Transparente (Resolve local, mas se não tiver cai no recursivo)
+# local-zone: "empresa.com.br" transparent
+# local-data: "interno.empresa.com.br IN A 192.168.1.20"
+`;
+        } else {
+            editor.value = data.content || '';
+        }
     } catch (err) { editor.value = 'Acesso negado ou erro ao carregar'; }
 }
 
@@ -1229,6 +1296,8 @@ async function toggleAutoCleanup() {
 async function runBenchmark() {
     const btn = document.getElementById('run-benchmark-btn');
     const loader = document.getElementById('benchmark-loader');
+    const resultsContainer = document.getElementById('benchmark-results');
+    const targetInput = document.getElementById('benchmark-target');
     if (!btn || !loader || !charts.benchmark) return;
 
     if (!authCredentials) {
@@ -1236,20 +1305,72 @@ async function runBenchmark() {
         return;
     }
 
+    if (!currentFeatures.benchmark) {
+        alert("O recurso de Benchmark está disponível apenas na licença PRO.");
+        return;
+    }
+
+    const target = targetInput ? targetInput.value.trim() : '';
     btn.disabled = true;
     loader.style.display = 'block';
+    if (resultsContainer) resultsContainer.style.display = 'none';
     
     try {
-        const res = await apiFetch(`${API_BASE}/benchmark`);
+        const query = target ? `?target=${encodeURIComponent(target)}` : '';
+        const res = await apiFetch(`${API_BASE}/benchmark${query}`);
         const data = await res.json();
         
+        // Update Main Chart
         charts.benchmark.updateOptions({
             xaxis: { categories: data.map(d => d.name) }
         });
         charts.benchmark.updateSeries([{
-            name: 'Tempo de Resposta (ms)',
+            name: 'Média (ms)',
             data: data.map(d => d.avg)
         }]);
+
+        // Render Premium Leaderboard
+        if (resultsContainer) {
+            resultsContainer.style.display = 'grid';
+            const sortedData = [...data].sort((a,b) => a.avg - b.avg);
+            const winnerAvg = sortedData[0].avg;
+            
+            resultsContainer.innerHTML = sortedData.map(d => {
+                const isWinner = d.avg === winnerAvg;
+                let rank = 'D';
+                if (d.avg < 15) rank = 'A+';
+                else if (d.avg < 40) rank = 'A';
+                else if (d.avg < 80) rank = 'B';
+                else if (d.avg < 150) rank = 'C';
+
+                const color = d.avg < 15 ? '#10b981' : (d.avg < 40 ? '#38bdf8' : '#f43f5e');
+
+                return `
+                    <div class="benchmark-card ${isWinner ? 'winner' : ''}" style="border-left: 4px solid ${color}">
+                        <div class="rank-badge" style="color: ${color}">${rank}</div>
+                        ${isWinner ? '<div class="winner-label"><i data-lucide="award" style="width:12px;height:12px;"></i> MELHOR PERFORMANCE</div>' : ''}
+                        <div class="benchmark-header">
+                            <span class="benchmark-name">${d.name}</span>
+                            <span class="benchmark-avg" style="color: ${color}">${d.avg.toFixed(1)}<span>ms</span></span>
+                        </div>
+                        <div class="benchmark-details">
+                            ${d.details.map(det => `
+                                <div style="margin-bottom:12px;">
+                                    <div class="detail-row">
+                                        <span style="font-size:0.75rem; color:var(--text-secondary);">${det.domain}</span>
+                                        <span style="font-weight:700; font-family:'JetBrains Mono'; font-size:0.8rem;">${det.time}ms</span>
+                                    </div>
+                                    <div class="detail-bar-bg">
+                                        <div class="detail-bar-fill" style="width: ${Math.min(100, (det.time/200)*100)}%; background: ${det.time < 50 ? '#10b981' : (det.time < 150 ? '#f59e0b' : '#f43f5e')}; box-shadow: 0 0 10px ${det.time < 50 ? 'rgba(16,185,129,0.3)' : 'transparent'}"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        }
     } catch (err) {
         alert('Erro ao rodar benchmark: ' + err.message);
     } finally {
@@ -1308,23 +1429,12 @@ function updateClock() {
 }
 
 // ===== LICENÇA & RESTRIÇÕES =====
-let currentFeatures = { tv: false, config: false, update: false, charts: false };
+let currentFeatures = { tv: false, config: false, update: false, charts: false, globe: false };
 
 // ===== SISTEMA DE ATUALIZAÇÃO =====
 let currentVersion = "2.0.0"; // Versão base
 
-async function checkForSystemUpdate() {
-    try {
-        const res = await fetch('/version.json?t=' + Date.now());
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        if (data.version !== currentVersion && currentVersion !== "2.0.0") {
-            showUpdateToast(data.version, data.description);
-        }
-        currentVersion = data.version;
-    } catch (e) {}
-}
+// A verificação de atualização agora é tratada pela função no início do arquivo que usa a API /api/system/check-update
 
 function showUpdateToast(version, desc) {
     if (document.getElementById('update-toast')) return;
@@ -1374,12 +1484,27 @@ async function checkLicenseStatus() {
         
         const data = await res.json();
         const isPro = data.status.type === 'pro' && data.status.valid;
+        const isFree = data.status.type === 'free';
         currentFeatures = data.status.features || { tv: false, config: false, update: false, charts: false };
-        
+        currentFeatures.isFree = isFree;
+
         const display = document.getElementById('license-display');
         if (display) {
-            display.innerText = data.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
+            let label = data.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
+            if (data.status.expiry && data.status.expiry !== 'never') {
+                const date = new Date(data.status.expiry).toLocaleDateString('pt-BR');
+                label += ` • Vencimento: ${date}`;
+            }
+            display.innerText = label;
             display.style.color = isPro ? 'var(--accent-success)' : 'var(--accent-primary)';
+            
+            // Mostrar HWID para suporte se necessário
+            if (data.status.hwid) {
+                const hwidEl = document.createElement('div');
+                hwidEl.style = "font-size: 9px; opacity: 0.3; margin-top: 5px;";
+                hwidEl.innerText = "HWID: " + data.status.hwid;
+                display.appendChild(hwidEl);
+            }
         }
 
         // Lock Features based on detailed permissions
@@ -1389,10 +1514,15 @@ async function checkLicenseStatus() {
 
         if (!currentFeatures.update && updateBtn) updateBtn.style.display = 'none';
         
-        if (!currentFeatures.config && configMenu) {
-            configMenu.innerHTML = '<i data-lucide="lock"></i> <span>Configurações</span>';
-        } else if (currentFeatures.config && configMenu) {
+        if (configMenu) {
             configMenu.innerHTML = '<i data-lucide="settings"></i> <span>Configurações</span>';
+        }
+
+        const benchmarkBtn = document.getElementById('run-benchmark-btn');
+        if (!currentFeatures.benchmark && benchmarkBtn) {
+            benchmarkBtn.disabled = true;
+            benchmarkBtn.title = "Recurso disponível apenas na versão PRO";
+            benchmarkBtn.innerHTML = '<i data-lucide="lock"></i> BENCHMARK BLOQUEADO';
         }
 
         if (!currentFeatures.tv && tvMenu) {
@@ -1401,7 +1531,46 @@ async function checkLicenseStatus() {
             tvMenu.innerHTML = '<i data-lucide="tv"></i> <span>Modo TV</span>';
         }
 
+        const globePanel = document.querySelector('.globe-panel');
+        if (globePanel) {
+            globePanel.style.display = currentFeatures.globe ? 'block' : 'none';
+        }
+
         if (window.lucide) lucide.createIcons();
+
+        // Verificar se é Master ou Cliente para mostrar/esconder menus de gestão
+        fetch(`${API_BASE}/settings/credentials`, {
+            headers: authCredentials ? { 'Authorization': `Basic ${authCredentials}` } : {}
+        })
+        .then(r => r.json())
+        .then(config => {
+            const masterMenus = document.querySelectorAll('.master-only');
+            const clientOnly = document.querySelectorAll('.client-only');
+            const logoText = document.querySelector('.logo span');
+            
+            if (logoText) {
+                const role = config.isMaster ? 'MASTER' : 'MONITOR';
+                const os = config.os || 'Linux';
+                logoText.innerHTML = `SENTINEL | ${role}<br><small style="font-size:10px;opacity:0.5;">${window.location.hostname} (${os})</small>`;
+                logoText.style.display = 'block';
+                logoText.style.lineHeight = '1.2';
+            }
+
+            masterMenus.forEach(menu => {
+                menu.style.display = config.isMaster ? 'flex' : 'none';
+            });
+
+            clientOnly.forEach(item => {
+                item.style.display = config.isMaster ? 'none' : 'flex';
+            });
+            
+            // Se for Master, abre direto na gestão de clientes
+            if (config.isMaster) {
+                const serversMenu = document.querySelector('li[onclick*="servers"]');
+                showSection('servers', serversMenu);
+            }
+        }).catch(() => {});
+
     } catch (err) {
         console.error('Erro ao checar licença', err);
     }
@@ -1430,12 +1599,99 @@ async function promptLicenseKey() {
 // Intercept locked features
 const originalShowSection = showSection;
 showSection = async function(id, element) {
-    if (id === 'config' && !currentFeatures.config) {
-        alert("A área de Configurações está bloqueada na sua licença.\nEntre em contato com o administrador para liberar.");
-        return;
-    }
+    if (id === 'monitoring') loadActiveClients();
     return originalShowSection(id, element);
 };
+
+async function loadActiveClients() {
+    const list = document.getElementById('active-clients-list');
+    const countEl = document.getElementById('online-count');
+    if (!list) return;
+
+    try {
+        const res = await apiFetch('/api/system/active-clients');
+        const clients = await res.json();
+        
+        if (countEl) countEl.innerText = clients.length;
+
+        if (clients.length === 0) {
+            list.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; opacity:0.5;">Nenhum cliente conectado no momento.</td></tr>';
+            return;
+        }
+
+        list.innerHTML = clients.map(c => {
+            const lastSeen = new Date(c.lastSeen).toLocaleTimeString();
+            const isPending = c.status === 'free';
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight:700;">${c.client}</div>
+                        <div style="font-size:0.7rem; opacity:0.5;">${c.hostname}</div>
+                    </td>
+                    <td style="font-family:'JetBrains Mono';">${c.ip}</td>
+                    <td><span class="badge" style="background:rgba(255,255,255,0.05);">${c.version || 'v2.0'}</span></td>
+                    <td><span class="badge ${c.status}">${c.status.toUpperCase()}</span></td>
+                    <td>${lastSeen}</td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            ${isPending ? `
+                                <button class="btn btn-primary btn-small" onclick="approveClient('${c.hwid}', '${c.hostname}')">
+                                    <i data-lucide="check-circle" style="width:12px;"></i> ATIVAR PRO
+                                </button>
+                            ` : `
+                                <button class="btn btn-secondary btn-small" onclick="openEditLicenseByHWID('${c.hwid}')">
+                                    <i data-lucide="settings" style="width:12px;"></i> GERIR
+                                </button>
+                            `}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        list.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--accent-danger);">Erro ao carregar monitoramento.</td></tr>';
+    }
+}
+
+// Inicia o polling do monitoramento se estiver na seção correta
+setInterval(() => {
+    const monitorSection = document.getElementById('monitoring-section');
+    if (monitorSection && monitorSection.classList.contains('active-section')) {
+        loadActiveClients();
+    }
+}, 10000);
+
+async function approveClient(hwid, hostname) {
+    const clientName = prompt("Nome comercial para este cliente:", hostname);
+    if (!clientName) return;
+
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        
+        // Gera uma chave interna baseada no HWID
+        const key = 'AUTO-' + hwid.substring(0, 8).toUpperCase();
+        db[key] = {
+            hwid: hwid,
+            client: clientName,
+            type: 'pro',
+            valid: true,
+            features: { tv: true, config: true, update: true, charts: true, globe: true, benchmark: true }
+        };
+
+        await apiFetch(`${API_BASE}/system/licenses-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+
+        alert("Servidor ativado com sucesso como PRO!");
+        loadActiveClients();
+    } catch (e) {
+        alert("Erro ao aprovar cliente.");
+    }
+}
 
 const originalToggleTVMode = toggleTVMode;
 toggleTVMode = function() {
@@ -1457,7 +1713,624 @@ setInterval(updateClock, 1000);
 setInterval(checkForSystemUpdate, 30000); // Verifica atualizações a cada 30 segundos
 setInterval(checkLicenseStatus, 60000); // Re-valida a licença a cada 1 minuto (mais responsivo)
 
-// Double click to exit TV mode
-document.addEventListener('dblclick', () => {
-    if (document.body.classList.contains('tv-mode')) toggleTVMode();
+
+// ===== LICENSE MANAGEMENT LOGIC (MASTER ONLY) =====
+async function loadLicenses() {
+    const list = document.getElementById('licenses-list');
+    if (!list) return;
+    list.innerHTML = '<p class="loading">Carregando chaves...</p>';
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        renderLicensesList(db);
+    } catch (e) {
+        list.innerHTML = '<p style="color:var(--accent-danger);">Erro ao carregar banco de licenças.</p>';
+    }
+}
+
+function renderLicensesList(db) {
+    const list = document.getElementById('licenses-list');
+    if (!list) return;
+    const keys = Object.keys(db);
+    if (keys.length === 0) {
+        list.innerHTML = '<p style="grid-column: span 3; text-align: center; color: var(--text-secondary); padding: 3rem;">Nenhuma chave gerada.</p>';
+        return;
+    }
+    list.innerHTML = keys.map(key => {
+        const lic = db[key];
+        return `
+            <div class="server-card">
+                <div class="server-card-header">
+                    <h3>${lic.client}</h3>
+                    <span class="badge ${lic.type === 'pro' ? 'accept' : 'reject'}">${lic.type.toUpperCase()}</span>
+                </div>
+                <div class="server-info-row">
+                    <span class="server-info-label">Chave:</span>
+                    <span class="server-info-value" style="color:var(--accent-primary);">${key}</span>
+                </div>
+                <div class="server-info-row">
+                    <span class="server-info-label">Status:</span>
+                    <span class="server-info-value">${lic.valid ? 'Ativa' : 'Inativa'}</span>
+                </div>
+                <div class="server-actions">
+                    <button class="btn btn-primary" onclick="openEditLicense('${key}')">
+                        <i data-lucide="edit-3"></i> EDITAR PLANO
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleLicense('${key}')">
+                        <i data-lucide="${lic.valid ? 'pause' : 'play'}"></i> ${lic.valid ? 'SUSPENDER' : 'ATIVAR'}
+                    </button>
+                    <button class="btn btn-secondary" onclick="removeLicense('${key}')" style="color:var(--accent-danger);">
+                        <i data-lucide="trash-2"></i> EXCLUIR
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    if (window.lucide) lucide.createIcons();
+}
+async function openEditLicenseByHWID(hwid) {
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        let foundKey = null;
+        for (const key in db) {
+            if (db[key].hwid === hwid) {
+                foundKey = key;
+                break;
+            }
+        }
+        if (foundKey) {
+            openEditLicense(foundKey);
+        } else {
+            alert("Licença não encontrada para este HWID no banco de dados.");
+        }
+    } catch (e) {
+        alert("Erro ao carregar banco de licenças.");
+    }
+}
+
+async function openEditLicense(key) {
+    const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+    const db = await res.json();
+    const lic = db[key];
+    if (!lic) return;
+
+    const modalHtml = `
+        <div id="edit-license-modal" class="modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeModal('edit-license-modal')">
+                    <i data-lucide="x"></i>
+                </button>
+                
+                <div class="modal-header">
+                    <h2>Editar Plano</h2>
+                    <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:5px;">ID: ${key}</p>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nome do Cliente / Empresa</label>
+                        <input type="text" id="edit-lic-client" class="modern-input" value="${lic.client}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo de Plano</label>
+                        <select id="edit-lic-type" class="modern-input">
+                            <option value="pro" ${lic.type === 'pro' ? 'selected' : ''}>Pro / Premium</option>
+                            <option value="free" ${lic.type === 'free' ? 'selected' : ''}>Grátis / Básico</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Data de Expiração</label>
+                        <input type="date" id="edit-lic-expiry" class="modern-input" value="${lic.expiry || ''}">
+                        <p style="font-size:0.7rem; color:var(--text-secondary); margin-top:5px; opacity:0.6;">
+                            Deixe vazio para licença vitalícia.
+                        </p>
+                    </div>
+                    
+                    <label style="font-size:0.75rem; color:var(--accent-primary); margin-top:1.5rem; display:block; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Permissões da Licença</label>
+                    <div class="perm-grid">
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-tv" ${lic.features?.tv ? 'checked' : ''}>
+                            <label for="p-tv">MODO TV (NOC)</label>
+                        </div>
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-config" ${lic.features?.config ? 'checked' : ''}>
+                            <label for="p-config">CONFIGURAÇÕES</label>
+                        </div>
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-update" ${lic.features?.update ? 'checked' : ''}>
+                            <label for="p-update">ATUALIZAÇÃO</label>
+                        </div>
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-charts" ${lic.features?.charts ? 'checked' : ''}>
+                            <label for="p-charts">GRÁFICOS</label>
+                        </div>
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-globe" ${lic.features?.globe ? 'checked' : ''}>
+                            <label for="p-globe">MAPA GLOBAL</label>
+                        </div>
+                        <div class="perm-check">
+                            <input type="checkbox" id="p-benchmark" ${lic.features?.benchmark ? 'checked' : ''}>
+                            <label for="p-benchmark">BENCHMARK</label>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" onclick="saveLicenseEdit('${key}')" style="width:100%; justify-content:center; padding:14px; border-radius:14px;">
+                            <i data-lucide="refresh-cw"></i> Sincronizar com Servidor
+                        </button>
+                        <p id="edit-lic-status" style="text-align:center; margin-top:15px; font-size:0.8rem; font-weight:500; min-height:1.2rem;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    if (window.lucide) lucide.createIcons();
+}
+
+async function openClientDrilldown(ip) {
+    const modalHtml = `
+        <div id="client-drilldown-modal" class="modal-overlay">
+            <div class="modal-content" style="max-width: 600px;">
+                <button class="modal-close" onclick="closeModal('client-drilldown-modal')">
+                    <i data-lucide="x"></i>
+                </button>
+                <div class="modal-header">
+                    <h2 style="background: linear-gradient(90deg, #fff, var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Investigação de Cliente</h2>
+                    <p style="color:var(--accent-primary); font-family:'JetBrains Mono'; margin-top:10px; font-weight:700; font-size:1.1rem; letter-spacing:1px;">${ip}</p>
+                </div>
+                <div class="modal-body" id="client-drilldown-body">
+                    <div style="text-align:center; padding:3rem;">
+                        <i data-lucide="loader" class="spin" style="width:40px; height:40px; color:var(--accent-primary); margin-bottom:15px;"></i>
+                        <p style="opacity:0.6;">Coletando telemetria e analisando pacotes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const res = await apiFetch(`${API_BASE}/stats/client/${ip}`);
+        const data = await res.json();
+        
+        const body = document.getElementById('client-drilldown-body');
+        if (!body) return;
+
+        if (!data.topDomains || data.topDomains.length === 0) {
+            body.innerHTML = '<div style="text-align:center; padding:3rem; opacity:0.6;"><i data-lucide="info" style="width:40px; margin-bottom:10px;"></i><br>Nenhuma atividade recente encontrada para este IP nos logs do Unbound.</div>';
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        body.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:2.5rem;">
+                <div class="stat-card" style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--card-border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <label style="font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Volume de Consultas (2k logs)</label>
+                    <div style="font-size:1.8rem; font-weight:800; color:var(--accent-primary); margin-top:5px;">${data.total.toLocaleString()}</div>
+                </div>
+                <div class="stat-card" style="background:rgba(255,255,255,0.02); padding:20px; border-radius:16px; border:1px solid var(--card-border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <label style="font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Último Evento Detectado</label>
+                    <div style="font-size:1.8rem; font-weight:800; color:var(--accent-success); margin-top:5px;">${new Date(data.lastUpdate).toLocaleTimeString()}</div>
+                </div>
+            </div>
+
+            <label style="font-size:0.75rem; color:var(--accent-primary); font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:20px; display:block;">Domínios mais acessados por este dispositivo</label>
+            <div class="bar-list">
+                ${data.topDomains.map(d => `
+                    <div class="bar-item" style="padding:12px 0;">
+                        <div class="bar-name" style="font-size:0.85rem; font-weight:500;">${d.name}</div>
+                        <div class="bar-wrapper" style="height:6px; background:rgba(255,255,255,0.05);">
+                            <div class="bar-fill" style="width: ${(d.count / data.topDomains[0].count * 100).toFixed(1)}%; background: linear-gradient(90deg, var(--accent-primary), #60a5fa);"></div>
+                        </div>
+                        <div class="bar-count" style="font-size:0.85rem; font-family:'JetBrains Mono'; font-weight:700;">${d.count}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="modal-footer" style="margin-top:3rem; display:flex; gap:12px;">
+                <button class="btn btn-secondary" onclick="closeModal('client-drilldown-modal')" style="flex:1; justify-content:center; padding:14px; border-radius:12px;">VOLTAR</button>
+                <button class="btn btn-primary" style="flex:1; justify-content:center; background:rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color:#f87171; padding:14px; border-radius:12px;" onclick="alert('Funcionalidade de bloqueio rápido será integrada ao módulo de Firewall em breve.')">
+                    <i data-lucide="shield-alert"></i> BLOQUEAR DISPOSITIVO
+                </button>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        document.getElementById('client-drilldown-body').innerHTML = '<div style="text-align:center; color:var(--accent-danger); padding:2rem;">Erro ao carregar telemetria do cliente. Verifique a conexão com o servidor Master.</div>';
+    }
+}
+
+async function saveLicenseEdit(key) {
+    const status = document.getElementById('edit-lic-status');
+    status.innerText = 'Sincronizando com Master...';
+    status.style.color = 'var(--accent-primary)';
+
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        
+        db[key] = {
+            ...db[key],
+            client: document.getElementById('edit-lic-client').value,
+            type: document.getElementById('edit-lic-type').value,
+            expiry: document.getElementById('edit-lic-expiry').value,
+            features: {
+                tv: document.getElementById('p-tv').checked,
+                config: document.getElementById('p-config').checked,
+                update: document.getElementById('p-update').checked,
+                charts: document.getElementById('p-charts').checked,
+                globe: document.getElementById('p-globe').checked,
+                benchmark: document.getElementById('p-benchmark').checked
+            }
+        };
+
+        await apiFetch(`${API_BASE}/system/licenses-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+
+        status.innerText = 'Licença atualizada e sincronizada com Master Sentinel!';
+        status.style.color = 'var(--accent-success)';
+        setTimeout(() => {
+            closeModal('edit-license-modal');
+            loadLicenses();
+        }, 1500);
+    } catch (e) {
+        status.innerText = 'Erro ao sincronizar';
+        status.style.color = 'var(--accent-danger)';
+    }
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.remove();
+}
+
+async function addNewLicense() {
+    const client = prompt("Nome do Cliente:");
+    if (!client) return;
+    const key = 'SENTINEL-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        db[key] = {
+            type: 'pro',
+            valid: true,
+            client: client,
+            features: { tv: true, config: true, update: true, charts: true, globe: true }
+        };
+        
+        await apiFetch(`${API_BASE}/system/licenses-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+        loadLicenses();
+    } catch (e) { alert('Erro ao gerar chave'); }
+}
+
+async function toggleLicense(key) {
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        if (db[key]) {
+            db[key].valid = !db[key].valid;
+            await apiFetch(`${API_BASE}/system/licenses-db`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(db)
+            });
+            loadLicenses();
+        }
+    } catch (e) { alert('Erro ao alterar status'); }
+}
+
+async function removeLicense(key) {
+    if (!confirm('Deseja excluir esta chave permanentemente?')) return;
+    try {
+        const res = await apiFetch(`${API_BASE}/system/licenses-db`);
+        const db = await res.json();
+        delete db[key];
+        await apiFetch(`${API_BASE}/system/licenses-db`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(db)
+        });
+        loadLicenses();
+    } catch (e) { alert('Erro ao excluir chave'); }
+}
+
+// ===== MULTI-SERVER MANAGEMENT LOGIC =====
+async function loadServers() {
+    const list = document.getElementById('servers-list');
+    if (!list) return;
+    list.innerHTML = '<p class="loading">Sincronizando clientes...</p>';
+    try {
+        const res = await apiFetch(`${API_BASE}/servers`);
+        const servers = await res.json();
+        renderServersList(servers);
+    } catch (e) {
+        list.innerHTML = '<p style="color:var(--accent-danger);">Erro ao carregar lista de servidores.</p>';
+    }
+}
+
+function renderServersList(servers) {
+    const list = document.getElementById('servers-list');
+    if (!list) return;
+    if (servers.length === 0) {
+        list.innerHTML = '<p style="grid-column: span 3; text-align: center; color: var(--text-secondary); padding: 3rem;">Nenhum cliente cadastrado. Adicione um servidor para começar.</p>';
+        return;
+    }
+    list.innerHTML = servers.map((s, i) => `
+        <div class="server-card">
+            <div class="server-card-header">
+                <h3>${s.name}</h3>
+                <i data-lucide="server" style="width:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="server-info-row">
+                <span class="server-info-label">Host:</span>
+                <span class="server-info-value">${s.host}</span>
+            </div>
+            <div class="server-info-row">
+                <span class="server-info-label">Porta:</span>
+                <span class="server-info-value">${s.port || 22}</span>
+            </div>
+            <div class="server-info-row">
+                <span class="server-info-label">Usuário:</span>
+                <span class="server-info-value">${s.user}</span>
+            </div>
+            <div class="server-actions">
+                <button class="btn btn-primary" onclick="runRemoteDeploy(${i})">
+                    <i data-lucide="upload-cloud"></i> DEPLOY
+                </button>
+                <button class="btn btn-secondary" onclick="removeServer(${i})" style="color:var(--accent-danger);">
+                    <i data-lucide="trash-2"></i> REMOVER
+                </button>
+            </div>
+        </div>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+}
+
+async function addNewServer() {
+    const name = prompt("Nome do Servidor (ex: Cliente 01):");
+    if (!name) return;
+    const host = prompt("IP ou Host do Servidor:");
+    if (!host) return;
+    const port = prompt("Porta SSH (padrão 22):", "22");
+    const user = prompt("Usuário SSH (padrão root):", "root");
+    const pass = prompt("Senha SSH:");
+    
+    try {
+        const res = await apiFetch(`${API_BASE}/servers`);
+        const servers = await res.json();
+        servers.push({ name, host, port: parseInt(port), user, pass });
+        
+        await apiFetch(`${API_BASE}/servers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(servers)
+        });
+        loadServers();
+    } catch (e) { alert('Erro ao adicionar servidor'); }
+}
+
+async function removeServer(index) {
+    if (!confirm('Deseja remover este servidor da lista?')) return;
+    try {
+        const res = await apiFetch(`${API_BASE}/servers`);
+        const servers = await res.json();
+        servers.splice(index, 1);
+        await apiFetch(`${API_BASE}/servers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(servers)
+        });
+        loadServers();
+    } catch (e) { alert('Erro ao remover servidor'); }
+}
+
+async function runRemoteDeploy(index) {
+    try {
+        const res = await apiFetch(`${API_BASE}/deploy/${index}`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Comando de deploy enviado!');
+    } catch (e) { alert('Erro ao iniciar deploy'); }
+}
+
+async function runGlobalDeploy() {
+    if (!confirm('Deseja iniciar o deploy em massa para TODOS os servidores cadastrados?')) return;
+    try {
+        const res = await apiFetch(`${API_BASE}/deploy/all`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Deploy global iniciado!');
+    } catch (e) { alert('Erro ao iniciar deploy global'); }
+}
+
+// ===== DDNS VIEW LOGIC =====
+function renderDDNS() {
+    const view = document.getElementById('ddns-view');
+    if (!view) return;
+    view.innerHTML = `
+        <div style="max-width: 700px;">
+            <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--card-border);">
+                <p style="color: var(--text-secondary); line-height: 1.6;">
+                    Para acessar este painel de qualquer lugar do mundo (como do seu celular ou de casa), você pode usar um serviço de <strong>DNS Dinâmico (DDNS)</strong>.
+                </p>
+            </div>
+
+            <div class="ddns-guide">
+                <h4>🚀 Sugestão: Como configurar acesso via domínio grátis</h4>
+                <ul>
+                    <li><strong>DuckDNS:</strong> Crie um subdomínio grátis (ex: <code>meusentinel.duckdns.org</code>).</li>
+                    <li><strong>Instalação:</strong> No servidor onde o painel está rodando, instale o cliente do DuckDNS para manter o IP atualizado.</li>
+                    <li><strong>Port Forwarding:</strong> Libere a porta <code>3000</code> no seu roteador para o IP interno desta máquina.</li>
+                    <li><strong>Pronto!</strong> Você poderá acessar via: <code>http://seu-dominio.duckdns.org:3000</code></li>
+                </ul>
+            </div>
+
+            <div class="ddns-guide" style="margin-top: 1rem; background: rgba(168,85,247,0.05); border-color: rgba(168,85,247,0.2);">
+                <h4>⚡ Alternativa: Cloudflare Tunnels (Recomendado)</h4>
+                <p>O Cloudflare Tunnel (cloudflared) permite expor seu painel para a internet <strong>sem precisar abrir portas no roteador</strong>. É mais seguro e profissional.</p>
+                <ol style="margin-left: 1.25rem; margin-top: 0.5rem;">
+                    <li>Crie uma conta na Cloudflare.</li>
+                    <li>Vá em Zero Trust -> Networks -> Tunnels.</li>
+                    <li>Siga as instruções para instalar o <code>cloudflared</code> e apontar para <code>localhost:3000</code>.</li>
+                </ol>
+            </div>
+        </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+}
+
+// ===== SENTINEL GLOBE =====
+let sentinelGlobe = null;
+function initGlobe() {
+    const container = document.getElementById('sentinel-globe');
+    if (!container) return;
+
+    const hubs = [
+        { lat: -23.5505, lng: -46.6333, name: 'São Paulo' },
+        { lat: 40.7128, lng: -74.0060, name: 'New York' },
+        { lat: 51.5074, lng: -0.1278, name: 'London' },
+        { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
+        { lat: -33.8688, lng: 151.2093, name: 'Sydney' },
+        { lat: 25.2048, lng: 55.2708, name: 'Dubai' }
+    ];
+
+    if (typeof Globe === 'undefined') {
+        console.error('Globe.gl library not loaded');
+        container.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding-top:200px;">Erro ao carregar visualização 3D.</p>';
+        return;
+    }
+
+    const updateDimensions = () => {
+        if (!container || !sentinelGlobe) return;
+        const w = container.offsetWidth || 800;
+        const h = container.offsetHeight || 500;
+        sentinelGlobe.width(w).height(h);
+    };
+
+    try {
+        sentinelGlobe = Globe()(container)
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .backgroundColor('rgba(0,0,0,0)')
+            .showAtmosphere(true)
+            .atmosphereColor('#38bdf8');
+
+        sentinelGlobe.controls().autoRotate = true;
+        sentinelGlobe.controls().autoRotateSpeed = 0.5;
+        sentinelGlobe.controls().enableZoom = false;
+
+        // Configuração de Hubs e Arcos (Sync)
+        sentinelGlobe.pointsData(hubs)
+            .pointAltitude(0.01)
+            .pointColor(() => '#38bdf8')
+            .pointRadius(0.4)
+            .pointResolution(32)
+            .pointLabel(d => `<div style="background:rgba(0,0,0,0.9); padding:8px; border:1px solid #38bdf8; border-radius:8px; box-shadow:0 0 15px rgba(56,189,248,0.3);">
+                <strong style="color:#38bdf8; font-size:14px;">${d.name}</strong><br>
+                <span style="color:#fff; font-size:11px; opacity:0.8;">Sentinel Node Active</span>
+            </div>`);
+
+        sentinelGlobe
+            .arcColor(d => d.color)
+            .arcDashLength(0.4)
+            .arcDashGap(2)
+            .arcDashAnimateTime(2000)
+            .arcStroke(1.5)
+            .arcAltitude(0.25);
+
+        // Inicia Arcos Imediatamente
+        updateGlobeArcs();
+
+        // Pulsação (Sync)
+        sentinelGlobe.ringsData(hubs)
+            .ringColor(() => '#38bdf8')
+            .ringMaxRadius(5)
+            .ringPropagationSpeed(1.5)
+            .ringRepeatPeriod(2000);
+
+        // Ajuste de Dimensões
+        updateDimensions();
+        setTimeout(updateDimensions, 500);
+        setTimeout(updateDimensions, 2000);
+
+        // Efeito de Malha Digital (Async - Non-blocking)
+        fetch('https://raw.githubusercontent.com/vasturiano/three-globe/master/example/country-polygons/ne_110m_admin_0_countries.geojson')
+            .then(res => res.json())
+            .then(countries => {
+                if (sentinelGlobe) {
+                    sentinelGlobe.hexPolygonsData(countries.features)
+                        .hexPolygonResolution(3)
+                        .hexPolygonMargin(0.7)
+                        .hexPolygonColor(() => 'rgba(56, 189, 248, 0.4)');
+                }
+            })
+            .catch(err => console.warn('Erro ao carregar malha digital:', err));
+
+    } catch (e) {
+        console.error('Erro na inicialização do Globo:', e);
+    }
+}
+
+function updateGlobeArcs() {
+    if (!sentinelGlobe) return;
+    const hubs = [
+        { lat: -23.5505, lng: -46.6333 },
+        { lat: 40.7128, lng: -74.0060 },
+        { lat: 51.5074, lng: -0.1278 },
+        { lat: 35.6762, lng: 139.6503 },
+        { lat: -33.8688, lng: 151.2093 },
+        { lat: 25.2048, lng: 55.2708 }
+    ];
+
+    const arcs = Array.from({ length: 15 }, () => {
+        const start = hubs[Math.floor(Math.random() * hubs.length)];
+        let end = hubs[Math.floor(Math.random() * hubs.length)];
+        
+        while (end === start) {
+            end = hubs[Math.floor(Math.random() * hubs.length)];
+        }
+
+        return {
+            startLat: start.lat, startLng: start.lng,
+            endLat: end.lat, endLng: end.lng,
+            color: ["#38bdf8", "#10b981", "#f59e0b"][Math.floor(Math.random() * 3)]
+        };
+    });
+
+    sentinelGlobe.arcsData(arcs);
+
+    setTimeout(updateGlobeArcs, 5000);
+}
+
+window.addEventListener("resize", () => {
+    if (sentinelGlobe) {
+        const container = document.getElementById("sentinel-globe");
+        if (container) {
+            sentinelGlobe.width(container.offsetWidth);
+            sentinelGlobe.height(container.offsetHeight);
+        }
+    }
 });
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.body.classList.contains('tv-mode')) {
+            toggleTVMode();
+        }
+    }
+});
+
+setTimeout(initGlobe, 1000);
