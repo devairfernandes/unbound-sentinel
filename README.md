@@ -25,7 +25,7 @@
 
 | Dashboard Principal | Globo 3D (PRO) |
 |:---:|:---:|
-| ![Dashboard](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/screen1.png) | ![Globe](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/screen2.png) |
+| ![Dashboard](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/screen1-real.png) | ![Globe](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/screen2-real.png) |
 
 ---
 
