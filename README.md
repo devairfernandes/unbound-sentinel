@@ -1,6 +1,6 @@
 # 🛡️ Unbound Sentinel
 
-![Sentinel Header](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/banner.png)
+![Sentinel Header](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/banner-v2.png)
 
 **Unbound Sentinel** é um painel de monitoramento avançado para servidores DNS Unbound, projetado para oferecer visibilidade total, performance e segurança em tempo real. Com uma interface ultra-moderna e recursos de nível NOC (Network Operations Center), o Sentinel transforma dados brutos de DNS em inteligência visual.
 
