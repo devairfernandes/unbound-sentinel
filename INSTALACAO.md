@@ -1,6 +1,6 @@
 # 🛡️ Unbound Sentinel — Guia de Instalação e Funcionalidades
 
-**Versão:** 1.6.2 (Elite System)  
+**Versão:** 1.6.3 (Elite System)  
 **Compatível com:** CentOS 7/8/9 · Rocky Linux · AlmaLinux · Debian 11/12 · Ubuntu 20+  
 **Requisitos:** Servidor Linux com Unbound DNS instalado e acesso root via SSH
 

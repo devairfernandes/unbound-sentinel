@@ -1,5 +1,5 @@
 {
-    "version": "1.6.2",
-    "description": "Auto-Update Test: Verificando a integridade do sistema de atualização entre Master e Client.",
+    "version": "1.6.3",
+    "description": "Elite Update v1.6.3: Otimização do núcleo de atualização e remoção de redundâncias de instalação.",
     "date": "2026-05-14"
 }

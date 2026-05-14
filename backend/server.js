@@ -530,13 +530,11 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
             }
 
             const updateScript = `
-                cd /opt/unbound-dashboard &&
-                curl -s ${curlOptions} -o update.tar.gz ${downloadUrl} &&
-                tar -xzf update.tar.gz --strip-components=1 &&
-                rm update.tar.gz &&
-                npm install --omit=dev &&
-                (sudo systemctl restart unbound-dashboard || systemctl restart unbound-dashboard || pm2 restart all || forever restartall)
-            `;
+        cd /opt/unbound-dashboard &&
+        curl -s ${curlOptions} -o update.tar.gz ${downloadUrl} &&
+        tar -xzf update.tar.gz --strip-components=1 &&
+        (sudo systemctl restart unbound-dashboard || systemctl restart unbound-dashboard || pm2 restart all || forever restartall || node backend/server.js &) > /tmp/sentinel_update.log 2>&1
+    `;
             exec(updateScript, (err, stdout, stderr) => {
                 if (err) {
                     const errorMsg = stderr || err.message;
@@ -674,6 +672,7 @@ app.get('/api/system/package-info', (req, res) => {
 
 // Rota para que clientes possam baixar a atualização diretamente desta máquina (Master)
 app.get('/api/system/download-package', (req, res) => {
+    console.log(`[MASTER] Recebida solicitação de download de pacote de atualização de: ${req.ip}`);
     const tarFile = path.join(__dirname, '..', 'update-package.tar.gz');
     const parentDir = path.join(__dirname, '../..');
     const folderName = path.basename(path.join(__dirname, '..'));
