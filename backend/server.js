@@ -529,15 +529,10 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 curlOptions = GITHUB_TOKEN ? `-L ${authHeader} -H "Accept: application/vnd.github.v3+json"` : '-L';
             }
 
-            const isGitHub = downloadUrl.includes('github.com');
-            const tarCommand = isGitHub 
-                ? `tar -xzf update.tar.gz --strip-components=1` 
-                : `tar -xzf update.tar.gz`;
-
             const updateScript = `
                 cd /opt/unbound-dashboard &&
                 curl -s ${curlOptions} -o update.tar.gz ${downloadUrl} &&
-                ${tarCommand} &&
+                tar -xzf update.tar.gz --strip-components=1 &&
                 rm update.tar.gz &&
                 npm install --omit=dev &&
                 sudo systemctl restart unbound-dashboard
@@ -678,11 +673,17 @@ app.get('/api/system/package-info', (req, res) => {
 // Rota para que clientes possam baixar a atualização diretamente desta máquina (Master)
 app.get('/api/system/download-package', auth, (req, res) => {
     const tarFile = path.join(__dirname, '..', 'update-package.tar.gz');
-    // Cria um tar.gz do diretório atual (excluindo node_modules e .git)
-    const cmd = `tar -czf "${tarFile}" --exclude="node_modules" --exclude=".git" -C "${path.join(__dirname, '..')}" .`;
+    const parentDir = path.join(__dirname, '../..');
+    const folderName = path.basename(path.join(__dirname, '..'));
+    
+    // Cria um tar.gz que inclui a pasta raiz, para ser compatível com o --strip-components=1 dos clientes
+    const cmd = `tar -czf "${tarFile}" --exclude="node_modules" --exclude=".git" -C "${parentDir}" "${folderName}"`;
     
     exec(cmd, (err) => {
-        if (err) return res.status(500).send('Erro ao gerar pacote');
+        if (err) {
+            console.error('Erro ao gerar pacote:', err);
+            return res.status(500).send('Erro ao gerar pacote');
+        }
         res.download(tarFile, 'sentinel-update.tar.gz', () => {
             if (fs.existsSync(tarFile)) fs.unlinkSync(tarFile);
         });
