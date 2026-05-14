@@ -30,8 +30,33 @@ let lastStatsTotal = 0;
 const ENV_PATH = path.join(__dirname, '..', '.env');
 const envConfig = require('dotenv').config({ path: ENV_PATH }).parsed || {};
 
-let ADMIN_USER = envConfig.DASH_USER || 'admin';
-let ADMIN_PASS = envConfig.DASH_PASS || 'sentinel2026';
+const ADMIN_USER = envConfig.DASH_USER || 'admin';
+const ADMIN_PASS = envConfig.DASH_PASS || 'sentinel2026';
+const USERS_FILE = path.join(__dirname, '..', 'users.json');
+
+// --- HELPER DE USUÁRIOS & SEGURANÇA ---
+function getUsers() {
+    if (!fs.existsSync(USERS_FILE)) {
+        // Se não existir, cria o admin padrão do .env
+        const hash = crypto.createHash('sha256').update(ADMIN_PASS).digest('hex');
+        const defaultUsers = { [ADMIN_USER]: { password: hash, role: 'admin', name: 'Administrador' } };
+        fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 4));
+        return defaultUsers;
+    }
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+}
+
+function verifyPassword(user, plainPass) {
+    const users = getUsers();
+    if (!users[user]) {
+        console.log(`[Auth] Usuário não encontrado: ${user}`);
+        return false;
+    }
+    const hash = crypto.createHash('sha256').update(plainPass).digest('hex');
+    const isValid = users[user].password === hash;
+    if (!isValid) console.log(`[Auth] Senha incorreta para: ${user}`);
+    return isValid;
+}
 let LICENSE_KEY = envConfig.SENTINEL_KEY || envConfig.SENTINEL_LICENSE_KEY || 'FREE';
 let GITHUB_TOKEN = envConfig.GITHUB_TOKEN || '';
 
@@ -235,7 +260,11 @@ const auth = (req, res, next) => {
     if (!authHeader) return res.status(401).json({ error: 'Acesso negado' });
     try {
         const [user, pass] = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-        if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        const users = getUsers();
+        
+        if (users[user] && verifyPassword(user, pass)) {
+            req.user = { id: user, ...users[user] };
+            delete req.user.password; // Remove hash por segurança
             next();
         } else {
             res.status(401).json({ error: 'Credenciais inválidas' });
@@ -245,15 +274,29 @@ const auth = (req, res, next) => {
     }
 };
 
+// Middleware para validar permissão mínima
+const requireRole = (roles) => (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'Não autenticado' });
+    if (roles.includes(req.user.role)) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Permissão insuficiente para esta ação' });
+    }
+};
+
 app.use(cors());
 app.use(express.json());
 
 app.post('/api/login', (req, res) => {
     const { user, pass } = req.body;
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        res.json({ message: 'Login realizado com sucesso' });
+    const users = getUsers();
+    
+    if (users[user] && verifyPassword(user, pass)) {
+        const userData = { ...users[user] };
+        delete userData.password;
+        res.json({ message: 'Login realizado', user: userData });
     } else {
-        res.status(401).json({ error: 'Usuário ou senha incorretos' });
+        res.status(401).json({ error: 'Usuário ou senha inválidos' });
     }
 });
 
@@ -315,9 +358,9 @@ function updateEnvKey(content, key, value) {
     return re.test(content) ? content.replace(re, line) : content + `\n${line}`;
 }
 
-app.get('/api/settings/credentials', auth, (req, res) => {
+app.get('/api/settings/credentials', auth, requireRole(['admin']), (req, res) => {
     res.json({
-        dashUser: ADMIN_USER,
+        dashUser: req.user.id,
         sshHost: sshConfig.host,
         sshPort: sshConfig.port,
         sshUser: sshConfig.username,
@@ -328,7 +371,7 @@ app.get('/api/settings/credentials', auth, (req, res) => {
     });
 });
 
-app.post('/api/settings/credentials', auth, (req, res) => {
+app.post('/api/settings/credentials', auth, requireRole(['admin']), (req, res) => {
     const { dashUser, dashPass, sshHost, sshPort, sshUser, sshPass } = req.body;
     let env = readEnvFile();
 
@@ -411,12 +454,12 @@ app.post('/api/system/check-in', (req, res) => {
     res.status(403).json({ error: 'Not a master node' });
 });
 
-app.get('/api/system/active-clients', auth, (req, res) => {
+app.get('/api/system/active-clients', auth, requireRole(['admin', 'operator']), (req, res) => {
     if (envConfig.IS_MASTER !== 'true') return res.status(403).json({ error: 'Master only' });
     res.json(Object.values(activeSessions));
 });
 
-app.post('/api/system/license', auth, async (req, res) => {
+app.post('/api/system/license', auth, requireRole(['admin']), async (req, res) => {
     const { key } = req.body;
     let env = readEnvFile();
     const newKey = (key || 'FREE').trim();
@@ -464,7 +507,7 @@ app.get('/api/system/check-update', auth, async (req, res) => {
     }
 });
 
-app.post('/api/system/update', auth, (req, res) => {
+app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
     try {
         const MASTER_URL = process.env.MASTER_URL || 'http://servidor-licencas.duckdns.org:3300';
         res.json({ message: 'Atualização iniciada. O painel ficará indisponível por alguns segundos enquanto reinicia.' });
@@ -503,8 +546,40 @@ app.post('/api/system/update', auth, (req, res) => {
     }
 });
 
+// ===== GESTÃO DE USUÁRIOS (ADMIN ONLY) =====
+app.get('/api/system/users', auth, requireRole(['admin']), (req, res) => {
+    const users = getUsers();
+    const list = Object.keys(users).map(id => ({ id, ...users[id] }));
+    list.forEach(u => delete u.password);
+    res.json(list);
+});
+
+app.post('/api/system/users', auth, requireRole(['admin']), (req, res) => {
+    const { id, password, role, name } = req.body;
+    if (!id || !password || !role) return res.status(400).json({ error: 'Dados incompletos' });
+    
+    const users = getUsers();
+    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    users[id] = { password: hash, role, name: name || id };
+    
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+    res.json({ message: 'Usuário salvo com sucesso!' });
+});
+
+app.delete('/api/system/users/:id', auth, requireRole(['admin']), (req, res) => {
+    const id = req.params.id;
+    if (id === req.user.id) return res.status(400).json({ error: 'Você não pode excluir a si mesmo' });
+    
+    const users = getUsers();
+    if (!users[id]) return res.status(404).json({ error: 'Usuário não encontrado' });
+    
+    delete users[id];
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+    res.json({ message: 'Usuário removido!' });
+});
+
 // ===== MULTI-SERVER MANAGEMENT =====
-app.get('/api/servers', auth, (req, res) => {
+app.get('/api/servers', auth, requireRole(['admin', 'operator']), (req, res) => {
     try {
         const servers = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'servers.json'), 'utf8'));
         res.json(servers);
@@ -513,7 +588,7 @@ app.get('/api/servers', auth, (req, res) => {
     }
 });
 
-app.post('/api/servers', auth, (req, res) => {
+app.post('/api/servers', auth, requireRole(['admin']), (req, res) => {
     try {
         const servers = req.body;
         fs.writeFileSync(path.join(__dirname, '..', 'servers.json'), JSON.stringify(servers, null, 4), 'utf8');
@@ -523,7 +598,7 @@ app.post('/api/servers', auth, (req, res) => {
     }
 });
 
-app.post('/api/deploy/all', auth, async (req, res) => {
+app.post('/api/deploy/all', auth, requireRole(['admin']), async (req, res) => {
     try {
         res.json({ message: 'Deploy em massa iniciado para todos os clientes.' });
         exec(`node deploy-multi.js`, (err, stdout, stderr) => {
@@ -534,7 +609,7 @@ app.post('/api/deploy/all', auth, async (req, res) => {
     }
 });
 
-app.post('/api/deploy/:index', auth, async (req, res) => {
+app.post('/api/deploy/:index', auth, requireRole(['admin']), async (req, res) => {
     const index = req.params.index;
     try {
         // Passamos o índice para o script de deploy (precisamos ajustar o script para aceitar argumentos)
@@ -558,7 +633,7 @@ app.get('/api/system/licenses-db', (req, res) => {
 });
 
 // Rota para salvar alterações no banco de licenças (apenas Master)
-app.post('/api/system/licenses-db', auth, (req, res) => {
+app.post('/api/system/licenses-db', auth, requireRole(['admin']), (req, res) => {
     try {
         const db = req.body;
         fs.writeFileSync(path.join(__dirname, '..', 'licenses.json'), JSON.stringify(db, null, 4), 'utf8');

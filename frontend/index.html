@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unbound Sentinel | DNS NOC</title>
-    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=3.1">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="//unpkg.com/globe.gl"></script>
@@ -225,9 +225,17 @@
                     <div class="card-icon"><i data-lucide="shield"></i></div>
                     <div class="card-info">
                         <h3>Unbound DNS</h3>
-                        <p>Gerenciar arquivos .conf e controles de acesso.</p>
+                        <p>Gerenciar arquivos .conf e parâmetros gerais.</p>
                     </div>
                 </div>
+                <div class="config-card" onclick="openConfigModule('access-control')">
+                    <div class="card-icon" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);"><i data-lucide="lock" style="color:#10b981;"></i></div>
+                    <div class="card-info">
+                        <h3>Controle de Acesso (IPs)</h3>
+                        <p>Bloquear ou permitir faixas de IP no servidor.</p>
+                    </div>
+                </div>
+
                 <div class="config-card" onclick="openConfigModule('firewall')">
                     <div class="card-icon"><i data-lucide="lock"></i></div>
                     <div class="card-info">
@@ -306,6 +314,52 @@
                     </div>
                     <div id="credentials-view" class="module-content" style="display:none;"></div>
                     <div id="ddns-view" class="module-content" style="display:none;"></div>
+
+                    <!-- NOVO: EDITOR VISUAL DE ACCESS CONTROL -->
+                    <div id="access-control-view" class="module-content" style="display:none;">
+                        <div class="visual-config-header">
+                            <div class="input-group-row">
+                                <input type="text" id="ac-ip-input" placeholder="Ex: 192.168.10.0/24">
+                                <select id="ac-action-select">
+                                    <option value="allow">PERMITIR (Allow)</option>
+                                    <option value="refuse">RECUSAR (Refuse)</option>
+                                    <option value="deny">BLOQUEAR (Deny)</option>
+                                    <option value="static">ESTÁTICO (Static)</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="addAccessControlRule()">
+                                    <i data-lucide="plus"></i> ADICIONAR
+                                </button>
+                            </div>
+                            <div class="search-box">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="ac-search" placeholder="Filtrar blocos..." onkeyup="filterACRules()">
+                            </div>
+                        </div>
+                        <div id="ac-rules-container" class="ac-rules-grid">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+
+                    <!-- NOVO: EDITOR VISUAL DE STATIC DNS -->
+                    <div id="static-dns-view" class="module-content" style="display:none;">
+                        <div class="visual-config-header">
+                            <div class="input-group-row" style="flex-wrap: wrap;">
+                                <input type="text" id="sdns-name-input" placeholder="Nome do Sistema (ex: ERP)">
+                                <input type="text" id="sdns-domain-input" placeholder="Domínio (ex: erp.lan)">
+                                <input type="text" id="sdns-ip-input" placeholder="IP Destino">
+                                <button class="btn btn-primary" onclick="addStaticDNSRule()">
+                                    <i data-lucide="plus"></i> ADICIONAR
+                                </button>
+                            </div>
+                            <div class="search-box">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="sdns-search" placeholder="Filtrar sistemas..." oninput="filterStaticDNS()">
+                            </div>
+                        </div>
+                        <div id="sdns-container" class="ac-rules-grid">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
                 </div>
                 <div class="editor-actions">
                     <button class="btn btn-primary" onclick="saveConfig()">APLICAR ALTERAÇÕES</button>
@@ -516,7 +570,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.0.11"></script>
+    <script src="app.js?v=3.1"></script>
     <script>lucide.createIcons();</script>
     <button id="exit-tv-btn" onclick="toggleTVMode()">
         <i data-lucide="minimize-2"></i> <span>SAIR DO MODO TV</span>

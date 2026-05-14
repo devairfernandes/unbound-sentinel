@@ -149,8 +149,10 @@ async function attemptLogin() {
         });
         
         if (res.ok) {
+            const data = await res.json();
             authCredentials = btoa(`${user}:${pass}`);
             localStorage.setItem('sentinel_auth', authCredentials);
+            localStorage.setItem('sentinel_user', JSON.stringify(data.user));
             closeLogin();
             errorDiv.innerText = '';
             location.reload(); 
@@ -164,7 +166,57 @@ async function attemptLogin() {
 
 function logout() {
     localStorage.removeItem('sentinel_auth');
+    localStorage.removeItem('sentinel_user');
     location.reload();
+}
+
+function getUserRole() {
+    try {
+        const user = JSON.parse(localStorage.getItem('sentinel_user'));
+        return user ? user.role : 'viewer';
+    } catch (e) { return 'viewer'; }
+}
+
+function showSection(id, el) {
+    console.log(`[UI] Trocando para seção: ${id}`);
+    
+    // Esconde todas as seções
+    document.querySelectorAll('.content-section').forEach(s => {
+        s.style.display = 'none'; // <-- Fallback de segurança
+        s.classList.remove('active-section');
+    });
+
+    // Mostra a selecionada (tenta ID puro ou ID-section)
+    const target = document.getElementById(id) || document.getElementById(`${id}-section`);
+    if (target) {
+        target.style.display = ''; // Limpa o "none" inline do HTML para que o CSS funcione
+        target.classList.add('active-section');
+    }
+
+    // Gerencia estado ativo no menu lateral
+    document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+    if (el) el.classList.add('active');
+}
+
+
+function updateUIByRole() {
+    const role = getUserRole();
+    console.log(`[ACL] Aplicando permissões para cargo: ${role}`);
+
+    // Menu de Usuários (Admin Only)
+    const menuUsers = document.getElementById('menu-users');
+    if (menuUsers) menuUsers.style.display = (role === 'admin') ? 'flex' : 'none';
+
+    // Seção de Configurações e Deploy (Admin/Operator)
+    const adminElements = document.querySelectorAll('.admin-only');
+    adminElements.forEach(el => {
+        el.style.display = (role === 'admin') ? '' : 'none';
+    });
+
+    const operatorElements = document.querySelectorAll('.operator-only');
+    operatorElements.forEach(el => {
+        el.style.display = (role === 'admin' || role === 'operator') ? '' : 'none';
+    });
 }
 
 // ===== AUTO-UPDATER LOGIC =====
@@ -608,6 +660,8 @@ function openConfigModule(module) {
         title.innerText = 'Configuração Unbound';
         document.getElementById('config-selector').style.display = 'block';
         document.getElementById('config-editor').style.display = 'block';
+        document.getElementById('access-control-view').style.display = 'none';
+        document.getElementById('static-dns-view').style.display = 'none';
         document.getElementById('firewall-view').style.display = 'none';
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
@@ -617,7 +671,9 @@ function openConfigModule(module) {
         title.innerText = 'Sistemas Internos (Static DNS)';
         document.getElementById('config-selector').style.display = 'block';
         document.getElementById('config-selector').value = 'static-dns.conf';
-        document.getElementById('config-editor').style.display = 'block';
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('static-dns-view').style.display = 'block';
+        document.getElementById('access-control-view').style.display = 'none';
         document.getElementById('firewall-view').style.display = 'none';
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
@@ -627,6 +683,8 @@ function openConfigModule(module) {
         title.innerText = 'Gestão de Firewall (Premium View)';
         document.getElementById('config-selector').style.display = 'none';
         document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('access-control-view').style.display = 'none';
+        document.getElementById('static-dns-view').style.display = 'none';
         document.getElementById('firewall-view').style.display = 'block';
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
@@ -639,6 +697,18 @@ function openConfigModule(module) {
             .then(res => res.json())
             .then(data => renderFirewall(data.content))
             .catch(() => view.innerHTML = 'Erro ao carregar firewall');
+    } else if (module === 'access-control') {
+        title.innerText = 'Controle de Acesso (IP Blocks)';
+        document.getElementById('config-selector').style.display = 'block';
+        document.getElementById('config-selector').value = 'unbound.conf'; // Padrão
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('access-control-view').style.display = 'block';
+        document.getElementById('static-dns-view').style.display = 'none';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.querySelector('.editor-actions').style.display = 'flex';
+        loadConfig();
     } else if (module === 'network') {
         title.innerText = 'Infraestrutura de Rede';
         document.getElementById('config-selector').style.display = 'none';
@@ -1188,14 +1258,35 @@ function closeConfigModule() {
 async function loadConfig() {
     const selector = document.getElementById('config-selector');
     const editor = document.getElementById('config-editor');
-    if (!selector || !editor) return;
+    const visualAC = document.getElementById('access-control-view');
+    if (!selector || !editor || !visualAC) return;
+
     const file = selector.value;
     editor.value = 'Carregando...';
+
+    // Detecção inteligente do modo visual
+    const moduleTitle = document.getElementById('module-title')?.innerText || '';
+    const isACModule = moduleTitle.includes('Controle de Acesso');
+    const isSDNSModule = moduleTitle.includes('Sistemas Internos');
+
     try {
         const res = await apiFetch(`${API_BASE}/config/${file}`);
         const data = await res.json();
-        
-        if (file === 'static-dns.conf' && (!data.content || data.content.trim() === '')) {
+        const content = data.content || '';
+
+        if (isACModule || file === 'access-control.conf') {
+            editor.style.display = 'none';
+            visualAC.style.display = 'block';
+            document.getElementById('static-dns-view').style.display = 'none';
+            renderAccessControl(content);
+        } else if (isSDNSModule || file === 'static-dns.conf') {
+            editor.style.display = 'none';
+            visualAC.style.display = 'none';
+            document.getElementById('static-dns-view').style.display = 'block';
+            renderStaticDNS(content);
+        } else if (file === 'static-dns.conf' && (!content || content.trim() === '')) {
+            editor.style.display = 'block';
+            visualAC.style.display = 'none';
             editor.value = `# ==========================================================
 #  SENTINEL DNS - SISTEMAS INTERNOS (STATIC)
 #  Estes domínios continuam funcionando mesmo sem internet.
@@ -1213,9 +1304,197 @@ async function loadConfig() {
 # local-data: "interno.empresa.com.br IN A 192.168.1.20"
 `;
         } else {
-            editor.value = data.content || '';
+            editor.value = content;
         }
-    } catch (err) { editor.value = 'Acesso negado ou erro ao carregar'; }
+    } catch (err) { 
+        editor.value = 'Acesso negado ou erro ao carregar'; 
+    }
+}
+
+// ===== VISUAL ACCESS CONTROL LOGIC =====
+let currentACRules = [];
+
+function renderAccessControl(raw) {
+    const lines = raw.split('\n');
+    currentACRules = [];
+    
+    lines.forEach(line => {
+        const match = line.match(/access-control:\s*([^\s]+)\s+([^\s]+)/i);
+        if (match) {
+            currentACRules.push({ ip: match[1], action: match[2].toLowerCase() });
+        }
+    });
+    
+    displayACRules();
+}
+
+function displayACRules() {
+    const container = document.getElementById('ac-rules-container');
+    const search = document.getElementById('ac-search').value.toLowerCase();
+    if (!container) return;
+
+    container.innerHTML = currentACRules
+        .filter(r => r.ip.toLowerCase().includes(search) || r.action.toLowerCase().includes(search))
+        .map((r, idx) => `
+            <div class="ac-rule-card">
+                <div class="ac-info">
+                    <span class="ac-ip">${r.ip}</span>
+                    <span class="ac-tag ${r.action}">${r.action.toUpperCase()}</span>
+                </div>
+                <button class="btn-remove-ac" onclick="removeAccessControlRule(${idx})">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                </button>
+            </div>
+        `).join('');
+
+    if (window.lucide) lucide.createIcons();
+    syncACWithEditor();
+}
+
+function addAccessControlRule() {
+    const ipInput = document.getElementById('ac-ip-input');
+    const actionSelect = document.getElementById('ac-action-select');
+    if (!ipInput || !actionSelect) return;
+
+    const ip = ipInput.value.trim();
+    const action = actionSelect.value;
+
+    if (!ip) return alert('Por favor, insira um IP ou Bloco CIDR');
+    
+    // Verifica se já existe
+    if (currentACRules.some(r => r.ip === ip)) {
+        return alert('Este bloco já está na lista');
+    }
+
+    currentACRules.unshift({ ip, action });
+    ipInput.value = '';
+    displayACRules();
+}
+
+function removeAccessControlRule(index) {
+    currentACRules.splice(index, 1);
+    displayACRules();
+}
+
+function filterACRules() {
+    displayACRules();
+}
+
+function syncACWithEditor() {
+    const selector = document.getElementById('config-selector');
+    const editor = document.getElementById('config-editor');
+    if (!editor || !selector) return;
+
+    const file = selector.value;
+    if (file === 'unbound.conf' || file === 'local-zone.conf') {
+        const lines = editor.value.split('\n');
+        const nonACLines = lines.filter(l => !l.trim().toLowerCase().startsWith('access-control:'));
+        
+        while (nonACLines.length > 0 && nonACLines[nonACLines.length-1].trim() === '') {
+            nonACLines.pop();
+        }
+
+        const acLines = currentACRules.map(r => `access-control: ${r.ip} ${r.action}`);
+        editor.value = [...nonACLines, '', '# --- BLOCO DE ACESSO GERADO PELO SENTINEL ---', ...acLines].join('\n');
+    } else {
+        editor.value = currentACRules.map(r => `access-control: ${r.ip} ${r.action}`).join('\n');
+    }
+}
+
+// ===== VISUAL STATIC DNS LOGIC =====
+let currentStaticDNS = [];
+
+function renderStaticDNS(raw) {
+    const lines = raw.split('\n');
+    currentStaticDNS = [];
+    
+    let currentName = '';
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('# NAME:')) {
+            currentName = trimmed.replace('# NAME:', '').trim();
+        } else if (trimmed.startsWith('local-data:')) {
+            // Pega o conteúdo entre aspas
+            const quoteMatch = trimmed.match(/"([^"]+)"/);
+            if (quoteMatch) {
+                const parts = quoteMatch[1].trim().split(/\s+/);
+                if (parts.length >= 2) {
+                    const domain = parts[0];
+                    const ip = parts[parts.length - 1];
+                    const displayName = currentName || (domain.endsWith('.') ? domain.slice(0, -1) : domain);
+                    
+                    currentStaticDNS.push({ 
+                        name: displayName, 
+                        domain: domain, 
+                        ip: ip 
+                    });
+                }
+                currentName = '';
+            }
+        }
+    });
+    displayStaticDNS();
+}
+
+function displayStaticDNS() {
+    const container = document.getElementById('sdns-container');
+    const search = document.getElementById('sdns-search').value.toLowerCase();
+    if (!container) return;
+
+    container.innerHTML = currentStaticDNS
+        .filter(r => r.name.toLowerCase().includes(search) || r.domain.toLowerCase().includes(search) || r.ip.includes(search))
+        .map((r, idx) => `
+            <div class="ac-rule-card">
+                <div class="ac-info">
+                    <span class="ac-ip" style="color:var(--accent-primary)">${r.name}</span>
+                    <span style="font-size:0.75rem; opacity:0.7; font-family:'JetBrains Mono'">${r.domain}</span>
+                    <span class="ac-tag static">${r.ip}</span>
+                </div>
+                <button class="btn-remove-ac" onclick="removeStaticDNSRule(${idx})">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                </button>
+            </div>
+        `).join('');
+
+    if (window.lucide) lucide.createIcons();
+    syncStaticWithEditor();
+}
+
+function addStaticDNSRule() {
+    const nameIn = document.getElementById('sdns-name-input');
+    const domIn = document.getElementById('sdns-domain-input');
+    const ipIn = document.getElementById('sdns-ip-input');
+    
+    if (!domIn || !ipIn) return;
+    const name = nameIn.value.trim();
+    const domain = domIn.value.trim();
+    const ip = ipIn.value.trim();
+
+    if (!domain || !ip) return alert('Domínio e IP são obrigatórios');
+
+    currentStaticDNS.unshift({ name: name || domain, domain, ip });
+    nameIn.value = ''; domIn.value = ''; ipIn.value = '';
+    displayStaticDNS();
+}
+
+function removeStaticDNSRule(index) {
+    currentStaticDNS.splice(index, 1);
+    displayStaticDNS();
+}
+
+function filterStaticDNS() {
+    displayStaticDNS();
+}
+
+function syncStaticWithEditor() {
+    const editor = document.getElementById('config-editor');
+    if (!editor) return;
+
+    const domains = [...new Set(currentStaticDNS.map(r => r.domain))];
+    const zones = domains.map(d => `local-zone: "${d}" static`).join('\n');
+    const records = currentStaticDNS.map(r => `# NAME: ${r.name}\nlocal-data: "${r.domain} IN A ${r.ip}"`).join('\n');
+    
+    editor.value = `# ==========================================\n#  SENTINEL STATIC DNS CONFIG\n# ==========================================\n\n${zones}\n\n${records}`;
 }
 
 async function saveConfig() {
@@ -2331,6 +2610,104 @@ window.addEventListener('keydown', (e) => {
             toggleTVMode();
         }
     }
+});
+
+
+// ===== USER MANAGEMENT (ADMIN ONLY) =====
+function openUserModal(id = '') {
+    const modal = document.getElementById('user-modal');
+    const title = document.getElementById('user-modal-title');
+    const idInput = document.getElementById('user-id');
+    const nameInput = document.getElementById('user-name');
+    const passInput = document.getElementById('user-pass');
+    const roleInput = document.getElementById('user-role');
+
+    if (id) {
+        title.innerText = 'Editar Usuário';
+        idInput.value = id;
+        idInput.disabled = true;
+        // Nome/Cargo seriam preenchidos se tivéssemos os dados carregados
+    } else {
+        title.innerText = 'Novo Usuário';
+        idInput.value = '';
+        idInput.disabled = false;
+        nameInput.value = '';
+        passInput.value = '';
+        roleInput.value = 'viewer';
+    }
+
+    modal.classList.add('show');
+}
+
+async function loadUsers() {
+    if (getUserRole() !== 'admin') return;
+    try {
+        const res = await apiFetch('/api/system/users');
+        const users = await res.json();
+        const body = document.getElementById('users-list-body');
+        if (!body) return;
+
+        body.innerHTML = users.map(u => `
+            <tr>
+                <td><strong>${u.id}</strong></td>
+                <td>${u.name}</td>
+                <td>
+                    <span class="status-badge ${u.role === 'admin' ? 'pro' : 'free'}">
+                        ${u.role.toUpperCase()}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-icon" onclick="deleteUser('${u.id}')" title="Excluir">
+                        <i data-lucide="trash-2" style="width:16px; color:var(--danger);"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        if (window.lucide) lucide.createIcons();
+    } catch (e) {
+        console.error('Falha ao carregar usuários:', e);
+    }
+}
+
+async function saveUser() {
+    const id = document.getElementById('user-id').value;
+    const name = document.getElementById('user-name').value;
+    const password = document.getElementById('user-pass').value;
+    const role = document.getElementById('user-role').value;
+
+    if (!id || !password) return alert('ID e Senha são obrigatórios');
+
+    try {
+        const res = await apiFetch('/api/system/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, name, password, role })
+        });
+        if (res.ok) {
+            closeModal('user-modal');
+            loadUsers();
+        } else {
+            const err = await res.json();
+            alert(err.error || 'Erro ao salvar usuário');
+        }
+    } catch (e) {
+        alert('Erro de conexão');
+    }
+}
+
+async function deleteUser(id) {
+    if (!confirm(`Deseja realmente remover o usuário ${id}?`)) return;
+    try {
+        const res = await apiFetch(`/api/system/users/${id}`, { method: 'DELETE' });
+        if (res.ok) loadUsers();
+        else alert('Erro ao remover usuário');
+    } catch (e) { alert('Erro de conexão'); }
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    updateUIByRole();
+    if (getUserRole() === 'admin') loadUsers();
 });
 
 setTimeout(initGlobe, 1000);

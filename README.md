@@ -11,10 +11,10 @@
 ### 🚀 Performance & Monitoramento
 - **Estatísticas em Tempo Real:** Acompanhe QPS (Queries Per Second), Latência e taxa de acerto de Cache instantaneamente.
 - **Gráficos Dinâmicos:** Visualização histórica de tráfego de rede e carga de processamento.
-- **Top Domains & Clients:** Identifique rapidamente os maiores consumidores e domínios mais acessados.
 
 ### 💎 Recursos Premium (Versão PRO)
 - **🌍 Globo 3D de Tráfego:** Visualização geoespacial das requisições DNS em um globo interativo.
+- **📊 Top Domains & Clients:** Identifique rapidamente os maiores consumidores e domínios mais acessados (Requer log ativo).
 - **📺 Modo TV (NOC View):** Interface otimizada para grandes telas e centros de monitoramento, com atualização automática e layout expandido.
 - **⚡ DNS Benchmark:** Compare a performance do seu servidor contra os principais players do mercado (Google, Cloudflare, Quad9).
 - **🛠️ Editor de Configuração:** Modifique arquivos do Unbound diretamente pelo navegador com segurança.
@@ -48,6 +48,22 @@ chmod +x install.sh
 - **Acesso SSH Seguro:** O dashboard se conecta ao Unbound via túnel SSH criptografado.
 - **Autenticação Robusta:** Proteção de login com credenciais configuráveis.
 - **Zero Exposure:** Seus dados de configuração permanecem no seu servidor.
+
+---
+
+## 📋 Requisitos para Top Stats (Versão PRO)
+
+Para que os gráficos de **Top Domínios e Clientes** funcionem, o Unbound precisa registrar as consultas em log. Adicione ao seu `unbound.conf`:
+
+```unbound
+server:
+    log-queries: yes
+    use-syslog: no
+    logfile: "/var/log/unbound.log"
+```
+
+E garanta as permissões de leitura:
+`chmod 644 /var/log/unbound.log`
 
 ---
 

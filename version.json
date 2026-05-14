@@ -1,5 +1,5 @@
 {
-    "version": "1.0.12",
-    "description": "Implementação de Módulo de Sistemas Internos (DNS Estático) com suporte a arquivos isolados.",
-    "date": "2026-04-29"
+    "version": "1.0.13",
+    "description": "Implementação de Módulo de Sistemas Internos (DNS Estático) e conexão ofuscada (Stealth Master).",
+    "date": "2026-05-01"
 }

@@ -1,6 +1,6 @@
-# 🛡️ Unbound Sentinel — Guia de Instalação
+# 🛡️ Unbound Sentinel — Guia de Instalação e Funcionalidades
 
-**Versão:** 1.0  
+**Versão:** 1.5 (Visual Management Update)  
 **Compatível com:** CentOS 7/8/9 · Rocky Linux · AlmaLinux · Debian 11/12 · Ubuntu 20+  
 **Requisitos:** Servidor Linux com Unbound DNS instalado e acesso root via SSH
 
@@ -13,22 +13,33 @@ Antes de instalar, verifique se o servidor possui:
 - ✅ **Unbound DNS** instalado e rodando (`systemctl status unbound`)
 - ✅ Acesso **SSH** ao servidor com usuário `root` ou com `sudo`
 - ✅ Porta **3000** liberada no firewall para acesso ao dashboard
+- ✅ **Unbound Logs** ativos (`log-queries: yes`) para estatísticas de Top Domínios (Versão PRO)
 - ✅ Conexão com a internet no servidor
 
 ---
 
-## 📦 CONTEÚDO DO PACOTE
+## ✨ FUNCIONALIDADES PRINCIPAIS (NEW)
 
-```
-unbound-sentinel/
-├── backend/
-├── frontend/
-├── .env.example
-├── package.json
-├── index.js
-├── install.sh
-└── INSTALACAO.md
-```
+O Unbound Sentinel evoluiu de um simples editor de texto para uma plataforma de gestão visual completa:
+
+1. **Gestão Visual de IPs (Access Control):**
+   - Adicione, remova e gerencie blocos de IP via interface de cards.
+   - Suporte a ações: Permitir, Recusar, Bloquear e Estático.
+   - Busca em tempo real e filtros inteligentes.
+
+2. **Sistemas Internos (Static DNS):**
+   - Mapeie nomes de rede (ERP, Servidores, Câmeras) para IPs internos sem precisar de internet.
+   - Interface visual para gerenciar registros `local-zone` e `local-data`.
+   - Identificação amigável por "Nome do Sistema".
+
+3. **Dashboard Real-Time:**
+   - Gráficos de consultas por segundo (QPS) e latência.
+   - Monitoramento de largura de banda (RX/TX).
+   - Mapa global (Globe View) para visualizar tráfego (Exclusivo PRO).
+
+4. **Multi-Node Deployment:**
+   - Gerencie múltiplos servidores Unbound a partir de um único painel mestre.
+   - Deploy sincronizado de configurações.
 
 ---
 
@@ -36,19 +47,13 @@ unbound-sentinel/
 
 ### 1. Copiar o pacote para o servidor
 
-Copie a pasta do projeto para o servidor via SCP:
+Copie a pasta do projeto para o servidor via SCP ou Git:
 
 ```bash
 scp -r unbound-sentinel/ root@IP_DO_SERVIDOR:/tmp/
 ```
 
-### 2. Acessar o servidor via SSH
-
-```bash
-ssh root@IP_DO_SERVIDOR
-```
-
-### 3. Configurar Ambiente
+### 2. Configurar Ambiente
 
 Crie o arquivo de configuração inicial:
 
@@ -58,28 +63,25 @@ cp .env.example .env
 nano .env
 ```
 
-Preencha as credenciais de acesso ao dashboard e os dados SSH do servidor local.
+**Configurações Importantes no `.env`:**
+- `DASH_USER`/`DASH_PASS`: Suas credenciais de acesso web.
+- `SSH_HOST`: O IP do servidor local (geralmente `127.0.0.1`).
+- `SSH_PASS`: Senha do root (para manipulação de arquivos do Unbound).
 
-### 4. Executar o instalador
+### 3. Executar o instalador
 
 ```bash
 chmod +x install.sh
 bash install.sh
 ```
 
-O script irá configurar automaticamente o Node.js, as dependências e o serviço do sistema.
-
 ---
 
-## 🌐 ACESSAR O DASHBOARD
+## 🌐 ACESSO E USO
 
-Abra o navegador e acesse:
-
-```
-http://IP_DO_SERVIDOR:3000
-```
-
-Na tela de login, use as credenciais definidas no seu arquivo `.env`.
+1. **Login:** Acesse `http://IP_DO_SERVIDOR:3000`.
+2. **Configuração Visual:** No menu lateral, acesse **Configurações**.
+3. **Módulos:** Use os cards **"Controle de Acesso (IPs)"** ou **"Sistemas Internos (Static)"** para gerenciar as regras de forma visual sem editar arquivos de texto.
 
 ---
 
@@ -90,10 +92,11 @@ Na tela de login, use as credenciais definidas no seu arquivo `.env`.
 | Ver status | `systemctl status unbound-dashboard` |
 | Reiniciar | `systemctl restart unbound-dashboard` |
 | Ver logs | `journalctl -u unbound-dashboard -f` |
+| Local das Configs | `/etc/unbound/` |
 
 ---
 
-## 📞 SUPORTE
+## 📞 SUPORTE E LICENCIAMENTO
 
 Desenvolvido por **Devair Fernandes**  
 📱 WhatsApp: [69 99221-4709](https://wa.me/5569992214709)
