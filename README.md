@@ -1,5 +1,5 @@
 # 🛡️ Unbound Sentinel
-**Versão 1.6.1 (Maintenance Update)**
+**Versão 1.6.2 (Elite System)**
 
 
 ![Sentinel Header](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/banner-v2.png)
