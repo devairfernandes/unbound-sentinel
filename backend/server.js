@@ -509,40 +509,43 @@ app.get('/api/system/check-update', auth, async (req, res) => {
 
 app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
     try {
-        const MASTER_URL = process.env.MASTER_URL || 'http://servidor-licencas.duckdns.org:3300';
+        const MASTER_URL = process.env.MASTER_URL || '';
+        const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+        const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';
+        
         res.json({ message: 'Atualização iniciada. O painel ficará indisponível por alguns segundos enquanto reinicia.' });
         
         setTimeout(() => {
-            let downloadUrl, curlOptions;
+            const cleanMasterUrl = MASTER_URL.replace(/\/$/, '');
+            const isMasterUpdate = cleanMasterUrl !== '';
+            const downloadUrl = isMasterUpdate 
+                ? `${cleanMasterUrl}/api/system/download-package` 
+                : 'https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz';
 
-            if (MASTER_URL) {
-                downloadUrl = `${MASTER_URL}/api/system/download-package`;
-                // Build auth header for Master
-                const authHeader = Buffer.from(`${ADMIN_USER}:${ADMIN_PASS}`).toString('base64');
-                curlOptions = `-L -H "Authorization: Basic ${authHeader}"`;
-            } else {
-                downloadUrl = GITHUB_TOKEN 
-                    ? `https://api.github.com/repos/devairfernandes/unbound-sentinel/tarball/main`
-                    : `https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz`;
+            const authHeader = Buffer.from(`${ADMIN_USER}:${ADMIN_PASS}`).toString('base64');
+
+            const updateScript = `(
+                echo "--- INICIANDO ATUALIZAÇÃO SENTINEL ---" &&
+                echo "Data: $(date)" &&
+                cd /opt/unbound-dashboard && echo "[OK] Pasta /opt/unbound-dashboard acessada" || { echo "[ERRO] Pasta /opt/unbound-dashboard não encontrada"; exit 1; } &&
                 
-                const authHeader = GITHUB_TOKEN ? `-H "Authorization: token ${GITHUB_TOKEN}"` : '';
-                curlOptions = GITHUB_TOKEN ? `-L ${authHeader} -H "Accept: application/vnd.github.v3+json"` : '-L';
-            }
+                echo "Baixando atualização..." &&
+                curl -L -k -s ${isMasterUpdate ? `-H "Authorization: Basic ${authHeader}"` : ''} -o update.tar.gz "${downloadUrl}" && echo "[OK] Download concluído" || { echo "[ERRO] Falha no download (curl)"; exit 1; } &&
+                
+                echo "Extraindo arquivos..." &&
+                tar -xzf update.tar.gz --strip-components=1 && echo "[OK] Arquivos extraídos" || { echo "[ERRO] Falha na extração (tar)"; exit 1; } &&
+                
+                rm -f update.tar.gz &&
+                
+                echo "Reiniciando sistema..." &&
+                (systemctl restart unbound-dashboard || sudo systemctl restart unbound-dashboard || pm2 restart all || node backend/server.js &) && echo "[OK] Comando de reinício enviado"
+                
+                echo "--- PROCESSO FINALIZADO ---"
+            ) > /tmp/sentinel_update.log 2>&1`;
 
-            const updateScript = `
-        cd /opt/unbound-dashboard &&
-        curl -s ${curlOptions} -o update.tar.gz ${downloadUrl} &&
-        tar -xzf update.tar.gz --strip-components=1 &&
-        (sudo systemctl restart unbound-dashboard || systemctl restart unbound-dashboard || pm2 restart all || forever restartall || node backend/server.js &) > /tmp/sentinel_update.log 2>&1
-    `;
+            console.log(`[UPDATE] Iniciando atualização via: ${isMasterUpdate ? 'MASTER' : 'GITHUB'}`);
             exec(updateScript, (err, stdout, stderr) => {
-                if (err) {
-                    const errorMsg = stderr || err.message;
-                    console.error('Erro na atualização:', errorMsg);
-                    fs.writeFileSync('/tmp/sentinel_update_error.log', errorMsg);
-                } else {
-                    console.log('Atualização concluída com sucesso.');
-                }
+                if (err) console.error(`[UPDATE EXEC ERR] ${err.message}`);
             });
         }, 1000);
     } catch (e) {

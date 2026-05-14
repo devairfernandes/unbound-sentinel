@@ -1,5 +1,5 @@
 {
-    "version": "1.6.4",
-    "description": "Elite Update v1.6.4: Versão estável com motor de atualização ultra-rápido (Lite Core).",
+    "version": "1.6.5",
+    "description": "Elite Update v1.6.5: Implementação de telemetria de atualização e depuração de logs em tempo real.",
     "date": "2026-05-14"
 }
