@@ -225,6 +225,9 @@ function checkForSystemUpdate() {
         .then(res => res.json())
         .then(data => {
             const btn = document.getElementById('btn-update-system');
+            const versionEl = document.getElementById('system-version-display');
+            if (versionEl) versionEl.innerText = `v${data.currentVersion}`;
+
             if (data.updateAvailable && btn) {
                 btn.style.display = 'flex';
                 btn.title = `Nova versão disponível: ${data.newVersion} (Atual: ${data.currentVersion})`;
@@ -2708,6 +2711,18 @@ async function deleteUser(id) {
 document.addEventListener('DOMContentLoaded', () => {
     updateUIByRole();
     if (getUserRole() === 'admin') loadUsers();
+    
+    // Inicializa dados e loops
+    initCharts();
+    fetchStats();
+    fetchSystem();
+    fetchHistory();
+    checkForSystemUpdate();
+    
+    // Loops de atualização
+    setInterval(fetchStats, 10000);
+    setInterval(fetchSystem, 10000);
+    setInterval(checkForSystemUpdate, 3600000); // 1h
 });
 
 setTimeout(initGlobe, 1000);
