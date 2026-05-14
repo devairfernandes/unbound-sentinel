@@ -529,16 +529,25 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 curlOptions = GITHUB_TOKEN ? `-L ${authHeader} -H "Accept: application/vnd.github.v3+json"` : '-L';
             }
 
+            const isGitHub = downloadUrl.includes('github.com');
+            const tarCommand = isGitHub 
+                ? `tar -xzf update.tar.gz --strip-components=1` 
+                : `tar -xzf update.tar.gz`;
+
             const updateScript = `
                 cd /opt/unbound-dashboard &&
                 curl -s ${curlOptions} -o update.tar.gz ${downloadUrl} &&
-                tar -xzf update.tar.gz --strip-components=1 &&
+                ${tarCommand} &&
                 rm update.tar.gz &&
                 npm install --omit=dev &&
-                systemctl restart unbound-dashboard
+                sudo systemctl restart unbound-dashboard
             `;
             exec(updateScript, (err, stdout, stderr) => {
-                if (err) console.error('Erro na atualização:', stderr);
+                if (err) {
+                    console.error('Erro na atualização:', stderr || err.message);
+                } else {
+                    console.log('Atualização concluída com sucesso.');
+                }
             });
         }, 1000);
     } catch (e) {
