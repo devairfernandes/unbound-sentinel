@@ -768,12 +768,9 @@ app.get('/api/system', async (req, res) => {
         const uptimeData = await execPromise("uptime -p").catch(() => ({ stdout: '' }));
         const uptime = uptimeData.stdout.trim();
         
-        // Restrição Grátis: Oculta Top Domínios/Clientes se for Grátis
-        let top = { domains: [], clients: [] };
-        if (!isFree) {
-            const logData = await runSSHCommand('tail -n 5000 /var/log/unbound.log').catch(() => ({ stdout: '' }));
-            top = parseLogsForTop(logData.stdout);
-        }
+        // Coleta Top Domínios/Clientes (Disponível em todas as versões)
+        const logData = await runSSHCommand('tail -n 5000 /var/log/unbound.log').catch(() => ({ stdout: '' }));
+        const top = parseLogsForTop(logData.stdout);
 
         res.json({ 
             cpu: cpu.toFixed(1), 

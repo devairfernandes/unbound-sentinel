@@ -13,7 +13,7 @@ Antes de instalar, verifique se o servidor possui:
 - ✅ **Unbound DNS** instalado e rodando (`systemctl status unbound`)
 - ✅ Acesso **SSH** ao servidor com usuário `root` ou com `sudo`
 - ✅ Porta **3000** liberada no firewall para acesso ao dashboard
-- ✅ **Unbound Logs** ativos (`log-queries: yes`) para estatísticas de Top Domínios (Versão PRO)
+- ✅ **Unbound Logs** ativos (`log-queries: yes`) para estatísticas de Top Domínios e Clientes
 - ✅ Conexão com a internet no servidor
 
 ---
