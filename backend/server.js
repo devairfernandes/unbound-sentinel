@@ -535,11 +535,13 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 tar -xzf update.tar.gz --strip-components=1 &&
                 rm update.tar.gz &&
                 npm install --omit=dev &&
-                sudo systemctl restart unbound-dashboard
+                (sudo systemctl restart unbound-dashboard || systemctl restart unbound-dashboard || pm2 restart all || forever restartall)
             `;
             exec(updateScript, (err, stdout, stderr) => {
                 if (err) {
-                    console.error('Erro na atualização:', stderr || err.message);
+                    const errorMsg = stderr || err.message;
+                    console.error('Erro na atualização:', errorMsg);
+                    fs.writeFileSync('/tmp/sentinel_update_error.log', errorMsg);
                 } else {
                     console.log('Atualização concluída com sucesso.');
                 }
@@ -671,7 +673,7 @@ app.get('/api/system/package-info', (req, res) => {
 });
 
 // Rota para que clientes possam baixar a atualização diretamente desta máquina (Master)
-app.get('/api/system/download-package', auth, (req, res) => {
+app.get('/api/system/download-package', (req, res) => {
     const tarFile = path.join(__dirname, '..', 'update-package.tar.gz');
     const parentDir = path.join(__dirname, '../..');
     const folderName = path.basename(path.join(__dirname, '..'));
