@@ -9,14 +9,14 @@ Para evitar conflitos de IP e porta na mesma rede, as portas foram separadas:
     *   URL Local: `http://localhost:3300`
     *   URL Pública: `http://devairfernandestrabalho.duckdns.org:3300` (Requer Port Forwarding no Roteador).
 *   **MONITOR/CLIENTE (Linux/Rocky)**: Rodando na porta **3000**.
-    *   URL: `http://168.197.8.70:3000`
+    *   URL: `http://....
 
 ## 🆔 Lógica de Identidade (Blindada)
 O sistema agora auto-detecta seu papel baseado no Sistema Operacional para evitar que clientes apareçam como Master:
 
 *   **Windows**: Sempre inicia como **MASTER**.
 *   **Linux**: Sempre inicia como **MONITOR** (Esconde abas de gestão e licenças).
-*   **Visual**: O título no topo do painel exibe o papel, o IP e o SO (ex: `SENTINEL | MONITOR - 168.197.8.70 (linux)`).
+*   **Visual**: O título no topo do painel exibe o papel, o IP e o SO (ex: `SENTINEL | MONITOR - 168... (linux)`).
 
 ## 🔑 Sincronização de Licenças
 O servidor cliente (8.70) busca atualizações no Master usando a seguinte ordem de prioridade (configurada no `.env` remoto em `MASTER_URL`):
