@@ -863,6 +863,42 @@ body.tv-mode #tv-clock {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 
+/* Changelog Styles */
+.changelog-card {
+    max-width: 500px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.changelog-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.changelog-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.tag-fix, .tag-feat {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.tag-fix { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.tag-feat { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+
 /* Modal Styles */
 .modal {
     display: none;

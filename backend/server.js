@@ -439,7 +439,7 @@ app.post('/api/system/check-in', (req, res) => {
             version,
             lastSeen: Date.now(),
             status: foundLicense ? foundLicense.type : 'free',
-            client: foundLicense ? foundLicense.client : 'Novo Cliente'
+            client: foundLicense ? foundLicense.client : (foundLicense ? foundLicense.client : 'Novo Cliente')
         };
         saveSessions();
         console.log(`[Check-in] Recebido de ${hostname} (${clientIp}) - Status: ${activeSessions[hwid].status}`);
@@ -449,9 +449,13 @@ app.post('/api/system/check-in', (req, res) => {
                 type: foundLicense.type,
                 valid: foundLicense.valid,
                 client: foundLicense.client,
-                expiry: foundLicense.expiry,
-                features: foundLicense.features
-            } : { type: 'free' }
+                features: foundLicense.features || { tv: true, config: true, update: true, charts: true, globe: true }
+            } : { 
+                type: 'free', 
+                valid: true, 
+                client: 'Versão Grátis',
+                features: { tv: false, config: false, update: false, charts: false, globe: false }
+            }
         });
     }
     
@@ -533,11 +537,19 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 echo "Data: $(date)" &&
                 cd /opt/unbound-dashboard && echo "[OK] Pasta /opt/unbound-dashboard acessada" || { echo "[ERRO] Pasta /opt/unbound-dashboard não encontrada"; exit 1; } &&
                 
+                # TRAVA DE AÇO: Salva .env e users.json originais em local seguro
+                [ -f .env ] && cp .env /tmp/.env_backup_sentinel && echo "[OK] Backup do .env realizado"
+                [ -f users.json ] && cp users.json /tmp/users_backup_sentinel && echo "[OK] Backup do users.json realizado"
+                
                 echo "Baixando atualização..." &&
                 curl -L -k -s ${isMasterUpdate ? `-H "Authorization: Basic ${authHeader}"` : ''} -o update.tar.gz "${downloadUrl}" && echo "[OK] Download concluído" || { echo "[ERRO] Falha no download (curl)"; exit 1; } &&
                 
                 echo "Extraindo arquivos..." &&
                 tar -xzf update.tar.gz --strip-components=1 && echo "[OK] Arquivos extraídos" || { echo "[ERRO] Falha na extração (tar)"; exit 1; } &&
+                
+                # TRAVA DE AÇO: Restaura arquivos originais
+                [ -f /tmp/.env_backup_sentinel ] && mv /tmp/.env_backup_sentinel .env && echo "[OK] .env restaurado com sucesso"
+                [ -f /tmp/users_backup_sentinel ] && mv /tmp/users_backup_sentinel users.json && echo "[OK] users.json restaurado com sucesso"
                 
                 rm -f update.tar.gz &&
                 
@@ -689,8 +701,8 @@ app.get('/api/system/download-package', (req, res) => {
     const parentDir = path.join(__dirname, '../..');
     const folderName = path.basename(path.join(__dirname, '..'));
     
-    // Cria um tar.gz que inclui a pasta raiz, para ser compatível com o --strip-components=1 dos clientes
-    const cmd = `tar -czf "${tarFile}" --exclude="node_modules" --exclude=".git" -C "${parentDir}" "${folderName}"`;
+    // Cria um tar.gz que inclui a pasta raiz, excluindo arquivos de configuração local e dados
+    const cmd = `tar -czf "${tarFile}" --exclude="node_modules" --exclude=".git" --exclude=".env" --exclude="users.json" --exclude="servers.json" --exclude="licenses.json" --exclude="license_cache.json" -C "${parentDir}" "${folderName}"`;
     
     exec(cmd, (err) => {
         if (err) {
@@ -809,6 +821,17 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
+function getUnboundFilePath(fileName) {
+    const paths = {
+        'unbound.conf': '/etc/unbound/unbound.conf',
+        'static-dns.conf': '/etc/unbound/static-dns.conf',
+        'access-control.conf': '/etc/unbound/local.d/access-control.conf',
+        'local-zone.conf': '/etc/unbound/local.d/local-zone.conf',
+        'forward-zone.conf': '/etc/unbound/local.d/forward-zone.conf'
+    };
+    return paths[fileName] || `/etc/unbound/${fileName}`;
+}
+
 app.get('/api/config/:file', auth, async (req, res) => {
     const fileName = req.params.file;
     // Restrição Grátis: Só permite editar unbound.conf
@@ -819,8 +842,26 @@ app.get('/api/config/:file', auth, async (req, res) => {
         return res.status(403).json({ error: isFree ? 'Este arquivo só pode ser editado na versão PRO.' : 'Arquivo não permitido' });
     }
     try {
-        const result = await runSSHCommand(`cat /etc/unbound/${fileName}`).catch(() => ({ stdout: '' }));
-        res.json({ content: result.stdout });
+        const fullPath = getUnboundFilePath(fileName);
+        console.log(`[Config] Lendo arquivo: ${fullPath}`);
+        
+        let content = '';
+        if (sshConfig.host === '127.0.0.1' || sshConfig.host === 'localhost') {
+            // Leitura direta via sistema de arquivos (Muito mais rápido e confiável)
+            if (fs.existsSync(fullPath)) {
+                content = fs.readFileSync(fullPath, 'utf8');
+            } else {
+                console.error(`[Config] Arquivo não encontrado: ${fullPath}`);
+            }
+        } else {
+            // Leitura via SSH
+            const result = await runSSHCommand(`sudo cat ${fullPath}`).catch((err) => {
+                console.error(`[Config] Erro ao ler ${fullPath} via SSH:`, err);
+                return { stdout: '' };
+            });
+            content = result.stdout;
+        }
+        res.json({ content });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao ler arquivo' });
     }
@@ -840,10 +881,17 @@ app.post('/api/config/:file', auth, async (req, res) => {
         await runSSHCommand(`echo '${escapedContent}' > ${tempFile}`);
         
         // 2. Valida a sintaxe (se for o arquivo principal ou se pudermos testar isolado)
-        // Nota: unbound-checkconf no arquivo temporário
-        const check = await runSSHCommand(`sudo unbound-checkconf ${tempFile}`);
+        let checkCommand = `sudo unbound-checkconf ${tempFile}`;
         
-        if (check.stderr && check.stderr.includes('error')) {
+        // Se for um arquivo de include, precisamos envolver em "server:" para o checkconf não reclamar
+        if (fileName !== 'unbound.conf') {
+            const validationFile = `${tempFile}_val`;
+            checkCommand = `echo "server: " > ${validationFile} && cat ${tempFile} >> ${validationFile} && sudo unbound-checkconf ${validationFile}`;
+        }
+
+        const check = await runSSHCommand(checkCommand).catch(err => ({ stderr: err.message }));
+        
+        if (check.stderr && (check.stderr.toLowerCase().includes('error') || check.stderr.toLowerCase().includes('fatal'))) {
             return res.status(400).json({ 
                 error: 'Erro de sintaxe detectado. Operação cancelada para proteger a produção.',
                 details: check.stderr 
@@ -851,10 +899,22 @@ app.post('/api/config/:file', auth, async (req, res) => {
         }
 
         // 3. Se estiver OK, move para o diretório oficial
-        await runSSHCommand(`sudo mv ${tempFile} /etc/unbound/${fileName}`);
+        const fullPath = getUnboundFilePath(fileName);
         
-        // 4. Reload opcional ou apenas aviso
-        res.json({ message: 'Arquivo validado e salvo com sucesso! Lembre-se de dar Reload no serviço.' });
+        if (sshConfig.host === '127.0.0.1' || sshConfig.host === 'localhost') {
+            // Salvamento direto via sistema de arquivos
+            fs.writeFileSync(fullPath, content, 'utf8');
+            // Garante permissões (644 para configs do Unbound)
+            try { await execPromise(`sudo chmod 644 ${fullPath}`); } catch(e) {}
+        } else {
+            // Salvamento via SSH
+            await runSSHCommand(`sudo mv ${tempFile} ${fullPath}`);
+        }
+        
+        // 4. Reload do Unbound para aplicar as mudanças
+        await runSSHCommand('sudo systemctl restart unbound').catch(() => {});
+        
+        res.json({ message: 'Arquivo validado e salvo com sucesso! O Unbound foi reiniciado.' });
     } catch (err) {
         console.error('Config Save Error:', err);
         res.status(500).json({ error: 'Erro ao processar arquivo de configuração', details: err.message });

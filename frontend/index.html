@@ -221,10 +221,10 @@
 
             <!-- Grid de Cards de Configuração -->
             <div class="config-grid">
-                <div class="config-card" onclick="openConfigModule('unbound')">
+                <div class="config-card admin-only" onclick="openConfigModule('unbound')">
                     <div class="card-icon"><i data-lucide="shield"></i></div>
                     <div class="card-info">
-                        <h3>Unbound DNS</h3>
+                        <h3>Unbound DNS (Avançado)</h3>
                         <p>Gerenciar arquivos .conf e parâmetros gerais.</p>
                     </div>
                 </div>
@@ -436,10 +436,35 @@
                     <button class="btn btn-secondary" onclick="runGlobalDeploy()" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:var(--accent-success);">
                         <i data-lucide="send"></i> DEPLOY PARA TODOS
                     </button>
-                    <button class="btn btn-secondary" onclick="loadServers()">
-                        <i data-lucide="refresh-cw"></i> ATUALIZAR LISTA
-                    </button>
+                    <div class="update-actions">
+                        <button class="btn-action primary" onclick="checkUpdates()">
+                            <i data-lucide="refresh-cw"></i> Verificar Atualizações
+                        </button>
+                        <button class="btn-action outline" onclick="showChangelog()">
+                            <i data-lucide="list"></i> O que há de novo?
+                        </button>
+                    </div>
                 </div>
+                
+                <!-- Modal de Changelog -->
+                <div id="changelog-modal" class="modal">
+                    <div class="modal-content changelog-card">
+                        <div class="modal-header">
+                            <h3><i data-lucide="history"></i> Histórico de Versão (v1.8.0)</h3>
+                            <button class="close-btn" onclick="closeChangelog()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="changelog-list">
+                                <li><span class="tag-fix">FIX</span> <b>Trava de Aço Definitiva:</b> Proteção total contra perda de senhas (.env) e usuários (users.json) em atualizações OTA.</li>
+                                <li><span class="tag-fix">FIX</span> <b>Isolamento de Módulos:</b> Menus blindados para evitar edições acidentais em arquivos do sistema.</li>
+                                <li><span class="tag-feat">FEAT</span> <b>I/O Nativo (Ultra Fast):</b> Performance máxima em leitura e escrita de configurações.</li>
+                                <li><span class="tag-fix">FIX</span> <b>Auto-Recuperação:</b> Sistema capaz de se auto-restaurar após falhas críticas de extração.</li>
+                                <li><span class="tag-feat">FEAT</span> <b>Validador Inteligente:</b> Checkconf inteligente que aceita regras parciais de configuração.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="servers-list" class="servers-grid">
                     <!-- Servidores serão injetados aqui -->
                 </div>

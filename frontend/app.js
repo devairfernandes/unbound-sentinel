@@ -669,10 +669,38 @@ function openConfigModule(module) {
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
         document.querySelector('.editor-actions').style.display = 'flex';
-        loadConfig();
+        
+        // Filtra opções do seletor no menu avançado
+        const role = getUserRole();
+        const selector = document.getElementById('config-selector');
+        
+        // RECONSTRÓI as opções para garantir que nada sumiu permanentemente
+        selector.innerHTML = `
+            <option value="unbound.conf">unbound.conf</option>
+            <option value="local-zone.conf">local-zone.conf</option>
+            <option value="forward-zone.conf">forward-zone.conf</option>
+            <option value="access-control.conf">access-control.conf</option>
+            <option value="static-dns.conf">static-dns.conf</option>
+        `;
+        
+        // Aplica o filtro de visibilidade e esconde o seletor no Avançado
+        if (module === 'unbound') {
+            selector.value = 'unbound.conf'; // Força o valor padrão no avançado
+            selector.style.display = 'none'; 
+            document.getElementById('module-title').innerText = `Configuração: ${selector.value}`;
+        } else {
+            selector.style.display = 'block';
+            if (module === 'access-control') selector.value = 'access-control.conf';
+            if (module === 'static-dns') selector.value = 'static-dns.conf';
+        }
+
+        // Aguarda um pequeno instante para o DOM processar a mudança antes de carregar
+        setTimeout(() => {
+            loadConfig();
+        }, 50);
     } else if (module === 'static-dns') {
         title.innerText = 'Sistemas Internos (Static DNS)';
-        document.getElementById('config-selector').style.display = 'block';
+        document.getElementById('config-selector').style.display = 'none'; // Esconde para não mudar de menu
         document.getElementById('config-selector').value = 'static-dns.conf';
         document.getElementById('config-editor').style.display = 'none';
         document.getElementById('static-dns-view').style.display = 'block';
@@ -702,8 +730,8 @@ function openConfigModule(module) {
             .catch(() => view.innerHTML = 'Erro ao carregar firewall');
     } else if (module === 'access-control') {
         title.innerText = 'Controle de Acesso (IP Blocks)';
-        document.getElementById('config-selector').style.display = 'block';
-        document.getElementById('config-selector').value = 'unbound.conf'; // Padrão
+        document.getElementById('config-selector').style.display = 'none'; // Esconde para não mudar de menu
+        document.getElementById('config-selector').value = 'access-control.conf'; 
         document.getElementById('config-editor').style.display = 'none';
         document.getElementById('access-control-view').style.display = 'block';
         document.getElementById('static-dns-view').style.display = 'none';
@@ -1364,6 +1392,12 @@ function addAccessControlRule() {
 
     if (!ip) return alert('Por favor, insira um IP ou Bloco CIDR');
     
+    // Validação básica de formato CIDR ou IP
+    const ipPattern = /^([0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$/;
+    if (!ipPattern.test(ip)) {
+        return alert('Formato de IP ou CIDR inválido. Exemplo: 192.168.1.0/24');
+    }
+
     // Verifica se já existe
     if (currentACRules.some(r => r.ip === ip)) {
         return alert('Este bloco já está na lista');
@@ -1504,18 +1538,50 @@ async function saveConfig() {
     const selector = document.getElementById('config-selector');
     const editor = document.getElementById('config-editor');
     const status = document.getElementById('save-status');
+    const moduleTitle = document.getElementById('module-title')?.innerText || '';
+    
     if (!selector || !editor || !status) return;
+    
     const file = selector.value;
-    const content = editor.value;
+    let content = editor.value;
+
+    // Proteção Especial para Controle de Acesso (Evitar Lock-out em Produção)
+    if (file === 'access-control.conf' || moduleTitle.includes('Controle de Acesso')) {
+        if (currentACRules.length === 0) {
+            const confirmEmpty = confirm("⚠️ ATENÇÃO: A lista de Controle de Acesso está VAZIA.\n\nIsso pode bloquear o acesso DNS para TODOS os seus clientes agora.\n\nDeseja realmente salvar assim?");
+            if (!confirmEmpty) return;
+        }
+        // Gera o conteúdo baseado nas regras visuais
+        content = currentACRules.map(r => `access-control: ${r.ip} ${r.action}`).join('\n');
+    }
+
     status.innerText = 'Salvando...';
+    status.style.color = 'var(--accent-primary)';
+
     try {
         const res = await apiFetch(`${API_BASE}/config/${file}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content })
         });
         const data = await res.json();
-        status.innerText = res.ok ? 'SUCESSO' : 'ERRO: ' + data.error;
-    } catch (err) { status.innerText = 'FALHA: ' + err.message; }
+        
+        if (res.ok) {
+            status.innerText = 'SUCESSO';
+            status.style.color = 'var(--accent-success)';
+            // Se for arquivo de configuração, tenta aplicar reiniciando o serviço se necessário
+            if (file.endsWith('.conf')) {
+                status.innerText = 'REINICIANDO DNS...';
+                await apiFetch(`${API_BASE}/service/restart`, { method: 'POST' });
+                status.innerText = 'CONFIGURAÇÃO APLICADA';
+            }
+        } else {
+            status.innerText = 'ERRO: ' + (data.error || 'Falha ao salvar');
+            status.style.color = 'var(--accent-danger)';
+        }
+    } catch (err) { 
+        status.innerText = 'FALHA: ' + err.message;
+        status.style.color = 'var(--accent-danger)';
+    }
 }
 
 async function serviceAction(action) {
@@ -1718,6 +1784,21 @@ let currentVersion = ""; // Será preenchido pelo servidor
 
 // A verificação de atualização agora é tratada pela função no início do arquivo que usa a API /api/system/check-update
 
+// ===== CHANGELOG LOGIC =====
+function showChangelog() {
+    const modal = document.getElementById('changelog-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeChangelog() {
+    const modal = document.getElementById('changelog-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 function showUpdateToast(version, desc) {
     if (document.getElementById('update-toast')) return;
     
@@ -1733,7 +1814,10 @@ function showUpdateToast(version, desc) {
     `;
     toast.innerHTML = `
         <div style="background: var(--accent-primary); width: 10px; height: 10px; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
-        <div style="font-size: 0.85rem; font-weight: 500;">Nova versão disponível (${version})</div>
+        <div style="font-size: 0.85rem; font-weight: 500; cursor: pointer;" onclick="showChangelog()">
+            Nova versão disponível (${version}) &nbsp;
+            <span style="text-decoration: underline; color: #38bdf8; font-size: 0.75rem;">(Ver Novidades)</span>
+        </div>
         <button onclick="runSystemUpdate()" id="btn-toast-update" style="background: #fff; color: #000; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 700; font-size: 0.75rem;">ATUALIZAR AGORA</button>
     `;
     document.body.appendChild(toast);
