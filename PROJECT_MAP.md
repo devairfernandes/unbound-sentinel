@@ -40,14 +40,15 @@ O Unbound Sentinel é uma interface web profissional projetada para administrar 
 6. **Suporte Avançado IPv6**:
    - Monitoramento de transporte (IPv4 vs IPv6).
    - Gestão de Access-Control para blocos ISP.
-7. **Gestão de Sistema**:
-   - Visualização de logs em tempo real.
-   - Limpeza automática de logs baseada em uso de disco (>90%).
-   - Editor de configuração integrado para arquivos Unbound.
+7. **Gestão de Sistema (v1.8.x)**:
+   - **Steel Lock Protection**: Engine de backup/restauro automático para `.env` e `users.json`.
+   - **I/O Nativo (FS)**: Migração de comandos shell (`mv`/`cp`) para chamadas nativas do Node.js, garantindo zero latência.
+   - **Auto-Cleanup**: Limpeza automática de logs baseada em uso de disco (>90%).
+   - **Validador Inteligente**: Integração com `unbound-checkconf` antes de cada salvamento.
 
 ## 🛡️ Segurança e Acesso
-- **Autenticação**: Proteção via Basic Auth configurável por `.env`.
-- **Acesso Remoto**: Conexão SSH via chaves/senhas para execução de `unbound-control`.
+- **Autenticação**: Proteção via Basic Auth e JWT (v1.8+).
+- **Integridade de Arquivos**: Travas contra salvamento de arquivos vazios e exclusão de credenciais críticas.
 - **Trava de Segurança**: Validação automática de sintaxe (`unbound-checkconf`) antes de salvar qualquer configuração pelo dashboard.
 - **Produção**: O serviço roda via Systemd na porta 3000.
 

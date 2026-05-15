@@ -1,5 +1,5 @@
 # 🛡️ Unbound Sentinel
-**Versão 1.6.6 (Elite System)**
+**Versão 1.8.1 (Gold Edition — Steel Lock)**
 
 
 ![Sentinel Header](https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/assets/banner-v2.png)
