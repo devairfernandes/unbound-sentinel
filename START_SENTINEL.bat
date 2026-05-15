@@ -11,3 +11,4 @@ echo [2/2] Iniciando servidor Node.js...
 echo.
 node index.js
 pause
+ 

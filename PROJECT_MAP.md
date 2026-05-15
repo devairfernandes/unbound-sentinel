@@ -60,3 +60,4 @@ O Unbound Sentinel é uma interface web profissional projetada para administrar 
 ---
 *Última Atualização: 29/04/2026 - Implementação do Globo 3D, Drill-down de Clientes, Sistema de Licenciamento e Módulo de DNS Estático (Sistemas Internos).*
 
+ 

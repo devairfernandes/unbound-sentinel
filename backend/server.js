@@ -1170,3 +1170,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Sentinel Backend rodando em todas as interfaces na porta ${PORT}`);
     validateLicenseRemote();
 });
+ 

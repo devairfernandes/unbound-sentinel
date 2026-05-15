@@ -80,3 +80,4 @@ Para adquirir uma licença PRO ou solicitar suporte personalizado, entre em cont
 ---
 
 *© 2025 Unbound Sentinel — Soluções Avançadas em DNS.*
+ 

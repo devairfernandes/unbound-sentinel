@@ -2879,3 +2879,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 setTimeout(initGlobe, 1000);
+ 
