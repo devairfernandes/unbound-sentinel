@@ -1584,6 +1584,9 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
     letter-spacing: 1px;
     background: rgba(0, 0, 0, 0.4);
     border-bottom: 2px solid var(--card-border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .modern-table td {

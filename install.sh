@@ -89,7 +89,7 @@ if [ ! -f "$INSTALL_DIR/.env" ]; then
         echo "   nano $INSTALL_DIR/.env"
         echo ""
     else
-        echo "PORT=3000" | sudo tee "$INSTALL_DIR/.env" > /dev/null
+        echo "PORT=3300" | sudo tee "$INSTALL_DIR/.env" > /dev/null
     fi
 else
     echo "✅ Arquivo .env já existe — mantendo configurações existentes."

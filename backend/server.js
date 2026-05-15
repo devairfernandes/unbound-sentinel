@@ -82,19 +82,23 @@ function saveSessions() {
     } catch (e) {}
 }
 
-// Limpeza de sessões inativas (mais de 5 minutos sem sinal)
+// Limpeza de sessões inativas (mais de 2 minutos sem sinal)
 setInterval(() => {
-    if (envConfig.IS_MASTER !== 'true') return;
+    const isMaster = process.env.IS_MASTER === 'true' || process.platform === 'win32';
+    if (!isMaster) return;
+    
     const now = Date.now();
     let changed = false;
     for (const hwid in activeSessions) {
-        if (now - activeSessions[hwid].lastSeen > 5 * 60 * 1000) {
+        // Se o cliente não manda sinal há mais de 120 segundos, remove
+        if (now - activeSessions[hwid].lastSeen > 2 * 60 * 1000) {
+            console.log(`[Sessions] Removendo cliente inativo: ${activeSessions[hwid].hostname} (${hwid})`);
             delete activeSessions[hwid];
             changed = true;
         }
     }
     if (changed) saveSessions();
-}, 60 * 1000);
+}, 30 * 1000); // Verifica a cada 30 segundos
 
 function getHWID() {
     try {
@@ -538,7 +542,12 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 rm -f update.tar.gz &&
                 
                 echo "Reiniciando sistema..." &&
-                (systemctl restart unbound-dashboard || sudo systemctl restart unbound-dashboard || pm2 restart all || node backend/server.js &) && echo "[OK] Comando de reinício enviado"
+                (
+                    systemctl restart unbound-dashboard || 
+                    sudo systemctl restart unbound-dashboard || 
+                    pm2 restart all || 
+                    pkill -f "node backend/server.js" ; nohup node backend/server.js > /dev/null 2>&1 &
+                ) && echo "[OK] Comando de reinício enviado"
                 
                 echo "--- PROCESSO FINALIZADO ---"
             ) > /tmp/sentinel_update.log 2>&1`;

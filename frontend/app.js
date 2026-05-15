@@ -1714,7 +1714,7 @@ function updateClock() {
 let currentFeatures = { tv: false, config: false, update: false, charts: false, globe: false };
 
 // ===== SISTEMA DE ATUALIZAÇÃO =====
-let currentVersion = "2.0.0"; // Versão base
+let currentVersion = ""; // Será preenchido pelo servidor
 
 // A verificação de atualização agora é tratada pela função no início do arquivo que usa a API /api/system/check-update
 
@@ -1772,13 +1772,16 @@ async function checkLicenseStatus() {
 
         const display = document.getElementById('license-display');
         if (display) {
-            let label = data.status.client + (isPro ? ' (PRO)' : ' (GRÁTIS)');
+            let tierName = ' (GRÁTIS)';
+            if (data.status.type === 'pro') tierName = ' (PRO)';
+            else if (data.status.type === 'pro-lite') tierName = ' (PRO LITE)';
+            let label = data.status.client + tierName;
             if (data.status.expiry && data.status.expiry !== 'never') {
                 const date = new Date(data.status.expiry).toLocaleDateString('pt-BR');
                 label += ` • Vencimento: ${date}`;
             }
             display.innerText = label;
-            display.style.color = isPro ? 'var(--accent-success)' : 'var(--accent-primary)';
+            display.style.color = (data.status.type === 'pro' || data.status.type === 'pro-lite') ? 'var(--accent-success)' : 'var(--accent-primary)';
             
             // Mostrar HWID para suporte se necessário
             if (data.status.hwid) {
@@ -1846,10 +1849,10 @@ async function checkLicenseStatus() {
                 item.style.display = config.isMaster ? 'none' : 'flex';
             });
             
-            // Se for Master, abre direto na gestão de clientes
+            // Se for Master, abre direto no Monitoramento
             if (config.isMaster) {
-                const serversMenu = document.querySelector('li[onclick*="servers"]');
-                showSection('servers', serversMenu);
+                const monitorMenu = document.querySelector('li[onclick*="monitoring"]');
+                showSection('monitoring', monitorMenu);
             }
         }).catch(() => {});
 
@@ -1881,85 +1884,146 @@ async function promptLicenseKey() {
 // Intercept locked features
 const originalShowSection = showSection;
 showSection = async function(id, element) {
-    if (id === 'monitoring') loadActiveClients();
+    if (id === 'monitoring' || id === 'servers') loadActiveClients();
     return originalShowSection(id, element);
 };
 
 async function loadActiveClients() {
     const list = document.getElementById('active-clients-list');
     const countEl = document.getElementById('online-count');
+    const proEl = document.getElementById('pro-count');
+    const freeEl = document.getElementById('free-count');
+    const refreshEl = document.getElementById('last-refresh');
     if (!list) return;
 
     try {
         const res = await apiFetch('/api/system/active-clients');
         const clients = await res.json();
-        
-        if (countEl) countEl.innerText = clients.length;
+        const clientArray = (Array.isArray(clients) ? clients : Object.values(clients || {})).filter(c => c && c.hwid);
 
-        if (clients.length === 0) {
-            list.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; opacity:0.5;">Nenhum cliente conectado no momento.</td></tr>';
+        const proCount = clientArray.filter(c => (c.status || '').toLowerCase().includes('pro')).length;
+        const freeCount = clientArray.length - proCount;
+
+        if (countEl) countEl.innerText = clientArray.length;
+        if (proEl) proEl.innerText = proCount;
+        if (freeEl) freeEl.innerText = freeCount;
+        if (refreshEl) refreshEl.innerText = new Date().toLocaleTimeString('pt-BR');
+
+        list.innerHTML = '';
+
+        if (clientArray.length === 0) {
+            list.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:3rem; opacity:0.4; font-size:0.9rem;">Nenhum cliente conectado no momento.</td></tr>';
             return;
         }
 
-        list.innerHTML = clients.map(c => {
-            const lastSeen = new Date(c.lastSeen).toLocaleTimeString();
-            const isPending = c.status === 'free';
-            return `
-                <tr>
-                    <td>
-                        <div style="font-weight:700;">${c.client}</div>
-                        <div style="font-size:0.7rem; opacity:0.5;">${c.hostname}</div>
-                    </td>
-                    <td style="font-family:'JetBrains Mono';">${c.ip}</td>
-                    <td><span class="badge" style="background:rgba(255,255,255,0.05);">${c.version || 'v2.0'}</span></td>
-                    <td><span class="badge ${c.status}">${c.status.toUpperCase()}</span></td>
-                    <td>${lastSeen}</td>
-                    <td>
-                        <div style="display:flex; gap:8px;">
-                            ${isPending ? `
-                                <button class="btn btn-primary btn-small" onclick="approveClient('${c.hwid}', '${c.hostname}')">
-                                    <i data-lucide="check-circle" style="width:12px;"></i> ATIVAR PRO
-                                </button>
-                            ` : `
-                                <button class="btn btn-secondary btn-small" onclick="openEditLicenseByHWID('${c.hwid}')">
-                                    <i data-lucide="settings" style="width:12px;"></i> GERIR
-                                </button>
-                            `}
+        let html = '';
+        clientArray.forEach(c => {
+            const statusRaw = (c.status || 'free').toLowerCase();
+            const clientName = c.client || 'Novo Cliente';
+            const hostname = c.hostname || 'Desconhecido';
+            const ip = c.ip || '---';
+            const version = c.version || 'v1.x';
+            const lastSeen = c.lastSeen ? new Date(c.lastSeen).toLocaleTimeString('pt-BR') : '--:--';
+            const hwid = c.hwid;
+
+            let statusLabel = 'FREE';
+            let statusStyle = 'background:rgba(255,255,255,0.05); color:#64748b; border:1px solid rgba(255,255,255,0.1);';
+            let isAnyPro = false;
+
+            if (statusRaw === 'pro') {
+                statusLabel = 'PRO';
+                statusStyle = 'background:rgba(14,165,233,0.15); color:#38bdf8; border:1px solid rgba(14,165,233,0.3);';
+                isAnyPro = true;
+            } else if (statusRaw === 'pro-lite') {
+                statusLabel = 'PRO LITE';
+                statusStyle = 'background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);';
+                isAnyPro = true;
+            }
+
+            const actionBtn = isAnyPro
+                ? `<button onclick="openEditLicenseByHWID('${hwid}')"
+                    style="background:transparent; border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.72rem; font-weight:600; letter-spacing:0.5px; transition:all 0.2s;"
+                    onmouseover="this.style.borderColor='#38bdf8';this.style.color='#38bdf8';"
+                    onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='#cbd5e1';">
+                    &#9881; GERIR
+                  </button>`
+                : `<button onclick="approveClient('${hwid}', '${hostname.replace(/'/g, '')}')"
+                    style="background:rgba(14,165,233,0.12); border:1px solid rgba(14,165,233,0.35); color:#38bdf8; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(14,165,233,0.25)';"
+                    onmouseout="this.style.background='rgba(14,165,233,0.12)';">
+                    &#9650; LIBERAR PRO
+                  </button>`;
+
+            html += `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05); transition:background 0.15s;"
+                    onmouseover="this.style.background='rgba(56,189,248,0.03)';"
+                    onmouseout="this.style.background='transparent';">
+                    <td style="padding:1rem 1.25rem;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 6px #10b981; flex-shrink:0; animation:pulse 2s infinite;"></span>
+                            <div>
+                                <div style="font-weight:700; color:#f1f5f9; font-size:0.88rem;">${clientName}</div>
+                                <div style="font-size:0.7rem; color:#475569; margin-top:2px;">${hostname}</div>
+                            </div>
                         </div>
                     </td>
+                    <td style="padding:1rem 1.25rem; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:#64748b;">${ip}</td>
+                    <td style="padding:1rem 1.25rem;">
+                        <span style="background:rgba(255,255,255,0.06); color:#94a3b8; padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; font-family:'JetBrains Mono',monospace; border:1px solid rgba(255,255,255,0.08);">${version}</span>
+                    </td>
+                    <td style="padding:1rem 1.25rem;">
+                        <span style="${statusStyle} padding:3px 12px; border-radius:20px; font-size:0.68rem; font-weight:800; letter-spacing:1px;">${statusLabel}</span>
+                    </td>
+                    <td style="padding:1rem 1.25rem; font-size:0.8rem; color:#475569; font-family:'JetBrains Mono',monospace;">${lastSeen}</td>
+                    <td style="padding:1rem 1.25rem;">${actionBtn}</td>
                 </tr>
             `;
-        }).join('');
-        if (window.lucide) lucide.createIcons();
+        });
+
+        list.innerHTML = html;
     } catch (e) {
-        list.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--accent-danger);">Erro ao carregar monitoramento.</td></tr>';
+        console.error('Erro no monitoramento:', e);
+        list.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#f43f5e; padding:2rem;">Erro ao carregar monitoramento.</td></tr>';
     }
 }
 
 // Inicia o polling do monitoramento se estiver na seção correta
 setInterval(() => {
     const monitorSection = document.getElementById('monitoring-section');
-    if (monitorSection && monitorSection.classList.contains('active-section')) {
+    const serversSection = document.getElementById('servers-section');
+    const isVisible = (monitorSection && monitorSection.classList.contains('active-section')) || 
+                      (serversSection && serversSection.classList.contains('active-section'));
+                      
+    if (isVisible) {
         loadActiveClients();
     }
 }, 10000);
 
 async function approveClient(hwid, hostname) {
-    const clientName = prompt("Nome comercial para este cliente:", hostname);
+    const clientName = prompt('Nome comercial para este cliente:', hostname);
     if (!clientName) return;
+
+    const tierChoice = confirm(
+        'Escolha o tier de licença:\n\n' +
+        '✅ OK  →  PRO LITE (Doador — Configurações, Updates, Gráficos)\n' +
+        '❌ Cancel  →  PRO FULL (Todas as features)'
+    );
+    const tier = tierChoice ? 'pro-lite' : 'pro';
+    const features = tier === 'pro-lite'
+        ? { tv: false, config: true, update: true, charts: true, globe: false, benchmark: false }
+        : { tv: true, config: true, update: true, charts: true, globe: true, benchmark: true };
 
     try {
         const res = await apiFetch(`${API_BASE}/system/licenses-db`);
         const db = await res.json();
-        
-        // Gera uma chave interna baseada no HWID
+
         const key = 'AUTO-' + hwid.substring(0, 8).toUpperCase();
         db[key] = {
             hwid: hwid,
             client: clientName,
-            type: 'pro',
+            type: tier,
             valid: true,
-            features: { tv: true, config: true, update: true, charts: true, globe: true, benchmark: true }
+            features: features
         };
 
         await apiFetch(`${API_BASE}/system/licenses-db`, {
@@ -1968,10 +2032,10 @@ async function approveClient(hwid, hostname) {
             body: JSON.stringify(db)
         });
 
-        alert("Servidor ativado com sucesso como PRO!");
+        alert(`Servidor ativado como ${tier === 'pro-lite' ? 'PRO Lite ❤' : 'PRO Full ⭐'} com sucesso!`);
         loadActiveClients();
     } catch (e) {
-        alert("Erro ao aprovar cliente.");
+        alert('Erro ao aprovar cliente.');
     }
 }
 
@@ -2020,11 +2084,15 @@ function renderLicensesList(db) {
     }
     list.innerHTML = keys.map(key => {
         const lic = db[key];
+        let badgeClass = 'reject';
+        if (lic.type === 'pro') badgeClass = 'accept';
+        else if (lic.type === 'pro-lite') badgeClass = 'pro'; // usando o estilo azul/verde do pro
+
         return `
             <div class="server-card">
                 <div class="server-card-header">
                     <h3>${lic.client}</h3>
-                    <span class="badge ${lic.type === 'pro' ? 'accept' : 'reject'}">${lic.type.toUpperCase()}</span>
+                    <span class="badge ${badgeClass}">${lic.type.toUpperCase()}</span>
                 </div>
                 <div class="server-info-row">
                     <span class="server-info-label">Chave:</span>
@@ -2099,6 +2167,7 @@ async function openEditLicense(key) {
                         <label>Tipo de Plano</label>
                         <select id="edit-lic-type" class="modern-input">
                             <option value="pro" ${lic.type === 'pro' ? 'selected' : ''}>Pro / Premium</option>
+                            <option value="pro-lite" ${lic.type === 'pro-lite' ? 'selected' : ''}>Pro Lite (Doador)</option>
                             <option value="free" ${lic.type === 'free' ? 'selected' : ''}>Grátis / Básico</option>
                         </select>
                     </div>

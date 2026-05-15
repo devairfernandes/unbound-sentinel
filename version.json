@@ -1,5 +1,6 @@
 {
-    "version": "1.6.6",
-    "description": "Elite Update v1.6.6: Versão de estabilidade máxima com motor de atualização blindado.",
-    "date": "2026-05-14"
+    "version": "1.7.1",
+    "description": "Sentinel v1.7.1: Correção na lógica de portas e otimização do sistema de atualização.",
+    "date": "2026-05-15",
+    "isMajor": false
 }

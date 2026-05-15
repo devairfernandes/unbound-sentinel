@@ -369,18 +369,42 @@
         </section>
 
         <section id="monitoring-section">
-            <div class="panel">
-                <div class="panel-header">
-                    <h2>Clientes Online (Real-Time)</h2>
-                    <p>Monitore o status e a saúde de todos os servidores Sentinel ativos.</p>
+            <!-- HEADER -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h2 style="font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,#f8fafc,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:4px;">Clientes Online</h2>
+                    <p style="color:#64748b; font-size:0.85rem;">Monitoramento em tempo real dos servidores Sentinel ativos.</p>
                 </div>
-                <div class="servers-toolbar" style="margin: 1.5rem 0;">
-                    <div style="display:flex; align-items:center; gap:10px; color:var(--accent-success); font-weight:bold;">
-                        <span class="live-dot" style="margin:0"></span> <span id="online-count">0</span> CLIENTES ATIVOS
-                    </div>
+                <div style="display:flex; align-items:center; gap:8px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); padding:6px 14px; border-radius:50px;">
+                    <span class="live-dot" style="margin:0;"></span>
+                    <span style="font-size:0.78rem; font-weight:700; color:#10b981; letter-spacing:1px;">LIVE</span>
                 </div>
-                <div class="terminal-view" style="padding:0; border-radius:12px; overflow:hidden;">
-                    <table class="modern-table">
+            </div>
+
+            <!-- STAT CARDS -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+                <div style="background:rgba(14,165,233,0.07); border:1px solid rgba(14,165,233,0.2); border-radius:16px; padding:1.2rem 1.5rem;">
+                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#64748b; font-weight:700; margin-bottom:6px;">Total Ativos</div>
+                    <div id="online-count" style="font-size:2rem; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; line-height:1;">0</div>
+                </div>
+                <div style="background:rgba(14,165,233,0.07); border:1px solid rgba(14,165,233,0.2); border-radius:16px; padding:1.2rem 1.5rem;">
+                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#64748b; font-weight:700; margin-bottom:6px;">Licenças PRO</div>
+                    <div id="pro-count" style="font-size:2rem; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; line-height:1;">0</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1.2rem 1.5rem;">
+                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#64748b; font-weight:700; margin-bottom:6px;">Sem Licença</div>
+                    <div id="free-count" style="font-size:2rem; font-weight:900; color:#94a3b8; font-family:'JetBrains Mono',monospace; line-height:1;">0</div>
+                </div>
+                <div style="background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.2); border-radius:16px; padding:1.2rem 1.5rem;">
+                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:1.5px; color:#64748b; font-weight:700; margin-bottom:6px;">Últ. Atualização</div>
+                    <div id="last-refresh" style="font-size:1.1rem; font-weight:700; color:#f59e0b; font-family:'JetBrains Mono',monospace; line-height:1; margin-top:6px;">--:--:--</div>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.07); border-radius:16px; overflow:hidden;">
+                <div style="overflow-y:auto; max-height:420px;">
+                    <table class="modern-table" style="min-width:650px;">
                         <thead>
                             <tr>
                                 <th>CLIENTE / HOSTNAME</th>
@@ -511,33 +535,144 @@
         </section>
 
         <section id="about-section">
-            <div class="panel" style="max-width: 800px; margin: 0 auto; text-align: center; padding: 3rem 2rem;">
-                <div style="width: 80px; height: 80px; background: rgba(56,189,248,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
-                    <i data-lucide="shield-check" style="width: 40px; height: 40px; color: var(--accent-primary);"></i>
+            <!-- HERO -->
+            <div style="text-align:center; margin-bottom:2.5rem;">
+                <div style="width:72px;height:72px;background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15));border:1px solid rgba(56,189,248,0.3);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem auto;">
+                    <i data-lucide="shield-check" style="width:36px;height:36px;color:#38bdf8;"></i>
                 </div>
-                <h2 style="font-size: 2rem; margin-bottom: 0.5rem; background: linear-gradient(90deg, #f8fafc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Unbound Sentinel Dashboard</h2>
-                <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">Monitoramento avançado e segurança para servidores DNS.</p>
-                
-                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; text-align: left; margin-bottom: 2rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div>
-                            <span class="noc-label">Versão do Sistema</span>
-                            <div class="noc-value" id="system-version-display" style="font-size: 1.2rem; margin-top: 4px;">...</div>
-                        </div>
-                        <div>
-                            <span class="noc-label">Licença</span>
-                            <div id="license-display" class="noc-value" style="font-size: 1.2rem; margin-top: 4px; color: var(--text-muted);">Verificando...</div>
-                            <button class="btn btn-primary" style="margin-top: 10px; font-size: 0.8rem; padding: 0.4rem 0.8rem;" onclick="promptLicenseKey()">Ativar Chave PRO</button>
-                        </div>
+                <h2 style="font-size:1.8rem;font-weight:900;background:linear-gradient(90deg,#f8fafc,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.4rem;">Unbound Sentinel</h2>
+                <p style="color:#64748b;font-size:0.95rem;">Monitoramento avançado de servidores DNS — desenvolvido por <strong style="color:#94a3b8;">Devair Fernandes</strong></p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:1.2rem;flex-wrap:wrap;">
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid var(--card-border);border-radius:10px;padding:0.6rem 1.2rem;display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:0.7rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Versão</span>
+                        <span id="system-version-display" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#38bdf8;">...</span>
                     </div>
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid var(--card-border);border-radius:10px;padding:0.6rem 1.2rem;display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:0.7rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Licença</span>
+                        <span id="license-display" style="font-weight:700;color:#10b981;">Verificando...</span>
+                    </div>
+                    <button class="btn btn-primary" style="font-size:0.78rem;padding:0.55rem 1.2rem;" onclick="promptLicenseKey()">Ativar Chave PRO</button>
+                </div>
+            </div>
+
+            <!-- PLANOS -->
+            <h3 style="text-align:center;font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;color:#475569;margin-bottom:1.25rem;">Planos Disponíveis</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;margin-bottom:2.5rem;">
+
+                <!-- FREE -->
+                <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:1.75rem;position:relative;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#475569;margin-bottom:0.75rem;">Gratuito</div>
+                    <div style="font-size:2rem;font-weight:900;color:#94a3b8;margin-bottom:1.25rem;">Free</div>
+                    <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
+                        <li style="color:#64748b;">✓ &nbsp;Dashboard de Monitoramento</li>
+                        <li style="color:#64748b;">✓ &nbsp;Configuração Básica (unbound.conf)</li>
+                        <li style="color:#64748b;">✓ &nbsp;Logs em Tempo Real</li>
+                        <li style="color:#334155;">✗ &nbsp;Modo TV / NOC</li>
+                        <li style="color:#334155;">✗ &nbsp;Benchmark DNS</li>
+                        <li style="color:#334155;">✗ &nbsp;Atualizações Remotas</li>
+                        <li style="color:#334155;">✗ &nbsp;Configurações Avançadas</li>
+                    </ul>
                 </div>
 
-                <h3 style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">Desenvolvedor</h3>
-                <div style="display: inline-flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 16px; padding: 1.5rem 3rem;">
-                    <h4 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Devair Fernandes</h4>
-                    <p style="color: var(--text-muted); margin-bottom: 1rem;">Especialista em Redes e Sistemas Linux</p>
-                    <a href="https://wa.me/5569992214709" target="_blank" class="btn btn-primary" style="text-decoration: none; display: inline-flex; padding: 0.6rem 1.2rem;">
-                        <i data-lucide="phone"></i> Contato WhatsApp
+                <!-- PRO LITE -->
+                <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(56,189,248,0.05));border:1px solid rgba(16,185,129,0.35);border-radius:20px;padding:1.75rem;position:relative;box-shadow:0 0 30px rgba(16,185,129,0.08);">
+                    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#10b981,#38bdf8);color:#000;font-size:0.6rem;font-weight:900;padding:3px 14px;border-radius:20px;letter-spacing:1.5px;text-transform:uppercase;">VIA DOAÇÃO ❤</div>
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#10b981;margin-bottom:0.75rem;">Apoiador</div>
+                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#10b981,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.25rem;">PRO Lite</div>
+                    <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
+                        <li style="color:#94a3b8;">✓ &nbsp;Tudo do Plano Free</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Configurações Avançadas</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Atualizações Remotas</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Gráficos Históricos</li>
+                        <li style="color:#334155;">✗ &nbsp;Modo TV / NOC</li>
+                        <li style="color:#334155;">✗ &nbsp;Benchmark DNS</li>
+                        <li style="color:#334155;">✗ &nbsp;Visão Global (Globe)</li>
+                    </ul>
+                    <button onclick="document.getElementById('donation-area').scrollIntoView({behavior:'smooth'})"
+                        style="width:100%;margin-top:1.5rem;padding:0.7rem;background:linear-gradient(90deg,rgba(16,185,129,0.2),rgba(56,189,248,0.2));border:1px solid rgba(16,185,129,0.4);color:#10b981;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.8rem;letter-spacing:0.5px;transition:all 0.2s;"
+                        onmouseover="this.style.background='linear-gradient(90deg,rgba(16,185,129,0.35),rgba(56,189,248,0.35))';"
+                        onmouseout="this.style.background='linear-gradient(90deg,rgba(16,185,129,0.2),rgba(56,189,248,0.2))';">
+                        ❤ FAZER DOAÇÃO (PIX)
+                    </button>
+                </div>
+
+                <!-- PRO FULL -->
+                <div style="background:linear-gradient(135deg,rgba(56,189,248,0.08),rgba(168,85,247,0.05));border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:1.75rem;position:relative;box-shadow:0 0 30px rgba(56,189,248,0.07);">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;margin-bottom:0.75rem;">Premium</div>
+                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.25rem;">PRO</div>
+                    <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
+                        <li style="color:#94a3b8;">✓ &nbsp;Tudo do PRO Lite</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Modo TV / NOC Fullscreen</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Benchmark DNS Avançado</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Visão Global (Globe)</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Suporte Prioritário</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Multi-Servidor</li>
+                        <li style="color:#94a3b8;">✓ &nbsp;Acesso a Novas Features Beta</li>
+                    </ul>
+                    <a href="https://wa.me/5569992214709?text=Quero+ativar+licença+PRO+do+Sentinel" target="_blank"
+                        style="display:block;width:100%;margin-top:1.5rem;padding:0.7rem;background:linear-gradient(90deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15));border:1px solid rgba(56,189,248,0.4);color:#38bdf8;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.8rem;letter-spacing:0.5px;text-align:center;text-decoration:none;box-sizing:border-box;">
+                        &#9993; FALAR COM SUPORTE
+                    </a>
+                </div>
+            </div>
+
+            <!-- DOAÇÃO PIX -->
+            <div id="donation-area" style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(56,189,248,0.04));border:1px solid rgba(16,185,129,0.25);border-radius:24px;padding:2rem;margin-bottom:2rem;">
+                <div style="display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;flex-wrap:wrap;">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+                            <span style="font-size:1.5rem;">❤</span>
+                            <div>
+                                <h3 style="font-size:1.1rem;font-weight:800;color:#f1f5f9;margin-bottom:2px;">Apoie o Projeto</h3>
+                                <p style="font-size:0.8rem;color:#64748b;">Sua doação mantém o Sentinel gratuito e em constante evolução.</p>
+                            </div>
+                        </div>
+                        <p style="font-size:0.88rem;color:#94a3b8;line-height:1.7;margin-bottom:1.25rem;">
+                            Qualquer valor é bem-vindo! Após a doação, envie o <strong style="color:#10b981;">comprovante via WhatsApp</strong> e receba sua ativação <strong style="color:#38bdf8;">PRO Lite</strong> em minutos.
+                        </p>
+                        <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;">
+                            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1.5px;color:#475569;margin-bottom:6px;font-weight:700;">Chave PIX</div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <code id="pix-key-display" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:#10b981;letter-spacing:1px;">69992214709</code>
+                                <button onclick="navigator.clipboard.writeText('69992214709').then(()=>{this.innerText='✓ Copiado!';this.style.color='#10b981';setTimeout(()=>{this.innerText='Copiar';this.style.color='#64748b';},2000);})"
+                                    style="background:none;border:1px solid rgba(255,255,255,0.1);color:#64748b;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s;">
+                                    Copiar
+                                </button>
+                            </div>
+                            <div style="font-size:0.72rem;color:#475569;margin-top:4px;">Tipo: Telefone &nbsp;|&nbsp; Titular: Devair Fernandes</div>
+                        </div>
+                        <a href="https://wa.me/5569992214709?text=Olá!+Realizei+uma+doação+para+o+Sentinel+e+gostaria+de+ativar+meu+acesso+PRO+Lite" target="_blank"
+                            style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.35);color:#25d366;padding:0.65rem 1.25rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.82rem;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(37,211,102,0.25)';"
+                            onmouseout="this.style.background='rgba(37,211,102,0.12)';">
+                            &#128222; Enviar comprovante via WhatsApp
+                        </a>
+                    </div>
+                    <!-- QR Code simulado (ASCII art de placeholder visual) -->
+                    <div style="flex-shrink:0;text-align:center;">
+                        <div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;box-shadow:0 0 30px rgba(16,185,129,0.2);">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=69992214709&margin=4" 
+                                 width="140" height="140" alt="QR Code PIX" style="display:block;border-radius:8px;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none;width:140px;height:140px;align-items:center;justify-content:center;background:#0f172a;border-radius:8px;font-size:0.7rem;color:#475569;text-align:center;padding:1rem;box-sizing:border-box;">
+                                Aponte a câmera para pagar via PIX
+                            </div>
+                        </div>
+                        <div style="font-size:0.68rem;color:#475569;margin-top:8px;letter-spacing:1px;">ESCANEIE PARA PAGAR</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEVELOPER FOOTER -->
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.06);">
+                <div>
+                    <div style="font-weight:700;color:#f1f5f9;margin-bottom:2px;">Devair Fernandes</div>
+                    <div style="font-size:0.8rem;color:#475569;">Especialista em Redes e Sistemas Linux</div>
+                </div>
+                <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                    <a href="https://wa.me/5569992214709" target="_blank"
+                        style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:#25d366;padding:0.55rem 1rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.8rem;">
+                        &#128222; WhatsApp
                     </a>
                 </div>
             </div>
@@ -570,7 +705,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3.1"></script>
+    <script src="app.js?v=3.9"></script>
     <script>lucide.createIcons();</script>
     <button id="exit-tv-btn" onclick="toggleTVMode()">
         <i data-lucide="minimize-2"></i> <span>SAIR DO MODO TV</span>
