@@ -955,13 +955,7 @@ app.get('/api/security/threats', async (req, res) => {
             const threats = [];
             const suspects = {};
 
-            // INJEÇÃO DE TESTE: Sempre manda um alerta para testar a tela
-            threats.push({
-                domain: 'SENTINEL-TEST.LIVE',
-                ip: '127.0.0.1',
-                time: new Date().toLocaleTimeString('pt-BR'),
-                severity: 'CRITICAL'
-            });
+            // Motor de Inteligência pronto para processar ameaças reais
 
             lines.forEach(line => {
                 const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
