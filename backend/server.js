@@ -943,6 +943,7 @@ app.get('/api/security/debug', async (req, res) => {
 app.get('/api/security/threats', async (req, res) => {
     try {
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
+        const malwareSet = new Set(threatIntel.malware_domains);
         const { exec } = require('child_process');
         
         exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
@@ -963,7 +964,7 @@ app.get('/api/security/threats', async (req, res) => {
                     const ip = match[1];
                     let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
 
-                    const isMalware = threatIntel.malware_domains.includes(domain) || (global.publicThreats && global.publicThreats.has(domain));
+                    const isMalware = malwareSet.has(domain);
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
                     if (isMalware || isSuspicious) {
@@ -1239,8 +1240,6 @@ const PORT = process.env.PORT || 3300;
 // ============================================
 // AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI GLOBAL (OSINT)
 // ============================================
-global.publicThreats = new Set();
-
 function autoUpdateThreatIntel() {
     const https = require('https');
     console.log('[CTI] Sincronizando listas de Ameaças Globais (URLhaus Abuse.ch)...');
@@ -1253,21 +1252,34 @@ function autoUpdateThreatIntel() {
         res.on('data', chunk => data += chunk);
         res.on('end', () => {
             try {
+                const fs = require('fs');
+                const path = require('path');
+                const intelPath = path.join(__dirname, 'threat_intel.json');
+                const currentIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
+                
                 const lines = data.split('\n');
                 let count = 0;
-                global.publicThreats.clear(); // Limpa antes de atualizar
+                
+                // Pega os malwares atuais para não apagar o que o usuário já colocou
+                const newDomains = new Set(currentIntel.malware_domains);
+                
                 for (let line of lines) {
                     if (line.startsWith('#') || !line.trim()) continue;
                     const parts = line.split('\t');
                     if (parts.length >= 2) {
                         const domain = parts[1].trim().toLowerCase();
                         if (domain && domain !== 'localhost') {
-                            global.publicThreats.add(domain);
+                            newDomains.add(domain);
                             count++;
                         }
                     }
                 }
-                console.log(`[CTI] 🛡️ Sincronizados ${count} domínios maliciosos reais da Internet. Prontidão Máxima.`);
+                
+                // Grava os milhares de domínios diretamente DENTRO do arquivo JSON!
+                currentIntel.malware_domains = Array.from(newDomains);
+                fs.writeFileSync(intelPath, JSON.stringify(currentIntel, null, 4));
+                
+                console.log(`[CTI] 🛡️ Adicionados fisicamente ${count} domínios no arquivo threat_intel.json!`);
             } catch (e) {
                 console.error('[CTI] Falha no parse ao processar OSINT URLhaus:', e.message);
             }
