@@ -83,7 +83,7 @@ echo "🧹 Limpando arquivos antigos (preservando configurações)..."
 sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
 sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-echo "📤 Aplicando nova versão v2.0.0 (Sentinel Elite)..."
+echo "📤 Aplicando nova versão v2.2.0 (Sentinel Security Plus)..."
 sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
 cd "$INSTALL_DIR"
 
