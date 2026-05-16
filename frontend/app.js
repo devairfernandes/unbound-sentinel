@@ -230,26 +230,6 @@ function getUserRole() {
     } catch (e) { return 'viewer'; }
 }
 
-function showSection(id, el) {
-    console.log(`[UI] Trocando para seção: ${id}`);
-    
-    // Esconde todas as seções
-    document.querySelectorAll('.content-section').forEach(s => {
-        s.style.display = 'none'; // <-- Fallback de segurança
-        s.classList.remove('active-section');
-    });
-
-    // Mostra a selecionada (tenta ID puro ou ID-section)
-    const target = document.getElementById(id) || document.getElementById(`${id}-section`);
-    if (target) {
-        target.style.display = ''; // Limpa o "none" inline do HTML para que o CSS funcione
-        target.classList.add('active-section');
-    }
-
-    // Gerencia estado ativo no menu lateral
-    document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-    if (el) el.classList.add('active');
-}
 
 
 function updateUIByRole() {
@@ -685,18 +665,31 @@ function renderTopBars(id, items) {
 
 async function showSection(id, element) {
     if (!element) return;
-    if ((id === 'config' || id === 'servers') && !authCredentials) {
+    
+    // Proteção de login para seções administrativas
+    if ((id === 'config' || id === 'servers' || id === 'security') && !authCredentials) {
         showLogin();
         return;
     }
+
+    // Gerenciamento de classes e visibilidade
     document.querySelectorAll('section').forEach(s => s.classList.remove('active-section'));
     document.querySelectorAll('.nav-links li').forEach(l => l.classList.remove('active'));
+    
     const section = document.getElementById(`${id}-section`);
-    if (section) section.classList.add('active-section');
+    if (section) {
+        section.classList.add('active-section');
+    } else {
+        console.warn(`[UI] Seção não encontrada: ${id}-section`);
+    }
+
     element.classList.add('active');
+
+    // Carga de dados específica por aba
     if (id === 'config') loadConfig();
     if (id === 'servers') loadServers();
     if (id === 'licenses') loadLicenses();
+    if (id === 'security') updateSecurityThreats();
 }
 
 function openConfigModule(module) {
