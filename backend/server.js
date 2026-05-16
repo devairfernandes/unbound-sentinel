@@ -934,15 +934,17 @@ app.get('/api/security/threats', async (req, res) => {
         const suspects = {};
 
         lines.forEach(line => {
-            // Regex ultra-flexível: busca 'info:' seguido por um IP e um Domínio
+            // Regex ajustado para o seu formato exato: info: [IP] [DOMAIN]
             const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
             
             if (match) {
                 const ip = match[1];
                 let domain = match[2].toLowerCase();
-                if (domain.endsWith('.')) domain = domain.slice(0, -1); // Remove ponto final se existir
+                
+                // Limpeza rigorosa: remove pontos finais e espaços
+                domain = domain.replace(/\.$/, '').trim();
 
-                const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p)) || 
+                const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase())) || 
                                    threatIntel.malware_domains.includes(domain);
 
                 if (isSuspicious) {
