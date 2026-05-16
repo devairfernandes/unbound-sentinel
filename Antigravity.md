@@ -13,30 +13,21 @@ Este documento serve como memória persistente para a inteligência artificial (
     *   Blacklist / CTI Blocks: `/etc/unbound/local.d/local-zone.conf`
 *   **Deploy Script**: `deploy-remoto.js` (Utilizado para build e push para o servidor `168.197.8.70:51386`).
 
-## 🛡️ Últimas Implementações Críticas (v2.0.8 a v2.1.2)
+## 🛡️ Últimas Implementações Críticas (v2.1.2 a v2.2.0)
 
-### 1. Motor CTI & Gestor de Fontes OSINT
-*   **Múltiplas Fontes**: O sistema agora possui um gestor de fontes (`cti_sources.json`) que permite ativar/desativar diferentes listas de inteligência (URLhaus, StevenBlack, Phishing Database, Gambling).
-*   **Sincronização Dinâmica**: O backend baixa e processa automaticamente as fontes ativas, unificando-as no `threat_intel.json`.
-*   **Motor de Busca**: O motor (`/api/security/threats`) utiliza a estrutura `Set` do Javascript para garantir alta performance (O(1)) na filtragem de logs ao processar milhares de domínios maliciosos.
-*   **Filtros de Ruído:** Google, Facebook e domínios de infraestrutura local são ignorados automaticamente para evitar falsos positivos.
+### 1. Dashboard de Segurança Consolidado (NOC View)
+*   **Novos Cards na Home**: Replicamos as métricas de CTI (Ameaças Críticas, Suspeitas, Bloqueios e IPs Monitorados) diretamente para a página inicial.
+*   **Navegação Inteligente**: Implementamos o redirecionamento dos cards para a aba de segurança, garantindo que o menu lateral seja atualizado automaticamente para manter a consistência da UI.
+*   **Vigilância Global**: O contador de "IPs Monitorados" foi expandido para mostrar todos os clientes ativos na rede (via processamento de logs), proporcionando uma percepção de segurança abrangente.
 
-### 2. Retenção de Memória (12 Horas)
-*   A leitura de logs do Unbound via `tail -n 2000` perdia ameaças rapidamente devido à alta rotatividade dos logs.
-*   Implementamos um cache em memória no `server.js` (`threatHistory = []`) que retém as ameaças Críticas e Suspeitas detectadas por até **12 horas**.
-*   Isso garante que o NOC tenha tempo para revisar os acessos e tomar decisões manuais sobre bloqueio de domínios.
-
-### 3. Blacklist Visual Manager & Monitor de Bloqueios
-*   **UI CTI**: Adicionamos um botão "Blacklist" do lado de cada ameaça detectada no painel, chamando a rota `/api/security/blacklist`.
-*   **Monitor de Consultas**: Criamos a rota `/api/security/blocked` que cruza os logs do Unbound com a lista de bloqueios manuais, permitindo ver em tempo real quem (IP) tentou acessar o que foi bloqueado.
-*   **UI Configurações**: Criamos um módulo visual inteiro dedicado ao gerenciamento da Blacklist no grid de Configurações, manipulando diretamente as regras `always_nxdomain`.
-*   **Permissões**: O backend usa `echo '...' | sudo tee -a /etc/unbound/local.d/local-zone.conf > /dev/null` para contornar problemas de permissão e erros de _string escape_ do bash ao gravar aspas.
-
-### 4. Resolução do "Syntax Error" no Unbound (`server:`)
-*   **Causa:** Ao salvar o arquivo `local-zone.conf` limpo a partir do Frontend, o serviço de DNS do Unbound quebrava (parava de funcionar). Isso ocorria porque os arquivos _include_ do Unbound exigem que a diretiva `server:` seja declarada no topo caso o escopo anterior seja perdido.
-*   **Solução:** Implementamos a injeção obrigatória de `server:` tanto na geração de templates pelo `app.js` (`syncStaticWithEditor` e `syncBlacklistWithEditor`) quanto diretamente via terminal pelo backend (usando `grep -q "^server:"`).
+### 2. Sincronização de Versão e Correção do OTA
+*   **Upgrade v2.2.0 (Sentinel Security Plus)**: Bump de versão no `package.json` e `version.json` para disparar o alerta de atualização nos clientes.
+*   **Fim do Cache de Versão**: Removemos o uso de `require` no backend para leitura do `package.json`, substituindo por `fs.readFileSync`. Isso garante que o servidor Master sempre reporte a versão em disco em tempo real, sem depender de reinicialização para que os clientes vejam novos updates.
+*   **Injeção de `server:`**: Reforçamos a estabilidade do Unbound garantindo que arquivos de configuração injetados via web sempre contenham o cabeçalho necessário para o parser do serviço.
 
 ## 📌 Próximos Passos & Dicas Futuras
-*   **Segurança no deploy:** Cuidado ao usar `bash -c` e `echo` com comandos compostos e aspas duplas, usar `tee` provou ser muito mais estável para injeções em arquivos de sistema remotos.
-*   **Integração do Firewall:** O botão de bloqueio de IPs ainda é visual, os IPs ameaçadores poderão ser passados pro `iptables` ou via `unbound-control` para `access-control`.
+*   **Alertas em Tempo Real:** Implementar Webhooks (Discord/Telegram) para notificações de ameaças Críticas.
+*   **Bloqueio Automático:** Criar opção de "Auto-Block" para fontes OSINT de altíssima confiança (ex: URLhaus malware).
+*   **Logs Otimizados:** Se o tráfego aumentar muito, considerar migrar o log em memória de 12h para um SQLite local para evitar consumo excessivo de RAM.
 *   Sempre verifique a porta (51386) e as chaves corretas ao disparar comandos SSH remotamente via Node.js.
+
