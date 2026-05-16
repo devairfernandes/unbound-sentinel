@@ -928,8 +928,13 @@ app.get('/api/security/threats', async (req, res) => {
     try {
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
         
-        // Usando sudo tail para garantir que temos permissão de leitura
-        const logContent = await runSSHCommand('sudo tail -n 2000 /var/log/unbound.log');
+        // Usando tail direto via shell para máxima compatibilidade e performance
+        const { exec } = require('child_process');
+        const logContent = await new Promise((resolve) => {
+            exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
+                resolve(stdout || '');
+            });
+        });
         
         const lines = logContent.split('\n');
         const threats = [];
