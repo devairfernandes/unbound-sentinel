@@ -1,5 +1,6 @@
 {
     "suspicious_patterns": [
+        "google.com",
         "doubleclick.net",
         "bit.ly",
         "tinyurl.com",
