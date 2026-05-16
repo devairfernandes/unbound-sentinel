@@ -963,7 +963,7 @@ app.get('/api/security/threats', async (req, res) => {
                     const ip = match[1];
                     let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
 
-                    const isMalware = threatIntel.malware_domains.includes(domain);
+                    const isMalware = threatIntel.malware_domains.includes(domain) || (global.publicThreats && global.publicThreats.has(domain));
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
                     if (isMalware || isSuspicious) {
@@ -1237,31 +1237,43 @@ const PORT = process.env.PORT || 3300;
 // Remover rota de update duplicada para evitar conflitos
 
 // ============================================
-// AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI (A cada 24h)
+// AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI GLOBAL (OSINT)
 // ============================================
+global.publicThreats = new Set();
+
 function autoUpdateThreatIntel() {
-    const url = 'https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/backend/threat_intel.json';
     const https = require('https');
+    console.log('[CTI] Sincronizando listas de Ameaças Globais (URLhaus Abuse.ch)...');
     
-    console.log('[CTI] Verificando atualizações de inteligência no Servidor Global...');
+    // URLhaus: Banco de dados aberto mantido por pesquisadores de segurança globais
+    const url = 'https://urlhaus.abuse.ch/downloads/hostfile/';
+    
     https.get(url, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
         res.on('end', () => {
             try {
-                const newIntel = JSON.parse(data);
-                if (newIntel.suspicious_patterns && newIntel.malware_domains) {
-                    const fs = require('fs');
-                    const path = require('path');
-                    fs.writeFileSync(path.join(__dirname, 'threat_intel.json'), JSON.stringify(newIntel, null, 4));
-                    console.log('[CTI] 🛡️ Banco de Inteligência sincronizado com sucesso! Prontidão Máxima.');
+                const lines = data.split('\n');
+                let count = 0;
+                global.publicThreats.clear(); // Limpa antes de atualizar
+                for (let line of lines) {
+                    if (line.startsWith('#') || !line.trim()) continue;
+                    const parts = line.split('\t');
+                    if (parts.length >= 2) {
+                        const domain = parts[1].trim().toLowerCase();
+                        if (domain && domain !== 'localhost') {
+                            global.publicThreats.add(domain);
+                            count++;
+                        }
+                    }
                 }
+                console.log(`[CTI] 🛡️ Sincronizados ${count} domínios maliciosos reais da Internet. Prontidão Máxima.`);
             } catch (e) {
-                console.error('[CTI] Falha no parse ao processar atualização da nuvem:', e.message);
+                console.error('[CTI] Falha no parse ao processar OSINT URLhaus:', e.message);
             }
         });
     }).on('error', (err) => {
-        console.error('[CTI] Erro de conexão com Servidor Global CTI:', err.message);
+        console.error('[CTI] Erro de conexão com Servidor OSINT:', err.message);
     });
 }
 // Sincroniza logo no boot e depois agenda para a cada 24 horas (86400000 ms)
