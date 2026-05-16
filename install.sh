@@ -73,15 +73,10 @@ if ! command -v node &>/dev/null; then
 fi
 echo "✅ Node.js $(node -v) / npm $(npm -v)"
 
-# ---- 4. Copiar arquivos para diretório de instalação ----
-echo ""
-echo "📁 Instalando em $INSTALL_DIR ..."
-sudo mkdir -p "$INSTALL_DIR"
-
-# Remove arquivos sensíveis da pasta temporária se eles existirem para não sobrescrever os oficiais
-sudo rm -f "$CURRENT_DIR/.env" 2>/dev/null || true
-sudo rm -f "$CURRENT_DIR/users.json" 2>/dev/null || true
-sudo rm -f "$CURRENT_DIR/servers.json" 2>/dev/null || true
+# Para o serviço antes de atualizar para não travar arquivos
+echo "🛑 Parando serviço para atualização..."
+sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
+sudo pkill -f "node $INSTALL_DIR/index.js" 2>/dev/null || true
 
 sudo cp -r "$CURRENT_DIR"/. "$INSTALL_DIR/" 2>/dev/null || true
 cd "$INSTALL_DIR"
