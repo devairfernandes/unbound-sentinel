@@ -120,10 +120,34 @@ async function updateSecurityThreats() {
                         <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
                         <div class="threat-ip">Origem: ${alert.ip}</div>
                     </div>
+                    <div class="threat-actions" style="margin-right: 15px;">
+                        <button onclick="blockThreatDomain('${alert.domain}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: var(--accent-danger); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
+                            <i data-lucide="ban" style="width: 12px; height: 12px;"></i> Blacklist
+                        </button>
+                    </div>
                     <div class="threat-time">${alert.time}</div>
                 </div>
             `).join('');
         }
+
+        // Nova Função de Bloqueio Rápido
+        window.blockThreatDomain = async function(domain) {
+            if (!confirm(`Deseja adicionar o domínio '${domain}' na BLACKLIST permanente do servidor?`)) return;
+            try {
+                const res = await apiFetch('/api/security/blacklist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain })
+                });
+                if (res.ok) {
+                    alert(`✅ Sucesso! O domínio ${domain} foi bloqueado em toda a rede.`);
+                } else {
+                    alert(`❌ Falha ao bloquear ${domain}.`);
+                }
+            } catch (e) {
+                alert('Erro de autenticação. Faça login como admin.');
+            }
+        };
 
         const suspectsList = document.getElementById('security-suspects-list');
         if (suspectsList) {

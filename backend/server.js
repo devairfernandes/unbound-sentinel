@@ -992,6 +992,24 @@ app.get('/api/security/threats', async (req, res) => {
     }
 });
 
+app.post('/api/security/blacklist', auth, async (req, res) => {
+    try {
+        const { domain } = req.body;
+        if (!domain) return res.status(400).json({ error: 'Domínio não fornecido' });
+        
+        const rule = `\n# Bloqueio CTI Blacklist\nlocal-zone: "${domain}" always_nxdomain\n`;
+        const localZonePath = '/etc/unbound/unbound.conf.d/local-zone.conf';
+        
+        const { exec } = require('child_process');
+        exec(`sudo bash -c 'echo "${rule}" >> ${localZonePath} && systemctl restart unbound'`, (err) => {
+            if (err) return res.status(500).json({ error: 'Erro ao bloquear domínio' });
+            res.json({ message: 'Domínio adicionado à Blacklist com sucesso' });
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/api/firewall', auth, async (req, res) => {
     try {
         const result = await runSSHCommand('sudo iptables -S');
