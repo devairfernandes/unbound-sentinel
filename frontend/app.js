@@ -1416,6 +1416,7 @@ async function loadConfig() {
 #  SENTINEL DNS - SISTEMAS INTERNOS (STATIC)
 #  Estes domínios continuam funcionando mesmo sem internet.
 # ==========================================================
+server:
 
 # 1. Defina a zona como 'static'
 # local-zone: "meusistema.lan" static
@@ -1702,10 +1703,11 @@ function syncBlacklistWithEditor() {
 #  SENTINEL DNS - BLACKLIST (DOMÍNIOS BLOQUEADOS)
 # ==========================================================
 # Atenção: Esta lista é gerenciada pelo painel visual.
+server:
 `;
     
     currentBlacklist.forEach(r => {
-        content += `\nlocal-zone: "${r.domain}" always_nxdomain`;
+        content += `\n  local-zone: "${r.domain}" always_nxdomain`;
     });
     
     editor.value = content;

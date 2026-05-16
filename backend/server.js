@@ -1007,12 +1007,14 @@ app.post('/api/security/blacklist', auth, async (req, res) => {
         const { domain } = req.body;
         if (!domain) return res.status(400).json({ error: 'Domínio não fornecido' });
         
-        const rule = `\n# Bloqueio CTI Blacklist\nlocal-zone: "${domain}" always_nxdomain\n`;
-        const localZonePath = '/etc/unbound/unbound.conf.d/local-zone.conf';
+        const rule = `  local-zone: "${domain}" always_nxdomain`;
+        const localZonePath = '/etc/unbound/local.d/local-zone.conf';
         
         const { exec } = require('child_process');
+        const setupCmd = `if ! grep -q "^server:" ${localZonePath} 2>/dev/null; then echo "server:" | sudo tee ${localZonePath}; fi`;
+        
         // Usa tee com sudo para garantir permissão e envia a string segura (sem bash interpreter quebrando aspas)
-        exec(`echo '${rule}' | sudo tee -a ${localZonePath} > /dev/null && sudo systemctl restart unbound`, (err) => {
+        exec(`${setupCmd} && echo '${rule}' | sudo tee -a ${localZonePath} > /dev/null && sudo systemctl restart unbound`, (err) => {
             if (err) return res.status(500).json({ error: 'Erro ao reiniciar o DNS' });
             res.json({ message: 'Domínio adicionado à Blacklist com sucesso' });
         });
