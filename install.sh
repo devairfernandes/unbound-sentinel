@@ -83,8 +83,8 @@ echo "🧹 Limpando arquivos antigos (preservando configurações)..."
 sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
 sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-echo "📤 Aplicando nova versão v1.8.6..."
-sudo cp -r "$CURRENT_DIR"/* "$INSTALL_DIR/"
+echo "📤 Aplicando nova versão v1.9.0 (Ouro Max)..."
+sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
 cd "$INSTALL_DIR"
 
 # ---- 5. Configurar .env ----
