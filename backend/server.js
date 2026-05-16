@@ -924,66 +924,68 @@ app.post('/api/config/:file', auth, async (req, res) => {
 // ==========================================
 // ROTA DE SEGURANÇA: DETECÇÃO DE AMEAÇAS
 // ==========================================
+// ===== ENDPOINT DE DEBUG DE SEGURANÇA =====
+app.get('/api/security/debug', async (req, res) => {
+    const { exec } = require('child_process');
+    const logPath = '/var/log/unbound.log';
+    
+    exec(`sudo tail -n 50 ${logPath}`, (err, stdout, stderr) => {
+        res.json({
+            path: logPath,
+            error: err ? err.message : null,
+            stderr: stderr || null,
+            stdout_length: stdout ? stdout.length : 0,
+            sample: stdout ? stdout.split('\n').slice(0, 5) : []
+        });
+    });
+});
+
 app.get('/api/security/threats', async (req, res) => {
     try {
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
-        
-        // Usando tail direto via shell para máxima compatibilidade e performance
         const { exec } = require('child_process');
-        const logContent = await new Promise((resolve) => {
-            exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
-                resolve(stdout || '');
-            });
-        });
         
-        const lines = logContent.split('\n');
-        const threats = [];
-        const suspects = {};
-
-        lines.forEach(line => {
-            // Regex ajustado para o seu formato exato: info: [IP] [DOMAIN]
-            const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
-            
-            if (match) {
-                const ip = match[1];
-                let domain = match[2].toLowerCase();
-                
-                // Limpeza rigorosa: remove pontos finais e espaços
-                domain = domain.replace(/\.$/, '').trim();
-
-                const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase())) || 
-                                   threatIntel.malware_domains.includes(domain);
-
-                if (isSuspicious) {
-                    threats.push({
-                        time: new Date().toLocaleTimeString(),
-                        ip: ip,
-                        domain: domain,
-                        severity: threatIntel.malware_domains.includes(domain) ? 'CRITICAL' : 'SUSPICIOUS'
-                    });
-
-                    if (!suspects[ip]) suspects[ip] = { count: 0, domains: new Set() };
-                    suspects[ip].count++;
-                    suspects[ip].domains.add(domain);
-                }
+        exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
+            if (err) {
+                console.error('Erro ao ler log:', err);
+                return res.json({ alerts: [], topSuspects: [] });
             }
-        });
 
-        // Formatar suspeitos para o frontend
-        const topSuspects = Object.keys(suspects).map(ip => ({
-            ip: ip,
-            count: suspects[ip].count,
-            uniqueDomains: suspects[ip].domains.size
-        })).sort((a, b) => b.count - a.count).slice(0, 5);
+            const lines = stdout.split('\n');
+            const threats = [];
+            const suspects = {};
 
-        res.json({
-            alerts: threats.slice(-20).reverse(),
-            topSuspects: topSuspects,
-            totalAlerts: threats.length
+            lines.forEach(line => {
+                const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
+                if (match) {
+                    const ip = match[1];
+                    let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
+
+                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase())) || 
+                                       threatIntel.malware_domains.includes(domain);
+
+                    if (isSuspicious) {
+                        threats.push({
+                            domain,
+                            ip,
+                            time: new Date().toLocaleTimeString(),
+                            severity: threatIntel.malware_domains.includes(domain) ? 'CRITICAL' : 'SUSPICIOUS'
+                        });
+                        suspects[ip] = (suspects[ip] || 0) + 1;
+                    }
+                }
+            });
+
+            const topSuspects = Object.entries(suspects)
+                .map(([ip, count]) => ({ ip, count, uniqueDomains: 1 }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
+
+            res.json({ alerts: threats.slice(0, 50), topSuspects });
         });
     } catch (error) {
-        console.error('Erro ao processar ameaças:', error);
-        res.status(500).json({ error: 'Erro ao processar inteligência de ameaças' });
+        console.error('Erro na API de Segurança:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
