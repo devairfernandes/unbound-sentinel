@@ -961,15 +961,16 @@ app.get('/api/security/threats', async (req, res) => {
                     const ip = match[1];
                     let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
 
-                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase())) || 
-                                       threatIntel.malware_domains.includes(domain);
+                    // Detecção ultra-simples para teste
+                    const isMalware = threatIntel.malware_domains.includes(domain);
+                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
-                    if (isSuspicious) {
+                    if (isMalware || isSuspicious) {
                         threats.push({
-                            domain,
-                            ip,
-                            time: new Date().toLocaleTimeString(),
-                            severity: threatIntel.malware_domains.includes(domain) ? 'CRITICAL' : 'SUSPICIOUS'
+                            domain: domain,
+                            ip: ip,
+                            time: new Date().toLocaleTimeString('pt-BR'),
+                            severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
                         });
                         suspects[ip] = (suspects[ip] || 0) + 1;
                     }
