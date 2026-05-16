@@ -940,6 +940,8 @@ app.get('/api/security/debug', async (req, res) => {
     });
 });
 
+let threatHistory = [];
+
 app.get('/api/security/threats', async (req, res) => {
     try {
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
@@ -949,42 +951,50 @@ app.get('/api/security/threats', async (req, res) => {
         exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
             if (err) {
                 console.error('Erro ao ler log:', err);
-                return res.json({ alerts: [], topSuspects: [] });
+                return res.json({ alerts: threatHistory, topSuspects: [] });
             }
 
             const lines = stdout.split('\n');
-            const threats = [];
             const suspects = {};
 
-            // Motor de Inteligência pronto para processar ameaças reais
-
             lines.forEach(line => {
-                const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
+                // Tenta extrair a data/hora do log (ex: Nov 15 20:30:45) e o domínio
+                const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
+                
                 if (match) {
-                    const ip = match[1];
-                    let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
+                    const timeStr = match.length === 4 ? match[1] : new Date().toLocaleTimeString('pt-BR');
+                    const ip = match.length === 4 ? match[2] : match[1];
+                    let domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
 
                     const isMalware = malwareSet.has(domain);
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
                     if (isMalware || isSuspicious) {
-                        threats.push({
-                            domain: domain,
-                            ip: ip,
-                            time: new Date().toLocaleTimeString('pt-BR'),
-                            severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
-                        });
+                        const existing = threatHistory.find(t => t.domain === domain && t.ip === ip);
+                        if (!existing) {
+                            threatHistory.unshift({
+                                domain: domain,
+                                ip: ip,
+                                time: new Date().toLocaleString('pt-BR'),
+                                timestamp: Date.now(),
+                                severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
+                            });
+                        }
                         suspects[ip] = (suspects[ip] || 0) + 1;
                     }
                 }
             });
+
+            // Limpa ameaças mais antigas que 12 horas (12 * 60 * 60 * 1000 ms)
+            const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
+            threatHistory = threatHistory.filter(t => t.timestamp > twelveHoursAgo);
 
             const topSuspects = Object.entries(suspects)
                 .map(([ip, count]) => ({ ip, count, uniqueDomains: 1 }))
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
 
-            res.json({ alerts: threats.slice(0, 50), topSuspects });
+            res.json({ alerts: threatHistory.slice(0, 50), topSuspects });
         });
     } catch (error) {
         console.error('Erro na API de Segurança:', error);
@@ -1001,8 +1011,9 @@ app.post('/api/security/blacklist', auth, async (req, res) => {
         const localZonePath = '/etc/unbound/unbound.conf.d/local-zone.conf';
         
         const { exec } = require('child_process');
-        exec(`sudo bash -c 'echo "${rule}" >> ${localZonePath} && systemctl restart unbound'`, (err) => {
-            if (err) return res.status(500).json({ error: 'Erro ao bloquear domínio' });
+        // Usa tee com sudo para garantir permissão e envia a string segura (sem bash interpreter quebrando aspas)
+        exec(`echo '${rule}' | sudo tee -a ${localZonePath} > /dev/null && sudo systemctl restart unbound`, (err) => {
+            if (err) return res.status(500).json({ error: 'Erro ao reiniciar o DNS' });
             res.json({ message: 'Domínio adicionado à Blacklist com sucesso' });
         });
     } catch (e) {
