@@ -934,12 +934,13 @@ app.get('/api/security/threats', async (req, res) => {
         const suspects = {};
 
         lines.forEach(line => {
-            // Padrão de log do Unbound: [data] unbound[pid:0] info: [IP] [DOMAIN] [TYPE] [CLASS]
-            const match = line.match(/info:\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([a-zA-Z0-9.-]+)\s+/);
+            // Regex ultra-flexível: busca 'info:' seguido por um IP e um Domínio
+            const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
             
             if (match) {
                 const ip = match[1];
-                const domain = match[2].toLowerCase();
+                let domain = match[2].toLowerCase();
+                if (domain.endsWith('.')) domain = domain.slice(0, -1); // Remove ponto final se existir
 
                 const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p)) || 
                                    threatIntel.malware_domains.includes(domain);
