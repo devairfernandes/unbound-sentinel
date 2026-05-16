@@ -74,11 +74,17 @@ fi
 echo "✅ Node.js $(node -v) / npm $(npm -v)"
 
 # Para o serviço antes de atualizar para não travar arquivos
-echo "🛑 Parando serviço para atualização..."
+echo "🛑 Parando serviço para limpeza..."
 sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
 sudo pkill -f "node $INSTALL_DIR/index.js" 2>/dev/null || true
 
-sudo cp -r "$CURRENT_DIR"/. "$INSTALL_DIR/" 2>/dev/null || true
+echo "🧹 Limpando arquivos antigos (preservando configurações)..."
+# Deleta tudo exceto arquivos de configuração e banco de dados
+sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
+sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
+
+echo "📤 Aplicando nova versão v1.8.6..."
+sudo cp -r "$CURRENT_DIR"/* "$INSTALL_DIR/"
 cd "$INSTALL_DIR"
 
 # ---- 5. Configurar .env ----
