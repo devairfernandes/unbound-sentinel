@@ -955,13 +955,20 @@ app.get('/api/security/threats', async (req, res) => {
             const threats = [];
             const suspects = {};
 
+            // INJEÇÃO DE TESTE: Sempre manda um alerta para testar a tela
+            threats.push({
+                domain: 'SENTINEL-TEST.LIVE',
+                ip: '127.0.0.1',
+                time: new Date().toLocaleTimeString('pt-BR'),
+                severity: 'CRITICAL'
+            });
+
             lines.forEach(line => {
                 const match = line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
                 if (match) {
                     const ip = match[1];
                     let domain = match[2].toLowerCase().replace(/\.$/, '').trim();
 
-                    // Detecção ultra-simples para teste
                     const isMalware = threatIntel.malware_domains.includes(domain);
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
