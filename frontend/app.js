@@ -775,6 +775,20 @@ function openConfigModule(module) {
         document.getElementById('config-editor').style.display = 'none';
         document.getElementById('static-dns-view').style.display = 'block';
         document.getElementById('access-control-view').style.display = 'none';
+        document.getElementById('blacklist-view').style.display = 'none';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.querySelector('.editor-actions').style.display = 'flex';
+        loadConfig();
+    } else if (module === 'blacklist') {
+        title.innerText = 'Blacklist CTI (Bloqueios)';
+        document.getElementById('config-selector').style.display = 'none'; // Esconde para não mudar de menu
+        document.getElementById('config-selector').value = 'local-zone.conf';
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('static-dns-view').style.display = 'none';
+        document.getElementById('access-control-view').style.display = 'none';
+        document.getElementById('blacklist-view').style.display = 'block';
         document.getElementById('firewall-view').style.display = 'none';
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
@@ -786,6 +800,7 @@ function openConfigModule(module) {
         document.getElementById('config-editor').style.display = 'none';
         document.getElementById('access-control-view').style.display = 'none';
         document.getElementById('static-dns-view').style.display = 'none';
+        document.getElementById('blacklist-view').style.display = 'none';
         document.getElementById('firewall-view').style.display = 'block';
         document.getElementById('network-view').style.display = 'none';
         document.getElementById('layout-view').style.display = 'none';
@@ -1379,15 +1394,24 @@ async function loadConfig() {
             editor.style.display = 'none';
             visualAC.style.display = 'block';
             document.getElementById('static-dns-view').style.display = 'none';
+            document.getElementById('blacklist-view').style.display = 'none';
             renderAccessControl(content);
         } else if (isSDNSModule || file === 'static-dns.conf') {
             editor.style.display = 'none';
             visualAC.style.display = 'none';
+            document.getElementById('blacklist-view').style.display = 'none';
             document.getElementById('static-dns-view').style.display = 'block';
             renderStaticDNS(content);
+        } else if (moduleTitle.includes('Blacklist') || (file === 'local-zone.conf' && document.getElementById('blacklist-view').style.display === 'block')) {
+            editor.style.display = 'none';
+            visualAC.style.display = 'none';
+            document.getElementById('static-dns-view').style.display = 'none';
+            document.getElementById('blacklist-view').style.display = 'block';
+            renderBlacklist(content);
         } else if (file === 'static-dns.conf' && (!content || content.trim() === '')) {
             editor.style.display = 'block';
             visualAC.style.display = 'none';
+            document.getElementById('blacklist-view').style.display = 'none';
             editor.value = `# ==========================================================
 #  SENTINEL DNS - SISTEMAS INTERNOS (STATIC)
 #  Estes domínios continuam funcionando mesmo sem internet.
@@ -1602,6 +1626,89 @@ function syncStaticWithEditor() {
     const records = currentStaticDNS.map(r => `# NAME: ${r.name}\nlocal-data: "${r.domain} IN A ${r.ip}"`).join('\n');
     
     editor.value = `# ==========================================\n#  SENTINEL STATIC DNS CONFIG\n# ==========================================\n\n${zones}\n\n${records}`;
+}
+
+// ===== VISUAL BLACKLIST LOGIC =====
+let currentBlacklist = [];
+
+function renderBlacklist(raw) {
+    const lines = raw.split('\n');
+    currentBlacklist = [];
+    
+    // Suportar tanto always_nxdomain quanto always_refuse ou deny
+    lines.forEach(line => {
+        const match = line.match(/local-zone:\s*"([^"]+)"\s+(always_nxdomain|always_refuse|deny)/i);
+        if (match) {
+            currentBlacklist.push({ domain: match[1] });
+        }
+    });
+    
+    displayBlacklist();
+}
+
+function displayBlacklist() {
+    const container = document.getElementById('bl-rules-container');
+    const search = document.getElementById('bl-search')?.value.toLowerCase() || '';
+    if (!container) return;
+
+    container.innerHTML = currentBlacklist
+        .filter(r => r.domain.toLowerCase().includes(search))
+        .map((r, idx) => `
+            <div class="ac-rule-card" style="border-left: 4px solid var(--accent-danger)">
+                <div class="ac-info">
+                    <span class="ac-ip" style="color:var(--text-primary)">${r.domain}</span>
+                    <span class="ac-tag" style="background:rgba(239,68,68,0.2); color:#ef4444;">BLOQUEADO</span>
+                </div>
+                <button class="btn-remove-ac" onclick="removeBlacklistRule(${idx})">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                </button>
+            </div>
+        `).join('');
+
+    if (window.lucide) lucide.createIcons();
+    syncBlacklistWithEditor();
+}
+
+function addBlacklistRule() {
+    const input = document.getElementById('bl-domain-input');
+    if (!input) return;
+    const domain = input.value.trim().toLowerCase();
+    
+    if (!domain) return alert('Por favor, insira um domínio.');
+    
+    if (currentBlacklist.some(r => r.domain === domain)) {
+        return alert('Este domínio já está na Blacklist!');
+    }
+    
+    currentBlacklist.unshift({ domain });
+    input.value = '';
+    displayBlacklist();
+}
+
+function removeBlacklistRule(idx) {
+    currentBlacklist.splice(idx, 1);
+    displayBlacklist();
+}
+
+function filterBlacklist() {
+    displayBlacklist();
+}
+
+function syncBlacklistWithEditor() {
+    let editor = document.getElementById('config-editor');
+    if (!editor) return;
+
+    let content = `# ==========================================================
+#  SENTINEL DNS - BLACKLIST (DOMÍNIOS BLOQUEADOS)
+# ==========================================================
+# Atenção: Esta lista é gerenciada pelo painel visual.
+`;
+    
+    currentBlacklist.forEach(r => {
+        content += `\nlocal-zone: "${r.domain}" always_nxdomain`;
+    });
+    
+    editor.value = content;
 }
 
 async function saveConfig() {

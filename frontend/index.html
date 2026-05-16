@@ -270,6 +270,13 @@
                         <p>Domínios locais que funcionam sem internet.</p>
                     </div>
                 </div>
+                <div class="config-card" onclick="openConfigModule('blacklist')">
+                    <div class="card-icon" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);"><i data-lucide="ban" style="color:#ef4444;"></i></div>
+                    <div class="card-info">
+                        <h3>Blacklist (Domínios)</h3>
+                        <p>Gerenciar bloqueios manuais e CTI (local-zone).</p>
+                    </div>
+                </div>
                 <div class="config-card master-only" onclick="openConfigModule('credentials')">
                     <div class="card-icon" style="background:rgba(168,85,247,0.15);border-color:rgba(168,85,247,0.3);"><i data-lucide="key-round" style="color:#a855f7;"></i></div>
                     <div class="card-info">
@@ -363,6 +370,25 @@
                             </div>
                         </div>
                         <div id="sdns-container" class="ac-rules-grid">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+
+                    <!-- NOVO: EDITOR VISUAL DE BLACKLIST -->
+                    <div id="blacklist-view" class="module-content" style="display:none;">
+                        <div class="visual-config-header">
+                            <div class="input-group-row" style="flex-wrap: wrap;">
+                                <input type="text" id="bl-domain-input" placeholder="Domínio a bloquear (ex: facebook.com)" style="flex: 1;">
+                                <button class="btn btn-primary" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171;" onclick="addBlacklistRule()">
+                                    <i data-lucide="ban"></i> BLOQUEAR
+                                </button>
+                            </div>
+                            <div class="search-box">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="bl-search" placeholder="Filtrar domínios bloqueados..." oninput="filterBlacklist()">
+                            </div>
+                        </div>
+                        <div id="bl-rules-container" class="ac-rules-grid">
                             <!-- Injetado via JS -->
                         </div>
                     </div>
