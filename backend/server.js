@@ -927,7 +927,9 @@ app.post('/api/config/:file', auth, async (req, res) => {
 app.get('/api/security/threats', async (req, res) => {
     try {
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
-        const logContent = await readLogFile('/var/log/unbound.log', 2000); // Lendo as últimas 2000 linhas
+        
+        // Usando sudo tail para garantir que temos permissão de leitura
+        const logContent = await runSSHCommand('sudo tail -n 2000 /var/log/unbound.log');
         
         const lines = logContent.split('\n');
         const threats = [];
