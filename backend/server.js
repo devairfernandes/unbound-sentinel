@@ -1236,6 +1236,38 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 const PORT = process.env.PORT || 3300;
 // Remover rota de update duplicada para evitar conflitos
 
+// ============================================
+// AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI (A cada 24h)
+// ============================================
+function autoUpdateThreatIntel() {
+    const url = 'https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/backend/threat_intel.json';
+    const https = require('https');
+    
+    console.log('[CTI] Verificando atualizações de inteligência no Servidor Global...');
+    https.get(url, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+            try {
+                const newIntel = JSON.parse(data);
+                if (newIntel.suspicious_patterns && newIntel.malware_domains) {
+                    const fs = require('fs');
+                    const path = require('path');
+                    fs.writeFileSync(path.join(__dirname, 'threat_intel.json'), JSON.stringify(newIntel, null, 4));
+                    console.log('[CTI] 🛡️ Banco de Inteligência sincronizado com sucesso! Prontidão Máxima.');
+                }
+            } catch (e) {
+                console.error('[CTI] Falha no parse ao processar atualização da nuvem:', e.message);
+            }
+        });
+    }).on('error', (err) => {
+        console.error('[CTI] Erro de conexão com Servidor Global CTI:', err.message);
+    });
+}
+// Sincroniza logo no boot e depois agenda para a cada 24 horas (86400000 ms)
+autoUpdateThreatIntel();
+setInterval(autoUpdateThreatIntel, 86400000);
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Sentinel Backend rodando em todas as interfaces na porta ${PORT}`);
     validateLicenseRemote();
