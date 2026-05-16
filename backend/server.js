@@ -956,15 +956,17 @@ app.get('/api/security/threats', async (req, res) => {
 
             const lines = stdout.split('\n');
             const suspects = {};
+            const allActiveIPs = new Set();
 
             lines.forEach(line => {
-                // Tenta extrair a data/hora do log (ex: Nov 15 20:30:45) e o domínio
                 const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
                 
                 if (match) {
                     const timeStr = match.length === 4 ? match[1] : new Date().toLocaleTimeString('pt-BR');
                     const ip = match.length === 4 ? match[2] : match[1];
                     let domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
+
+                    allActiveIPs.add(ip);
 
                     const isMalware = malwareSet.has(domain);
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
@@ -994,11 +996,81 @@ app.get('/api/security/threats', async (req, res) => {
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
 
-            res.json({ alerts: threatHistory.slice(0, 50), topSuspects });
+            res.json({ 
+                alerts: threatHistory.slice(0, 50), 
+                topSuspects,
+                totalActiveIPs: allActiveIPs.size
+            });
         });
     } catch (error) {
         console.error('Erro na API de Segurança:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+let blockedHistory = [];
+
+app.get('/api/security/blocked', auth, async (req, res) => {
+    try {
+        const localZonePath = '/etc/unbound/local.d/local-zone.conf';
+        let blacklistedDomains = new Set();
+
+        // 1. Carrega domínios da blacklist local
+        if (fs.existsSync(localZonePath)) {
+            const content = fs.readFileSync(localZonePath, 'utf8');
+            const matches = content.matchAll(/local-zone:\s*"([^"]+)"\s+always_nxdomain/g);
+            for (const match of matches) {
+                blacklistedDomains.add(match[1].toLowerCase().trim());
+            }
+        }
+
+        if (blacklistedDomains.size === 0) {
+            return res.json({ blockedQueries: [] });
+        }
+
+        // 2. Analisa os logs do Unbound
+        const logPath = '/var/log/unbound.log';
+        if (process.platform === 'win32') return res.json({ blockedQueries: [] });
+
+        exec('sudo tail -n 5000 ' + logPath, (err, stdout) => {
+            if (err) return res.status(500).json({ error: 'Erro ao ler logs' });
+
+            const lines = stdout.split('\n');
+            const now = Date.now();
+            const twelveHoursAgo = now - (12 * 60 * 60 * 1000);
+
+            lines.forEach(line => {
+                const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || 
+                              line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
+                
+                if (match) {
+                    const time = match.length === 4 ? match[1] : new Date().toLocaleTimeString('pt-BR');
+                    const ip = match.length === 4 ? match[2] : match[1];
+                    const domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
+
+                    if (blacklistedDomains.has(domain)) {
+                        // Evita duplicatas no histórico baseado no IP, Domínio e Hora (aproximada para evitar spam)
+                        const exists = blockedHistory.some(h => h.ip === ip && h.domain === domain && h.time === time);
+                        if (!exists) {
+                            blockedHistory.unshift({
+                                time,
+                                ip,
+                                domain,
+                                timestamp: Date.now()
+                            });
+                        }
+                    }
+                }
+            });
+
+            // 3. Aplica retenção de 12 horas
+            blockedHistory = blockedHistory.filter(h => h.timestamp > twelveHoursAgo);
+
+            // Retorna o histórico consolidado
+            res.json({ blockedQueries: blockedHistory.slice(0, 100) });
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 
@@ -1271,54 +1343,100 @@ const PORT = process.env.PORT || 3300;
 // ============================================
 // AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI GLOBAL (OSINT)
 // ============================================
+// ============================================
+// AUTO-ATUALIZAÇÃO DE INTELIGÊNCIA CTI GLOBAL (OSINT)
+// ============================================
+
+app.get('/api/security/sources', auth, (req, res) => {
+    const sourcesPath = path.join(__dirname, 'cti_sources.json');
+    if (!fs.existsSync(sourcesPath)) return res.json([]);
+    res.json(JSON.parse(fs.readFileSync(sourcesPath, 'utf8')));
+});
+
+app.post('/api/security/sources/:id/toggle', auth, requireRole(['admin']), (req, res) => {
+    const { id } = req.params;
+    const sourcesPath = path.join(__dirname, 'cti_sources.json');
+    if (!fs.existsSync(sourcesPath)) return res.status(404).json({ error: 'Configuração não encontrada' });
+    
+    let sources = JSON.parse(fs.readFileSync(sourcesPath, 'utf8'));
+    const source = sources.find(s => s.id === id);
+    if (source) {
+        source.enabled = !source.enabled;
+        fs.writeFileSync(sourcesPath, JSON.stringify(sources, null, 4));
+        res.json({ message: `Fonte ${source.name} ${source.enabled ? 'ativada' : 'desativada'}`, enabled: source.enabled });
+    } else {
+        res.status(404).json({ error: 'Fonte não encontrada' });
+    }
+});
+
+app.post('/api/security/sync', auth, requireRole(['admin']), (req, res) => {
+    autoUpdateThreatIntel();
+    res.json({ message: 'Sincronização de inteligência iniciada em segundo plano.' });
+});
+
 function autoUpdateThreatIntel() {
     const https = require('https');
-    console.log('[CTI] Sincronizando listas de Ameaças Globais (URLhaus Abuse.ch)...');
+    const sourcesPath = path.join(__dirname, 'cti_sources.json');
+    if (!fs.existsSync(sourcesPath)) return;
+
+    const sources = JSON.parse(fs.readFileSync(sourcesPath, 'utf8'));
+    const enabledSources = sources.filter(s => s.enabled);
+
+    console.log(`[CTI] Iniciando sincronização de ${enabledSources.length} fontes ativas...`);
     
-    // URLhaus: Banco de dados aberto mantido por pesquisadores de segurança globais
-    const url = 'https://urlhaus.abuse.ch/downloads/hostfile/';
-    
-    https.get(url, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-            try {
-                const fs = require('fs');
-                const path = require('path');
-                const intelPath = path.join(__dirname, 'threat_intel.json');
-                const currentIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
-                
-                const lines = data.split('\n');
-                let count = 0;
-                
-                // Pega os malwares atuais para não apagar o que o usuário já colocou
-                const newDomains = new Set(currentIntel.malware_domains);
-                
-                for (let line of lines) {
-                    if (line.startsWith('#') || !line.trim()) continue;
-                    const parts = line.split('\t');
-                    if (parts.length >= 2) {
-                        const domain = parts[1].trim().toLowerCase();
-                        if (domain && domain !== 'localhost') {
+    const intelPath = path.join(__dirname, 'threat_intel.json');
+    let currentIntel = { suspicious_patterns: [], malware_domains: [] };
+    try {
+        currentIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
+    } catch (e) {}
+
+    const newDomains = new Set(currentIntel.malware_domains);
+    let totalAdded = 0;
+
+    enabledSources.forEach(source => {
+        console.log(`[CTI] Baixando: ${source.name}...`);
+        https.get(source.url, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const lines = data.split('\n');
+                    let count = 0;
+                    
+                    for (let line of lines) {
+                        let domain = '';
+                        if (line.startsWith('#') || !line.trim()) continue;
+
+                        if (source.type === 'hostfile') {
+                            const parts = line.split(/\s+/);
+                            if (parts.length >= 2) {
+                                domain = parts[1].trim().toLowerCase();
+                            }
+                        } else {
+                            domain = line.trim().toLowerCase();
+                        }
+
+                        if (domain && domain !== 'localhost' && domain !== '127.0.0.1' && !domain.includes('google') && !domain.includes('facebook')) {
                             newDomains.add(domain);
                             count++;
                         }
                     }
+                    totalAdded += count;
+                    console.log(`[CTI] ✓ ${source.name}: ${count} domínios processados.`);
+                    
+                    // Grava os resultados parciais para não perder progresso
+                    currentIntel.malware_domains = Array.from(newDomains);
+                    fs.writeFileSync(intelPath, JSON.stringify(currentIntel, null, 4));
+                } catch (e) {
+                    console.error(`[CTI] Falha ao processar ${source.name}:`, e.message);
                 }
-                
-                // Grava os milhares de domínios diretamente DENTRO do arquivo JSON!
-                currentIntel.malware_domains = Array.from(newDomains);
-                fs.writeFileSync(intelPath, JSON.stringify(currentIntel, null, 4));
-                
-                console.log(`[CTI] 🛡️ Adicionados fisicamente ${count} domínios no arquivo threat_intel.json!`);
-            } catch (e) {
-                console.error('[CTI] Falha no parse ao processar OSINT URLhaus:', e.message);
-            }
+            });
+        }).on('error', (err) => {
+            console.error(`[CTI] Erro de conexão com ${source.name}:`, err.message);
         });
-    }).on('error', (err) => {
-        console.error('[CTI] Erro de conexão com Servidor OSINT:', err.message);
     });
 }
+
 // Sincroniza logo no boot e depois agenda para a cada 24 horas (86400000 ms)
 autoUpdateThreatIntel();
 setInterval(autoUpdateThreatIntel, 86400000);

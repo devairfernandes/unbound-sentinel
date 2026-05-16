@@ -105,29 +105,80 @@ async function updateSecurityThreats() {
         if (!criticalEl || !suspiciousEl || !monitoredEl) return;
 
         const criticalCount = data.alerts.filter(a => a.severity === 'CRITICAL').length;
-        criticalEl.innerText = criticalCount;
-        suspiciousEl.innerText = data.alerts.length - criticalCount;
-        monitoredEl.innerText = data.topSuspects.length;
+        const suspiciousCount = data.alerts.length - criticalCount;
+        const monitoredCount = data.totalActiveIPs || data.topSuspects.length;
+
+        // Atualiza na aba de Segurança
+        if (criticalEl) criticalEl.innerText = criticalCount;
+        if (suspiciousEl) suspiciousEl.innerText = suspiciousCount;
+        if (monitoredEl) monitoredEl.innerText = monitoredCount;
+
+        // Atualiza na aba Dashboard Principal (Novos Cards)
+        const dCritical = document.getElementById('total-critical-threats-dash');
+        const dSuspicious = document.getElementById('total-suspicious-threats-dash');
+        const dMonitored = document.getElementById('total-monitored-ips-dash');
+
+        if (dCritical) dCritical.innerText = criticalCount;
+        if (dSuspicious) dSuspicious.innerText = suspiciousCount;
+        if (dMonitored) dMonitored.innerText = monitoredCount;
 
         const alertsList = document.getElementById('security-alerts-list');
         if (alertsList) {
-            alertsList.innerHTML = data.alerts.map(alert => `
-                <div class="threat-item">
-                    <div class="threat-icon ${alert.severity.toLowerCase()}">
-                        <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : 'alert-triangle'}"></i>
+            if (data.alerts.length === 0) {
+                alertsList.innerHTML = '<div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma ameaça detectada no momento.</div>';
+            } else {
+                alertsList.innerHTML = data.alerts.map(alert => `
+                    <div class="threat-item">
+                        <div class="threat-icon ${alert.severity.toLowerCase()}">
+                            <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : 'alert-triangle'}"></i>
+                        </div>
+                        <div class="threat-details">
+                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
+                            <div class="threat-ip">Origem: ${alert.ip}</div>
+                        </div>
+                        <div class="threat-actions">
+                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
+                                <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
+                        <div class="threat-time">${alert.time}</div>
                     </div>
-                    <div class="threat-details">
-                        <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
-                        <div class="threat-ip">Origem: ${alert.ip}</div>
-                    </div>
-                    <div class="threat-actions" style="margin-right: 15px;">
-                        <button onclick="blockThreatDomain('${alert.domain}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: var(--accent-danger); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s;">
-                            <i data-lucide="ban" style="width: 12px; height: 12px;"></i> Blacklist
-                        </button>
-                    </div>
-                    <div class="threat-time">${alert.time}</div>
-                </div>
-            `).join('');
+                `).join('');
+            }
+        }
+
+        // --- NOVA PARTE: CONSULTAS BLOQUEADAS (BLACKLIST) ---
+        try {
+            const blockedRes = await fetch('/api/security/blocked', { headers: getAuthHeader() });
+            const blockedData = await blockedRes.json();
+            
+            const manualBlocksEl = document.getElementById('total-manual-blocks');
+            const manualBlocksDashEl = document.getElementById('total-manual-blocks-dash');
+            
+            if (manualBlocksEl) manualBlocksEl.innerText = blockedData.blockedQueries.length;
+            if (manualBlocksDashEl) manualBlocksDashEl.innerText = blockedData.blockedQueries.length;
+
+            const blockedList = document.getElementById('blocked-queries-list');
+            if (blockedList) {
+                if (blockedData.blockedQueries.length === 0) {
+                    blockedList.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 12h...</div>';
+                } else {
+                    blockedList.innerHTML = blockedData.blockedQueries.map(q => `
+                        <div class="threat-item" style="border-left: 3px solid var(--accent-danger); background: rgba(244, 63, 94, 0.05);">
+                            <div class="threat-icon critical">
+                                <i data-lucide="shield-off"></i>
+                            </div>
+                            <div class="threat-details">
+                                <div class="threat-domain" style="color: #f43f5e;">${q.domain} <span class="badge-threat critical">BLOCKED</span></div>
+                                <div class="threat-ip">Tentativa de: ${q.ip}</div>
+                            </div>
+                            <div class="threat-time">${q.time}</div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao buscar consultas bloqueadas:', e);
         }
 
         // Nova Função de Bloqueio Rápido
@@ -141,6 +192,7 @@ async function updateSecurityThreats() {
                 });
                 if (res.ok) {
                     alert(`✅ Sucesso! O domínio ${domain} foi bloqueado em toda a rede.`);
+                    updateSecurityThreats(); // Atualiza a lista imediatamente
                 } else {
                     alert(`❌ Falha ao bloquear ${domain}.`);
                 }
@@ -165,8 +217,63 @@ async function updateSecurityThreats() {
         }
 
         if (window.lucide) lucide.createIcons();
+        updateCTISources(); // Carrega as fontes OSINT também
     } catch (error) {
         console.error('Erro ao buscar ameaças:', error);
+    }
+}
+
+async function updateCTISources() {
+    try {
+        const res = await apiFetch('/api/security/sources');
+        const sources = await res.json();
+        const container = document.getElementById('cti-sources-list');
+        if (!container) return;
+
+        container.innerHTML = sources.map(s => `
+            <div class="source-item" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
+                        ${s.name} <span class="badge-threat" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; font-size: 0.6rem; padding: 1px 5px;">${s.category}</span>
+                    </div>
+                    <div style="font-size: 0.65rem; color: #64748b; margin-top: 2px;">${s.description}</div>
+                </div>
+                <label class="switch" style="transform: scale(0.75);">
+                    <input type="checkbox" ${s.enabled ? 'checked' : ''} onchange="toggleCTISource('${s.id}')">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error('Erro ao carregar fontes CTI:', e);
+    }
+}
+
+async function toggleCTISource(id) {
+    try {
+        await apiFetch(`/api/security/sources/${id}/toggle`, { method: 'POST' });
+        // Não precisa recarregar tudo, a alteração é rápida
+    } catch (e) {
+        alert('Erro ao alterar fonte.');
+    }
+}
+
+async function syncCTI() {
+    const btn = event.currentTarget;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="refresh-cw" class="spin" style="width: 14px; height: 14px;"></i>';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        await apiFetch('/api/security/sync', { method: 'POST' });
+        alert('Sincronização OSINT iniciada! Isso pode levar alguns segundos.');
+    } catch (e) {
+        alert('Erro ao iniciar sincronização.');
+    } finally {
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            if (window.lucide) lucide.createIcons();
+        }, 2000);
     }
 }
 
@@ -688,8 +795,11 @@ function renderTopBars(id, items) {
 }
 
 async function showSection(id, element) {
-    if (!element) return;
-    
+    // Se não for passado elemento (ex: clicado via card), tenta achar o item da sidebar correspondente
+    if (!element) {
+        element = document.querySelector(`.nav-links li[onclick*="'${id}'"]`);
+    }
+
     // Proteção de login para seções administrativas
     if ((id === 'config' || id === 'servers' || id === 'security') && !authCredentials) {
         showLogin();
@@ -707,7 +817,9 @@ async function showSection(id, element) {
         console.warn(`[UI] Seção não encontrada: ${id}-section`);
     }
 
-    element.classList.add('active');
+    if (element) {
+        element.classList.add('active');
+    }
 
     // Carga de dados específica por aba
     if (id === 'config') loadConfig();

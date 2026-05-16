@@ -1,0 +1,38 @@
+[
+    {
+        "id": "urlhaus",
+        "name": "URLhaus (Abuse.ch)",
+        "description": "Banco de dados global focado em domínios que distribuem Malware e Ransomware.",
+        "url": "https://urlhaus.abuse.ch/downloads/hostfile/",
+        "enabled": true,
+        "type": "hostfile",
+        "category": "Malware"
+    },
+    {
+        "id": "stevenblack",
+        "name": "StevenBlack Unified",
+        "description": "Lista unificada de Ads, Malware e domínios de tracking. Altamente confiável.",
+        "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+        "enabled": false,
+        "type": "hostfile",
+        "category": "Ads/Malware"
+    },
+    {
+        "id": "phishing_db",
+        "name": "Phishing Database",
+        "description": "Focada em interceptar domínios de phishing ativos e golpes financeiros.",
+        "url": "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-active.txt",
+        "enabled": false,
+        "type": "plain",
+        "category": "Phishing"
+    },
+    {
+        "id": "gambling",
+        "name": "Gambling Blocklist",
+        "description": "Bloqueio de sites de apostas, cassinos online e 'tigrinhos'.",
+        "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/extensions/gambling/hosts",
+        "enabled": false,
+        "type": "hostfile",
+        "category": "Gambling"
+    }
+]

@@ -3,14 +3,17 @@
 :root {
     --bg-color: #030712;
     --sidebar-bg: #0b0f1a;
-    --card-bg: #111827;
-    --card-border: rgba(255, 255, 255, 0.08);
+    --card-bg: rgba(17, 24, 39, 0.7);
+    --card-border: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.08);
     --accent-primary: #38bdf8;
     --accent-neon: #38bdf8;
+    --accent-danger: #f43f5e;
+    --accent-warning: #fbbf24;
+    --accent-success: #10b981;
     --text-primary: #ffffff;
-    --text-secondary: #cbd5e1;
-    --glass-blur: none;
+    --text-secondary: #94a3b8;
+    --glass-blur: blur(12px);
 }
 
 * {
@@ -1867,3 +1870,145 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
 
 .badge-threat.critical { background: #ef4444; color: white; }
 .badge-threat.suspicious { background: #f59e0b; color: white; }
+/* ===== SECURITY SECTION PREMIUM OVERHAUL ===== */
+.security-section .sys-info-box {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.security-section .sys-info-box:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.threat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.threat-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.threat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.threat-icon.critical {
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+}
+
+.threat-icon.suspicious {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
+.threat-details {
+    flex: 1;
+}
+
+.threat-domain {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin-bottom: 2px;
+    word-break: break-all;
+}
+
+.threat-ip {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.threat-time {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+}
+
+.badge-threat {
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+}
+
+.badge-threat.critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
+.badge-threat.suspicious { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+
+/* Switch Slider Premium */
+.switch {
+    --switch-width: 36px;
+    --switch-height: 20px;
+    --thumb-size: 16px;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider:before {
+    height: var(--thumb-size);
+    width: var(--thumb-size);
+    left: 2px;
+    bottom: 1px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+input:checked + .slider {
+    background-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+/* Source items list */
+.source-item {
+    transition: all 0.2s ease;
+}
+
+.source-item:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sys-info-box {
+    animation: fadeIn 0.5s ease-out backwards;
+}
+
+.sys-info-box:nth-child(1) { animation-delay: 0.1s; }
+.sys-info-box:nth-child(2) { animation-delay: 0.2s; }
+.sys-info-box:nth-child(3) { animation-delay: 0.3s; }
