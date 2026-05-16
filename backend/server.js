@@ -486,7 +486,7 @@ app.post('/api/system/license', auth, requireRole(['admin']), async (req, res) =
 // ===== AUTO-UPDATER =====
 app.get('/api/system/check-update', auth, async (req, res) => {
     try {
-        const localPkg = require(path.join(__dirname, '..', 'package.json'));
+        const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
         const MASTER_URLS = process.env.MASTER_URL ? process.env.MASTER_URL.split(',') : ['http://servidor-licencas.duckdns.org:3300'];
         let remotePkg = null;
 
