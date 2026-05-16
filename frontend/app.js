@@ -93,6 +93,59 @@ function animateValue(el, newText) {
     setTimeout(() => el.classList.remove('updated'), 600);
 }
 
+async function updateSecurityThreats() {
+    try {
+        const response = await fetch('/api/security/threats');
+        const data = await response.json();
+
+        const criticalEl = document.getElementById('total-critical-threats');
+        const suspiciousEl = document.getElementById('total-suspicious-threats');
+        const monitoredEl = document.getElementById('total-monitored-ips');
+        
+        if (!criticalEl || !suspiciousEl || !monitoredEl) return;
+
+        const criticalCount = data.alerts.filter(a => a.severity === 'CRITICAL').length;
+        criticalEl.innerText = criticalCount;
+        suspiciousEl.innerText = data.alerts.length - criticalCount;
+        monitoredEl.innerText = data.topSuspects.length;
+
+        const alertsList = document.getElementById('security-alerts-list');
+        if (alertsList) {
+            alertsList.innerHTML = data.alerts.map(alert => `
+                <div class="threat-item">
+                    <div class="threat-icon ${alert.severity.toLowerCase()}">
+                        <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : 'alert-triangle'}"></i>
+                    </div>
+                    <div class="threat-details">
+                        <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
+                        <div class="threat-ip">Origem: ${alert.ip}</div>
+                    </div>
+                    <div class="threat-time">${alert.time}</div>
+                </div>
+            `).join('');
+        }
+
+        const suspectsList = document.getElementById('security-suspects-list');
+        if (suspectsList) {
+            suspectsList.innerHTML = data.topSuspects.map(s => `
+                <div class="bar-item">
+                    <div class="bar-info">
+                        <span class="bar-label">${s.ip}</span>
+                        <span class="bar-value">${s.count} reqs (${s.uniqueDomains} domínios)</span>
+                    </div>
+                    <div class="bar-bg">
+                        <div class="bar-fill danger" style="width: ${Math.min(100, (s.count / 10) * 100)}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        if (window.lucide) lucide.createIcons();
+    } catch (error) {
+        console.error('Erro ao buscar ameaças:', error);
+    }
+}
+
 const historySize = 60; // Sincronizado com o backend (10 min)
 const history = {
     requests: Array(historySize).fill(0),
@@ -2139,6 +2192,7 @@ refreshAll();
 checkLicenseStatus().then(checkForSystemUpdate); // Verifica licença e depois atualização
 
 setInterval(refreshAll, 10000);
+setInterval(updateSecurityThreats, 15000); // Polling de segurança a cada 15 segundos
 setInterval(updateClock, 1000);
 setInterval(checkForSystemUpdate, 30000); // Verifica atualizações a cada 30 segundos
 setInterval(checkLicenseStatus, 60000); // Re-valida a licença a cada 1 minuto (mais responsivo)

@@ -1812,3 +1812,58 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
     to { opacity: 1; transform: translateY(0); }
 }
  
+
+/* SECURITY CTI STYLES */
+.threat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.threat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.threat-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent-primary);
+}
+
+.threat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.threat-icon.critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.threat-icon.suspicious { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+.threat-details { flex: 1; }
+.threat-domain { font-weight: 700; color: #f1f5f9; font-size: 0.9rem; }
+.threat-ip { font-size: 0.75rem; color: #64748b; font-family: 'JetBrains Mono'; }
+.threat-time { font-size: 0.7rem; color: #475569; }
+
+.badge-threat {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.badge-threat.critical { background: #ef4444; color: white; }
+.badge-threat.suspicious { background: #f59e0b; color: white; }

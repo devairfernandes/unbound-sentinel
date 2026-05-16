@@ -921,6 +921,62 @@ app.post('/api/config/:file', auth, async (req, res) => {
     }
 });
 
+// ==========================================
+// ROTA DE SEGURANÇA: DETECÇÃO DE AMEAÇAS
+// ==========================================
+app.get('/api/security/threats', async (req, res) => {
+    try {
+        const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
+        const logContent = await readLogFile('/var/log/unbound.log', 2000); // Lendo as últimas 2000 linhas
+        
+        const lines = logContent.split('\n');
+        const threats = [];
+        const suspects = {};
+
+        lines.forEach(line => {
+            // Padrão de log do Unbound: [data] unbound[pid:0] info: [IP] [DOMAIN] [TYPE] [CLASS]
+            const match = line.match(/info:\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([a-zA-Z0-9.-]+)\s+/);
+            
+            if (match) {
+                const ip = match[1];
+                const domain = match[2].toLowerCase();
+
+                const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p)) || 
+                                   threatIntel.malware_domains.includes(domain);
+
+                if (isSuspicious) {
+                    threats.push({
+                        time: new Date().toLocaleTimeString(),
+                        ip: ip,
+                        domain: domain,
+                        severity: threatIntel.malware_domains.includes(domain) ? 'CRITICAL' : 'SUSPICIOUS'
+                    });
+
+                    if (!suspects[ip]) suspects[ip] = { count: 0, domains: new Set() };
+                    suspects[ip].count++;
+                    suspects[ip].domains.add(domain);
+                }
+            }
+        });
+
+        // Formatar suspeitos para o frontend
+        const topSuspects = Object.keys(suspects).map(ip => ({
+            ip: ip,
+            count: suspects[ip].count,
+            uniqueDomains: suspects[ip].domains.size
+        })).sort((a, b) => b.count - a.count).slice(0, 5);
+
+        res.json({
+            alerts: threats.slice(-20).reverse(),
+            topSuspects: topSuspects,
+            totalAlerts: threats.length
+        });
+    } catch (error) {
+        console.error('Erro ao processar ameaças:', error);
+        res.status(500).json({ error: 'Erro ao processar inteligência de ameaças' });
+    }
+});
+
 app.get('/api/firewall', auth, async (req, res) => {
     try {
         const result = await runSSHCommand('sudo iptables -S');

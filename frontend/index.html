@@ -38,6 +38,9 @@
             <li onclick="showSection('logs', this)" class="client-only">
                 <i data-lucide="activity"></i> <span>Sistema</span>
             </li>
+            <li onclick="showSection('security', this)" class="client-only">
+                <i data-lucide="shield-alert"></i> <span>Segurança CTI</span>
+            </li>
             <li onclick="showSection('benchmark', this)" class="client-only">
                 <i data-lucide="zap"></i> <span>Benchmark</span>
             </li>
@@ -205,6 +208,51 @@
                     <h3 style="margin:0; font-size: 0.9rem; letter-spacing: 1px;">SENTINEL GLOBAL TRAFFIC</h3>
                     <div style="font-size: 0.7rem; opacity: 0.7;">Monitoramento de Resolução Mundial</div>
                 </div>
+                <!-- Seção de Segurança CTI -->
+        <section id="security-section" class="section">
+            <div class="section-header">
+                <h2><i data-lucide="shield-alert"></i> Central de Inteligência de Ameaças (CTI)</h2>
+                <p>Monitoramento em tempo real de requisições a domínios maliciosos e suspeitos.</p>
+            </div>
+
+            <div class="dashboard-layout row-3-cols">
+                <div class="noc-card danger">
+                    <div class="noc-label">Alertas Críticos</div>
+                    <div class="noc-value" id="total-critical-threats">0</div>
+                </div>
+                <div class="noc-card warning">
+                    <div class="noc-label">Domínios Suspeitos</div>
+                    <div class="noc-value" id="total-suspicious-threats">0</div>
+                </div>
+                <div class="noc-card info">
+                    <div class="noc-label">IPs Monitorados</div>
+                    <div class="noc-value" id="total-monitored-ips">0</div>
+                </div>
+            </div>
+
+            <div class="dashboard-layout row-2-cols" style="margin-top: 2rem;">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>LOG DE AMEAÇAS EM TEMPO REAL</h3>
+                        <i data-lucide="bell"></i>
+                    </div>
+                    <div id="security-alerts-list" class="threat-list">
+                        <!-- Alertas injetados via JS -->
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>TOP CLIENTES SUSPEITOS</h3>
+                        <i data-lucide="user-x"></i>
+                    </div>
+                    <div id="security-suspects-list" class="bar-list">
+                        <!-- Suspeitos injetados via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div id="footer-padding" style="height: 100px;"></div>
                 <div id="sentinel-globe" style="width: 100%; height: 100%;"></div>
                 <div class="globe-stats" style="position: absolute; bottom: 20px; right: 20px; z-index: 10; text-align: right;">
                     <div id="globe-queries" style="font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: 800; color: var(--accent-primary);">0</div>
@@ -701,6 +749,51 @@
                     </a>
                 </div>
             </div>
+        </section>
+        <!-- Seção de Segurança CTI -->
+        <section id="security-section" class="section">
+            <div class="section-header">
+                <h2><i data-lucide="shield-alert"></i> Central de Inteligência de Ameaças (CTI)</h2>
+                <p>Monitoramento em tempo real de requisições a domínios maliciosos e suspeitos.</p>
+            </div>
+
+            <div class="dashboard-layout row-3-cols">
+                <div class="noc-card danger">
+                    <div class="noc-label">Alertas Críticos</div>
+                    <div class="noc-value" id="total-critical-threats">0</div>
+                </div>
+                <div class="noc-card warning">
+                    <div class="noc-label">Domínios Suspeitos</div>
+                    <div class="noc-value" id="total-suspicious-threats">0</div>
+                </div>
+                <div class="noc-card info">
+                    <div class="noc-label">IPs Monitorados</div>
+                    <div class="noc-value" id="total-monitored-ips">0</div>
+                </div>
+            </div>
+
+            <div class="dashboard-layout row-2-cols" style="margin-top: 2rem;">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>LOG DE AMEAÇAS EM TEMPO REAL</h3>
+                        <i data-lucide="bell"></i>
+                    </div>
+                    <div id="security-alerts-list" class="threat-list">
+                        <!-- Alertas injetados via JS -->
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>TOP CLIENTES SUSPEITOS</h3>
+                        <i data-lucide="user-x"></i>
+                    </div>
+                    <div id="security-suspects-list" class="bar-list">
+                        <!-- Suspeitos injetados via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="footer-padding" style="height: 100px;"></div>
         </section>
     </main>
 

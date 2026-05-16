@@ -1,0 +1,24 @@
+{
+    "suspicious_patterns": [
+        "doubleclick.net",
+        "bit.ly",
+        "tinyurl.com",
+        ".onion",
+        ".bit",
+        "cryptobrowser.site",
+        "nicehash.com",
+        "coinhive.com",
+        "freenom.com",
+        "anonymouse.org",
+        "torproject.org",
+        "duckdns.org",
+        "ngrok.io",
+        "temp-mail.org"
+    ],
+    "malware_domains": [
+        "malware-traffic-analysis.net",
+        "bad-domain-example.com",
+        "phishing-test.site",
+        "botnet-control.ru"
+    ]
+}
