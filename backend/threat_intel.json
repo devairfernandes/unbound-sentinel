@@ -1,6 +1,5 @@
 {
     "suspicious_patterns": [
-        "doubleclick.net",
         "bit.ly",
         "tinyurl.com",
         ".onion",
@@ -30,11 +29,7 @@
         "privacy.com.br",
         "onlyfans.com",
         "xvideos.com",
-        "pornhub.com",
-        "adsense.google.com",
-        "analytics.google.com",
-        "facebook-tracking",
-        "pixel.facebook.com"
+        "pornhub.com"
     ],
     "malware_domains": [
         "malware-traffic-analysis.net",
