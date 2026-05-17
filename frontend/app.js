@@ -134,10 +134,13 @@ async function updateSecurityThreats() {
                         </div>
                         <div class="threat-details">
                             <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
-                            <div class="threat-ip">Origem: ${alert.ip}</div>
+                            <div class="threat-ip" onclick="openClientDrilldown('${alert.ip}')" style="cursor:pointer; color:var(--accent-primary); font-weight:600; text-decoration:underline;" title="Clique para Investigar/Bloquear Dispositivo">Origem: ${alert.ip}</div>
                         </div>
-                        <div class="threat-actions">
-                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
+                        <div class="threat-actions" style="display:flex; gap:6px;">
+                            <button onclick="openClientDrilldown('${alert.ip}')" class="btn-action" title="Investigar / Bloquear Dispositivo" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;">
+                                <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;">
                                 <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
                             </button>
                         </div>
@@ -826,6 +829,17 @@ async function showSection(id, element) {
     if (id === 'servers') loadServers();
     if (id === 'licenses') loadLicenses();
     if (id === 'security') updateSecurityThreats();
+    
+    if (id === 'pingmaster') {
+        loadPingMasterStatus();
+        if (pingMasterTimer) clearInterval(pingMasterTimer);
+        pingMasterTimer = setInterval(loadPingMasterStatus, 8000);
+    } else {
+        if (pingMasterTimer) {
+            clearInterval(pingMasterTimer);
+            pingMasterTimer = null;
+        }
+    }
 }
 
 function openConfigModule(module) {
@@ -1305,19 +1319,29 @@ function renderFirewall(raw) {
         const src = line.includes('-s') ? parts[parts.indexOf('-s') + 1] : 'any';
         const dst = line.includes('-d') ? parts[parts.indexOf('-d') + 1] : 'any';
 
+        const isIpBlock = src && src !== 'any';
+        const actionButtonHtml = isIpBlock ? `
+            <button onclick="deleteFirewallIp('${src}')" 
+                style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:#60a5fa;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;font-weight:600;">
+                Desbloquear IP
+            </button>
+        ` : `
+            <button onclick="deleteFirewallRule('${chain}','${proto}','${port}','${target}')" 
+                style="background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.3);color:var(--accent-danger);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">
+                Remover
+            </button>
+        `;
+
         html += `
             <tr>
                 <td><code class="port-code">${chain}</code></td>
                 <td><span class="badge ${target.toLowerCase()}">${target}</span></td>
                 <td>${proto.toUpperCase()}</td>
                 <td><code class="port-code">${port}</code></td>
-                <td>${src}</td>
+                <td>${isIpBlock ? `<span style="color:var(--accent-primary); font-weight:600;">${src}</span>` : src}</td>
                 <td>${dst}</td>
                 <td>
-                    <button onclick="deleteFirewallRule('${chain}','${proto}','${port}','${target}')" 
-                        style="background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.3);color:var(--accent-danger);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem;">
-                        Remover
-                    </button>
+                    ${actionButtonHtml}
                 </td>
             </tr>
         `;
@@ -1326,6 +1350,24 @@ function renderFirewall(raw) {
     html += '</tbody></table>';
     view.innerHTML = html || '<p>Nenhuma regra personalizada encontrada.</p>';
     if (window.lucide) lucide.createIcons();
+}
+
+async function deleteFirewallIp(ip) {
+    if (!confirm(`Deseja DESBLOQUEAR o IP ${ip} e restaurar o seu acesso à rede?`)) return;
+    try {
+        const res = await apiFetch(`${API_BASE}/firewall/block-ip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'remove', ip: ip })
+        });
+        const data = await res.json();
+        alert(data.message || `IP ${ip} desbloqueado com sucesso!`);
+        // Reload firewall view
+        const raw = await apiFetch(`${API_BASE}/firewall`).then(r => r.json());
+        renderFirewall(raw.content);
+    } catch (e) {
+        alert('Erro ao desbloquear IP no firewall');
+    }
 }
 
 async function addFirewallRule() {
@@ -2662,7 +2704,7 @@ async function openClientDrilldown(ip) {
 
             <div class="modal-footer" style="margin-top:3rem; display:flex; gap:12px;">
                 <button class="btn btn-secondary" onclick="closeModal('client-drilldown-modal')" style="flex:1; justify-content:center; padding:14px; border-radius:12px;">VOLTAR</button>
-                <button class="btn btn-primary" style="flex:1; justify-content:center; background:rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color:#f87171; padding:14px; border-radius:12px;" onclick="alert('Funcionalidade de bloqueio rápido será integrada ao módulo de Firewall em breve.')">
+                <button class="btn btn-primary" style="flex:1; justify-content:center; background:rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color:#f87171; padding:14px; border-radius:12px;" onclick="blockClientIp('${ip}')">
                     <i data-lucide="shield-alert"></i> BLOQUEAR DISPOSITIVO
                 </button>
             </div>
@@ -2670,6 +2712,26 @@ async function openClientDrilldown(ip) {
         if (window.lucide) lucide.createIcons();
     } catch (e) {
         document.getElementById('client-drilldown-body').innerHTML = '<div style="text-align:center; color:var(--accent-danger); padding:2rem;">Erro ao carregar telemetria do cliente. Verifique a conexão com o servidor Master.</div>';
+    }
+}
+
+async function blockClientIp(ip) {
+    if (!confirm(`Tem certeza que deseja bloquear permanentemente o tráfego do IP ${ip} no Firewall?`)) return;
+    try {
+        const res = await apiFetch(`${API_BASE}/firewall/block-ip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'add', ip: ip })
+        });
+        const data = await res.json();
+        if (data.error) {
+            alert(`Erro ao bloquear IP: ${data.error}`);
+        } else {
+            alert(data.message || `IP ${ip} bloqueado com sucesso!`);
+            closeModal('client-drilldown-modal');
+        }
+    } catch (err) {
+        alert(`Erro de comunicação com o servidor: ${err.message}`);
     }
 }
 
@@ -3171,4 +3233,265 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 setTimeout(initGlobe, 1000);
+
+// ==========================================
+// PING MASTER FRONTEND INTEGRATION
+// ==========================================
+
+let pingMasterTimer = null;
+
+async function loadPingMasterStatus() {
+    const grid = document.getElementById('pingmaster-cards-grid');
+    if (!grid) return;
+    
+    try {
+        const res = await fetch('/api/pingmaster/status', {
+            headers: authCredentials ? { 'Authorization': `Basic ${authCredentials}` } : {}
+        });
+        
+        if (!res.ok) {
+            if (res.status === 401) {
+                showLogin();
+                return;
+            }
+            throw new Error('Falha ao carregar status do Ping Master');
+        }
+        
+        const data = await res.json();
+        renderPingMaster(data.services);
+    } catch (err) {
+        console.error('[PingMaster] Erro:', err);
+    }
+}
+
+function getBrandIconUrl(target, name) {
+    let domain = target.toLowerCase().trim();
+    
+    // Custom mappings for common targets
+    if (domain === '8.8.8.8' || domain === '8.8.4.4' || name.toLowerCase().includes('google')) {
+        domain = 'google.com';
+    } else if (domain === '9.9.9.9' || name.toLowerCase().includes('quad9')) {
+        domain = 'quad9.net';
+    } else if (domain === '1.1.1.1' || name.toLowerCase().includes('cloudflare')) {
+        domain = 'cloudflare.com';
+    } else if (domain === '168.197.8.70') {
+        domain = 'ouromax.com';
+    } else if (name.toLowerCase().includes('netflix')) {
+        domain = 'netflix.com';
+    } else if (name.toLowerCase().includes('youtube')) {
+        domain = 'youtube.com';
+    }
+    
+    // If it's a raw IP and not caught, return a generic globe/server favicon
+    const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (ipRegex.test(domain)) {
+        return `https://www.google.com/s2/favicons?sz=64&domain=cloudflare.com`; 
+    }
+    
+    return `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+}
+
+function renderPingMaster(services) {
+    const grid = document.getElementById('pingmaster-cards-grid');
+    if (!grid) return;
+    
+    let totalPing = 0;
+    let pingCount = 0;
+    let activeCount = 0;
+    let highCount = 0;
+    let offlineCount = 0;
+    
+    let html = '';
+    const serviceNames = Object.keys(services);
+    
+    if (serviceNames.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                <i data-lucide="signal-off" style="width: 48px; height: 48px; color: #475569; margin-bottom: 1rem;"></i>
+                <p style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 0.5rem;">Nenhum alvo cadastrado no Ping Master</p>
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">Adicione o seu primeiro servidor ou serviço para monitoramento.</p>
+                <button class="btn btn-primary" onclick="openAddPingTargetModal()" style="background:#10b981; padding: 0.6rem 1.2rem; border-radius: 8px;">Adicionar Alvo</button>
+            </div>
+        `;
+        lucide.createIcons();
+        return;
+    }
+    
+    serviceNames.forEach(name => {
+        const item = services[name];
+        const isOffline = item.ping === null;
+        
+        activeCount++;
+        if (isOffline) {
+            offlineCount++;
+        } else {
+            totalPing += item.ping;
+            pingCount++;
+            if (item.ping >= 150) highCount++;
+        }
+        
+        let statusText = 'Excelente';
+        let statusClass = 'success';
+        let statusColor = '#10b981';
+        if (isOffline) {
+            statusText = 'Fora do Ar';
+            statusClass = 'danger';
+            statusColor = '#ef4444';
+        } else if (item.status === 'warning') {
+            statusText = 'Instável';
+            statusClass = 'warning';
+            statusColor = '#f59e0b';
+        } else if (item.status === 'bad') {
+            statusText = 'Latência Alta';
+            statusClass = 'danger';
+            statusColor = '#ef4444';
+        }
+        
+        const pingVal = isOffline ? 'OFFLINE' : `${item.ping} <span style="font-size:0.8rem; font-weight:normal; color:#64748b;">ms</span>`;
+        
+        // Generate SVG sparkline line chart
+        let sparkline = '';
+        if (item.history && item.history.length > 1) {
+            const maxVal = Math.max(...item.history, 100);
+            const minVal = Math.min(...item.history, 0);
+            const range = maxVal - minVal || 1;
+            const points = item.history.map((val, idx) => {
+                const x = (idx / (item.history.length - 1)) * 120;
+                const y = 30 - ((val - minVal) / range) * 26;
+                return `${x},${y}`;
+            }).join(' ');
+            sparkline = `
+                <svg width="120" height="30" style="overflow:visible;">
+                    <polyline fill="none" stroke="${isOffline ? '#ef4444' : 'var(--accent)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+                </svg>
+            `;
+        }
+        
+        html += `
+            <div class="noc-card ${statusClass}" style="display:flex; flex-direction:column; justify-content:space-between; padding:1.25rem; min-height:165px; position:relative; overflow:hidden;">
+                <!-- Header with Status dot and Brand Icon -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <!-- Glowing Status Dot -->
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${statusColor}; box-shadow: 0 0 10px ${statusColor}; display: inline-block;"></span>
+                        
+                        <!-- Premium Icon Container -->
+                        <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 5px;">
+                            <img src="${getBrandIconUrl(item.target, item.name)}" style="width: 20px; height: 20px; object-fit: contain;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'12\' r=\'10\'/><line x1=\'2\' y1=\'12\' x2=\'22\' y2=\'12\'/><path d=\'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\'/></svg>';" />
+                        </div>
+                        
+                        <div>
+                            <div style="font-weight:700; color:#f1f5f9; font-size:1.05rem; line-height:1.2;">${item.name}</div>
+                            <div style="font-size:0.72rem; color:#475569; letter-spacing:0.5px; margin-top:2px;">${item.target}</div>
+                        </div>
+                    </div>
+                    <span class="live-badge" style="background:${isOffline ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'}; border:1px solid ${isOffline ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}; color:${isOffline ? '#ef4444' : '#10b981'}; font-weight:700; font-size:0.68rem; padding:3px 8px; border-radius:6px; letter-spacing:0.5px;">
+                        ${statusText}
+                    </span>
+                </div>
+                
+                <!-- Live Value -->
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="font-size:1.6rem; font-weight:800; color:${isOffline ? '#ef4444' : '#f8fafc'}; line-height:1; letter-spacing:-0.5px; text-shadow:0 0 20px ${isOffline ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.15)'};">
+                        ${pingVal}
+                    </div>
+                    <div style="opacity:0.85;">
+                        ${sparkline}
+                    </div>
+                </div>
+                
+                <!-- Bottom detail line & Delete button -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem; padding-top:0.6rem; border-top:1px solid rgba(255,255,255,0.03); font-size:0.72rem; color:#64748b;">
+                    <div>Jitter: ${item.jitter}ms | Perda: ${item.loss}%</div>
+                    <button onclick="deletePingTarget('${item.name}')" style="background:none; border:none; color:#ef4444; opacity:0.4; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    grid.innerHTML = html;
+    lucide.createIcons();
+    
+    // Render top card stats
+    const avgPing = pingCount > 0 ? Math.round(totalPing / pingCount) : 0;
+    document.getElementById('pm-avg-ping').textContent = `${avgPing} ms`;
+    document.getElementById('pm-active-count').textContent = activeCount;
+    document.getElementById('pm-high-count').textContent = highCount;
+    document.getElementById('pm-offline-count').textContent = offlineCount;
+}
+
+// Modal and target management
+function openAddPingTargetModal() {
+    if (!authCredentials) {
+        showLogin();
+        return;
+    }
+    document.getElementById('pm-target-name').value = '';
+    document.getElementById('pm-target-address').value = '';
+    document.getElementById('pm-modal-error').textContent = '';
+    document.getElementById('ping-target-modal').classList.add('show');
+}
+
+function closePingTargetModal() {
+    document.getElementById('ping-target-modal').classList.remove('show');
+}
+
+async function savePingTarget() {
+    const name = document.getElementById('pm-target-name').value.trim();
+    const target = document.getElementById('pm-target-address').value.trim();
+    const errorEl = document.getElementById('pm-modal-error');
+    
+    if (!name || !target) {
+        errorEl.textContent = 'Por favor, preencha todos os campos.';
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/pingmaster/target', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${authCredentials}`
+            },
+            body: JSON.stringify({ name, target })
+        });
+        
+        if (res.ok) {
+            closePingTargetModal();
+            loadPingMasterStatus();
+        } else {
+            const data = await res.json();
+            errorEl.textContent = data.error || 'Erro ao salvar o alvo.';
+        }
+    } catch (err) {
+        errorEl.textContent = 'Erro de comunicação com o servidor.';
+    }
+}
+
+async function deletePingTarget(name) {
+    if (!authCredentials) {
+        showLogin();
+        return;
+    }
+    if (!confirm(`Tem certeza que deseja remover "${name}" do monitoramento?`)) return;
+    
+    try {
+        const res = await fetch('/api/pingmaster/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${authCredentials}`
+            },
+            body: JSON.stringify({ name })
+        });
+        
+        if (res.ok) {
+            loadPingMasterStatus();
+        }
+    } catch (err) {
+        console.error('[PingMaster] Erro ao deletar:', err);
+    }
+}
  

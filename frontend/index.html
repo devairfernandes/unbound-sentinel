@@ -41,6 +41,9 @@
             <li onclick="showSection('security', this)" class="client-only">
                 <i data-lucide="shield-alert"></i> <span>Segurança CTI</span>
             </li>
+            <li onclick="showSection('pingmaster', this)" class="client-only">
+                <i data-lucide="signal"></i> <span>Ping Master</span>
+            </li>
             <li onclick="showSection('benchmark', this)" class="client-only">
                 <i data-lucide="zap"></i> <span>Benchmark</span>
             </li>
@@ -85,7 +88,7 @@
             <div class="welcome">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <h1>MONITOR NOC DNS</h1>
-                    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+                    <span class="live-badge"><span class="live-dot"></span>AO VIVO</span>
                 </div>
                 <p id="uptime">Uptime: --</p>
             </div>
@@ -225,7 +228,7 @@
             <!-- Sentinel Global Traffic Globe -->
             <div class="panel globe-panel" style="margin-top: 1.5rem; margin-bottom: 1.5rem; padding: 0; overflow: hidden; position: relative; height: 500px; border-radius: 20px;">
                 <div class="panel-header" style="position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                    <h3 style="margin:0; font-size: 0.9rem; letter-spacing: 1px;">SENTINEL GLOBAL TRAFFIC</h3>
+                    <h3 style="margin:0; font-size: 0.9rem; letter-spacing: 1px;">TRÁFEGO GLOBAL SENTINEL</h3>
                     <div style="font-size: 0.7rem; opacity: 0.7;">Monitoramento de Resolução Mundial</div>
                 </div>
 
@@ -433,7 +436,7 @@
                     </div>
                     <div class="live-badge">
                         <div class="live-dot"></div>
-                        LIVE MONITOR
+                        MONITOR AO VIVO
                     </div>
                 </div>
 
@@ -479,7 +482,7 @@
                     <div class="sys-info-box" style="grid-column: span 2;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                             <h3 style="margin:0; font-size: 1rem; color: #f8fafc;">LOG DE INTERCEPTAÇÕES (HISTÓRICO 12H)</h3>
-                            <span class="status-tag" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid rgba(16, 185, 129, 0.2);">REAL-TIME STREAM</span>
+                            <span class="status-tag" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid rgba(16, 185, 129, 0.2);">FLUXO EM TEMPO REAL</span>
                         </div>
                         <div id="security-alerts-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 10px;">
                             <div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma ameaça detectada no momento.</div>
@@ -489,7 +492,7 @@
                     <div class="sys-info-box" style="grid-column: span 2;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                             <h3 style="margin:0; font-size: 1rem; color: #f8fafc;">HISTÓRICO DE BLOQUEIOS MANUAIS (BLACKLIST)</h3>
-                            <span class="status-tag" style="background: rgba(244, 63, 94, 0.1); color: var(--accent-danger); border: 1px solid rgba(244, 63, 94, 0.2);">BLOCKED</span>
+                            <span class="status-tag" style="background: rgba(244, 63, 94, 0.1); color: var(--accent-danger); border: 1px solid rgba(244, 63, 94, 0.2);">BLOQUEADO</span>
                         </div>
                         <div id="blocked-queries-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 10px;">
                             <div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 12h...</div>
@@ -508,7 +511,7 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); padding:6px 14px; border-radius:50px;">
                     <span class="live-dot" style="margin:0;"></span>
-                    <span style="font-size:0.78rem; font-weight:700; color:#10b981; letter-spacing:1px;">LIVE</span>
+                    <span style="font-size:0.78rem; font-weight:700; color:#10b981; letter-spacing:1px;">AO VIVO</span>
                 </div>
             </div>
 
@@ -834,6 +837,46 @@
             </div>
         </section>
 
+        <!-- PING MASTER NATIVE SECTION -->
+        <section id="pingmaster-section" style="display:none;">
+            <!-- NOC Top Summary for Ping Master -->
+            <div class="noc-grid" style="margin-bottom: 2rem;">
+                <div class="noc-card success">
+                    <div class="noc-label">Média Geral de Ping</div>
+                    <div class="noc-value" id="pm-avg-ping">0 ms</div>
+                </div>
+                <div class="noc-card info">
+                    <div class="noc-label">Serviços Ativos</div>
+                    <div class="noc-value" id="pm-active-count">0</div>
+                </div>
+                <div class="noc-card warning">
+                    <div class="noc-label">Latência Alta</div>
+                    <div class="noc-value" id="pm-high-count">0</div>
+                </div>
+                <div class="noc-card danger">
+                    <div class="noc-label">Serviços Offline</div>
+                    <div class="noc-value" id="pm-offline-count">0</div>
+                </div>
+            </div>
+
+            <!-- Header + Control Panel -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+                <h2 style="font-size:1.4rem; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:10px;">
+                    <i data-lucide="signal" style="color:var(--accent);"></i> Latências de Conectividade
+                </h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-logout" onclick="openAddPingTargetModal()" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:0.5rem 1rem; border-radius:8px;">
+                        <i data-lucide="plus"></i> Novo Alvo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ping Master Cards Grid -->
+            <div id="pingmaster-cards-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
+                <!-- Cards dynamically loaded here -->
+            </div>
+        </section>
+
     </main>
 
     <!-- Login Modal -->
@@ -858,6 +901,32 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeLogin()">CANCELAR</button>
                 <button class="btn btn-primary" onclick="attemptLogin()">ACESSAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Ping Target Modal -->
+    <div id="ping-target-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i data-lucide="plus-circle" class="icon-lock" style="color:#10b981; width:48px; height:48px; margin:0 auto 15px;"></i>
+                <h2>Adicionar Novo Alvo</h2>
+                <p>Monitore a latência de qualquer IP ou Domínio</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Nome do Serviço / Servidor</label>
+                    <input type="text" id="pm-target-name" placeholder="Ex: Google DNS, Servidor ERP">
+                </div>
+                <div class="input-group">
+                    <label>Endereço IP ou Domínio</label>
+                    <input type="text" id="pm-target-address" placeholder="Ex: 8.8.8.8 ou erp.empresa.com">
+                </div>
+                <div id="pm-modal-error" class="error-text" style="color:#ef4444; font-size:0.8rem; margin-top:8px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePingTargetModal()">CANCELAR</button>
+                <button class="btn btn-primary" onclick="savePingTarget()" style="background:#10b981;">SALVAR ALVO</button>
             </div>
         </div>
     </div>

@@ -1085,10 +1085,23 @@ app.post('/api/security/blacklist', auth, async (req, res) => {
         const { exec } = require('child_process');
         const setupCmd = `if ! grep -q "^server:" ${localZonePath} 2>/dev/null; then echo "server:" | sudo tee ${localZonePath}; fi`;
         
-        // Usa tee com sudo para garantir permissão e envia a string segura (sem bash interpreter quebrando aspas)
-        exec(`${setupCmd} && echo '${rule}' | sudo tee -a ${localZonePath} > /dev/null && sudo systemctl restart unbound`, (err) => {
-            if (err) return res.status(500).json({ error: 'Erro ao reiniciar o DNS' });
-            res.json({ message: 'Domínio adicionado à Blacklist com sucesso' });
+        // Grava as regras no arquivo local-zone.conf para persistência permanente
+        exec(`${setupCmd} && echo '${rule}' | sudo tee -a ${localZonePath} > /dev/null`, (err) => {
+            if (err) return res.status(500).json({ error: 'Erro ao salvar o bloqueio' });
+            
+            // Tenta aplicar dinamicamente sem downtime ou perda de cache
+            exec(`sudo unbound-control local_zone "${domain}" always_nxdomain`, (errControl) => {
+                if (errControl) {
+                    console.warn(`[Blacklist] unbound-control falhou, recorrendo ao reinício do serviço:`, errControl.message);
+                    // Fallback: Reinício clássico se unbound-control não estiver configurado
+                    exec('sudo systemctl restart unbound', (errRestart) => {
+                        if (errRestart) return res.status(500).json({ error: 'Erro ao reiniciar o serviço DNS' });
+                        res.json({ message: 'Domínio adicionado à Blacklist com sucesso (via reinício do serviço)' });
+                    });
+                } else {
+                    res.json({ message: 'Domínio adicionado à Blacklist com sucesso (aplicado instantaneamente com zero downtime!)' });
+                }
+            });
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -1124,6 +1137,24 @@ app.post('/api/firewall/rule', auth, async (req, res) => {
         res.json({ message: `Regra ${action === 'add' ? 'adicionada' : 'removida'} com sucesso!` });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao modificar regra de firewall', details: err.message });
+    }
+});
+
+app.post('/api/firewall/block-ip', auth, async (req, res) => {
+    const { action, ip } = req.body;
+    if (!ip) return res.status(400).json({ error: 'IP ausente' });
+    const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+    if (!ipRegex.test(ip)) {
+        return res.status(400).json({ error: 'Endereço IP inválido' });
+    }
+    try {
+        const flag = action === 'add' ? '-I' : '-D';
+        const cmd = `sudo iptables ${flag} INPUT -s ${ip} -j DROP`;
+        await runSSHCommand(cmd);
+        await runSSHCommand('sudo sh -c "iptables-save > /etc/iptables/rules.v4" 2>/dev/null || true');
+        res.json({ message: `IP ${ip} foi ${action === 'add' ? 'bloqueado' : 'desbloqueado'} com sucesso no Firewall.` });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao modificar regra de IP no firewall', details: err.message });
     }
 });
 
@@ -1440,6 +1471,185 @@ function autoUpdateThreatIntel() {
 // Sincroniza logo no boot e depois agenda para a cada 24 horas (86400000 ms)
 autoUpdateThreatIntel();
 setInterval(autoUpdateThreatIntel, 86400000);
+
+// ==========================================
+// NATIVE PING MASTER ENGINE (LIGHTWEIGHT)
+// ==========================================
+const pingDbPath = path.join(__dirname, 'pingmaster_db.json');
+
+let pingMasterData = {
+    servicos: [
+        { nome: "Google", targets: ["google.com"], method: "smart", active: true },
+        { nome: "YouTube", targets: ["youtube.com"], method: "smart", active: true },
+        { nome: "Google DNS", targets: ["8.8.8.8"], method: "smart", active: true },
+        { nome: "Netflix", targets: ["netflix.com"], method: "smart", active: true },
+        { nome: "Quad9.com", targets: ["quad9.com"], method: "smart", active: true }
+    ]
+};
+
+// Carrega o banco de dados se existir
+if (fs.existsSync(pingDbPath)) {
+    try {
+        pingMasterData = JSON.parse(fs.readFileSync(pingDbPath, 'utf8'));
+    } catch (e) {
+        console.error('[PingMaster] Erro ao ler pingmaster_db.json:', e.message);
+    }
+} else {
+    fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+}
+
+let pingMasterStatus = {};
+
+function pingTarget(target, callback) {
+    const isWin = process.platform === 'win32';
+    const cmd = isWin 
+        ? `ping -n 2 -w 1000 ${target}` 
+        : `ping -c 2 -W 1 ${target}`;
+        
+    exec(cmd, (err, stdout) => {
+        if (err || !stdout) {
+            return checkTcp(target, 80, callback);
+        }
+        
+        let match;
+        if (isWin) {
+            match = stdout.match(/tempo[=<]\s*(\d+)ms/i) || stdout.match(/average\s*=\s*(\d+)ms/i);
+        } else {
+            match = stdout.match(/time=(\d+(?:\.\d+)?)\s*ms/i) || stdout.match(/rtt\s+min\/avg\/max\/mdev\s+=\s+\d+\.?\d*\/(\d+\.?\d*)/i);
+        }
+        
+        if (match) {
+            const ms = Math.round(parseFloat(match[1]));
+            callback(true, ms);
+        } else {
+            checkTcp(target, 80, callback);
+        }
+    });
+}
+
+function checkTcp(host, port, callback) {
+    const net = require('net');
+    const start = Date.now();
+    const socket = new net.Socket();
+    
+    socket.setTimeout(1500);
+    
+    socket.on('connect', () => {
+        const ms = Date.now() - start;
+        socket.destroy();
+        callback(true, ms);
+    });
+    
+    socket.on('error', () => {
+        socket.destroy();
+        callback(false, 0);
+    });
+    
+    socket.on('timeout', () => {
+        socket.destroy();
+        callback(false, 0);
+    });
+    
+    socket.connect(port, host);
+}
+
+// Background Ping Loop
+function runPingMasterLoop() {
+    if (!pingMasterData.servicos) return;
+    
+    const activeServices = pingMasterData.servicos.filter(s => s.active);
+    let completed = 0;
+    
+    if (activeServices.length === 0) {
+        setTimeout(runPingMasterLoop, 8000);
+        return;
+    }
+    
+    activeServices.forEach(service => {
+        const target = service.targets[0] || '8.8.8.8';
+        pingTarget(target, (success, latency) => {
+            const prev = pingMasterStatus[service.nome] || { history: [] };
+            let history = [...prev.history, latency];
+            if (history.length > 20) history.shift();
+            
+            // Jitter calculation
+            let jitter = 0;
+            if (history.length >= 2) {
+                const diffs = [];
+                for (let i = 1; i < history.length; i++) {
+                    diffs.push(Math.abs(history[i] - history[i-1]));
+                }
+                jitter = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length);
+            }
+            
+            let status = 'offline';
+            if (success) {
+                if (latency < 80) status = 'good';
+                else if (latency < 160) status = 'warning';
+                else status = 'bad';
+            }
+            
+            pingMasterStatus[service.nome] = {
+                name: service.nome,
+                target: target,
+                ping: success ? latency : null,
+                status: status,
+                jitter: success ? jitter : 0,
+                loss: success ? 0 : 100,
+                history: history,
+                timestamp: new Date().toISOString()
+            };
+            
+            completed++;
+            if (completed === activeServices.length) {
+                setTimeout(runPingMasterLoop, 8000);
+            }
+        });
+    });
+}
+
+// Inicializa o Loop
+setTimeout(runPingMasterLoop, 2000);
+
+// API Endpoints
+app.get('/api/pingmaster/status', auth, (req, res) => {
+    res.json({
+        services: pingMasterStatus,
+        config: pingMasterData.config || {}
+    });
+});
+
+app.post('/api/pingmaster/target', auth, (req, res) => {
+    const { name, target, active } = req.body;
+    if (!name || !target) return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
+    
+    let existing = pingMasterData.servicos.find(s => s.nome.toLowerCase() === name.toLowerCase());
+    if (existing) {
+        existing.targets = [target];
+        existing.active = active !== undefined ? active : true;
+    } else {
+        pingMasterData.servicos.push({
+            nome: name,
+            targets: [target],
+            method: 'smart',
+            active: active !== undefined ? active : true
+        });
+    }
+    
+    fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+    res.json({ message: 'Alvo atualizado com sucesso no Ping Master' });
+});
+
+app.post('/api/pingmaster/delete', auth, (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: 'Nome ausente' });
+    
+    pingMasterData.servicos = pingMasterData.servicos.filter(s => s.nome.toLowerCase() !== name.toLowerCase());
+    if (pingMasterStatus[name]) delete pingMasterStatus[name];
+    
+    fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+    res.json({ message: 'Alvo removido do Ping Master' });
+});
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Sentinel Backend rodando em todas as interfaces na porta ${PORT}`);

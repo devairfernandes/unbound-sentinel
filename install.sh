@@ -87,6 +87,20 @@ echo "📤 Aplicando nova versão v2.2.0 (Sentinel Security Plus)..."
 sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
 cd "$INSTALL_DIR"
 
+# ---- Aplica otimizações avançadas no Unbound ----
+echo "⚡ Aplicando otimizações avançadas e anti-DDoS no Unbound..."
+if [ -d "/etc/unbound/conf.d" ]; then
+    sudo cp -f "$INSTALL_DIR/sentinel-optimizations.conf" "/etc/unbound/conf.d/sentinel-optimizations.conf"
+    sudo systemctl restart unbound || true
+    echo "✅ Otimizações anti-DDoS instaladas em /etc/unbound/conf.d/sentinel-optimizations.conf"
+elif [ -d "/etc/unbound/local.d" ]; then
+    sudo cp -f "$INSTALL_DIR/sentinel-optimizations.conf" "/etc/unbound/local.d/sentinel-optimizations.conf"
+    sudo systemctl restart unbound || true
+    echo "✅ Otimizações anti-DDoS instaladas em /etc/unbound/local.d/sentinel-optimizations.conf"
+else
+    echo "⚠️  Não foi possível detectar diretório de configuração do Unbound. Copie sentinel-optimizations.conf manualmente."
+fi
+
 # ---- 5. Configurar .env ----
 if [ ! -f "$INSTALL_DIR/.env" ]; then
     if [ -f "$INSTALL_DIR/.env.example" ]; then

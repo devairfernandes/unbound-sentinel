@@ -1,0 +1,47 @@
+{
+  "version": "v1.4",
+  "system_name": "Ping Master PRO",
+  "jogos": [],
+  "servicos": [
+    {
+      "nome": "Google",
+      "targets": [
+        "google.com"
+      ],
+      "method": "smart",
+      "active": true
+    },
+    {
+      "nome": "YouTube",
+      "targets": [
+        "youtube.com"
+      ],
+      "method": "smart",
+      "active": true
+    },
+    {
+      "nome": "Google DNS",
+      "targets": [
+        "8.8.8.8"
+      ],
+      "method": "smart",
+      "active": true
+    },
+    {
+      "nome": "Netflix",
+      "targets": [
+        "netflix.com"
+      ],
+      "method": "smart",
+      "active": true
+    },
+    {
+      "nome": "Quad9 DNS",
+      "targets": [
+        "9.9.9.9"
+      ],
+      "method": "smart",
+      "active": true
+    }
+  ]
+}

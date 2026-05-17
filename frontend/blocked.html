@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Bloqueado — Sentinel Security</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-primary: #020617;
+            --bg-secondary: #0b1329;
+            --accent-danger: #f43f5e;
+            --accent-danger-glow: rgba(244, 63, 94, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-border: rgba(244, 63, 94, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Dynamic ambient glow */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-danger-glow) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            filter: blur(40px);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(11, 19, 41, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(244, 63, 94, 0.05);
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Pulse Shield Animation */
+        .shield-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shield-icon {
+            width: 50px;
+            height: 50px;
+            color: var(--accent-danger);
+            z-index: 5;
+            filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.6));
+        }
+
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            animation: pulseRing 2s infinite ease-out;
+            z-index: 2;
+        }
+
+        .pulse-ring-inner {
+            position: absolute;
+            width: 75%;
+            height: 75%;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.05);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            animation: pulseRingInner 2s infinite ease-out;
+            z-index: 3;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.7); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        @keyframes pulseRingInner {
+            0% { transform: scale(0.6); opacity: 1; }
+            100% { transform: scale(1.1); opacity: 0; }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #f43f5e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 35px;
+            font-weight: 400;
+        }
+
+        /* Info Card */
+        .info-card {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+            margin-bottom: 35px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-row:first-child {
+            padding-top: 0;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            max-width: 65%;
+            word-break: break-all;
+            text-align: right;
+        }
+
+        .info-value.domain {
+            font-family: 'JetBrains Mono', monospace;
+            color: #f43f5e;
+            background: rgba(244, 63, 94, 0.08);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(244, 63, 94, 0.15);
+            font-size: 0.88rem;
+        }
+
+        .info-value.badge {
+            background: rgba(244, 63, 94, 0.15);
+            color: #ff859b;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer {
+            font-size: 0.8rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .footer span {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Back home action if permitted */
+        .action-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 10px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="shield-wrapper">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring-inner"></div>
+            <i data-lucide="shield-alert" class="shield-icon"></i>
+        </div>
+
+        <h1>Acesso Bloqueado</h1>
+        <p class="subtitle">Este site foi identificado como uma ameaça de segurança ativa (Distribuidores de vírus, phishing, roubo de dados ou fraude) e foi interceptado pela proteção DNS.</p>
+
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">Domínio Tentado</span>
+                <span id="domain-name" class="info-value domain">--</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Categoria de Ameaça</span>
+                <span id="threat-category" class="info-value badge">Vírus / Roubo de Dados</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Dispositivo de Origem</span>
+                <span id="client-ip" class="info-value">--</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Timestamp</span>
+                <span id="block-time" class="info-value">--</span>
+            </div>
+        </div>
+
+        <button onclick="window.history.back()" class="action-btn">Voltar para Segurança</button>
+
+        <div class="footer">
+            <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10b981;"></i>
+            Protegido por <span>Sentinel Security Plus</span>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Get parameters from server injection or query params
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Try getting domain name from URL or Host header
+        let domain = urlParams.get('domain') || window.location.hostname;
+        document.getElementById('domain-name').innerText = domain;
+
+        // Try getting client IP from URL
+        let ip = urlParams.get('ip') || 'IP Local';
+        document.getElementById('client-ip').innerText = ip;
+
+        // Dynamic timestamp
+        const now = new Date();
+        document.getElementById('block-time').innerText = now.toLocaleString('pt-BR');
+
+        // Dynamically customize category if provided
+        let category = urlParams.get('category');
+        if (category) {
+            document.getElementById('threat-category').innerText = category;
+        }
+    </script>
+</body>
+</html>
