@@ -78,13 +78,17 @@ echo "🛑 Parando serviço para limpeza..."
 sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
 sudo pkill -f "node $INSTALL_DIR/index.js" 2>/dev/null || true
 
-echo "🧹 Limpando arquivos antigos (preservando configurações)..."
-# Deleta tudo exceto arquivos de configuração e banco de dados
-sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
-sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
+if [ "$CURRENT_DIR" != "$INSTALL_DIR" ]; then
+    echo "🧹 Limpando arquivos antigos (preservando configurações)..."
+    # Deleta tudo exceto arquivos de configuração e banco de dados
+    sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
+    sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-echo "📤 Aplicando nova versão v2.2.0 (Sentinel Security Plus)..."
-sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
+    echo "📤 Aplicando nova versão v2.2.0 (Sentinel Security Plus)..."
+    sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
+else
+    echo "🔄 Atualização direta detectada. Pulando cópia redundante de arquivos."
+fi
 cd "$INSTALL_DIR"
 
 # ---- Aplica otimizações avançadas no Unbound ----
