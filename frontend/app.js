@@ -133,7 +133,7 @@ async function updateSecurityThreats() {
                             <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : 'alert-triangle'}"></i>
                         </div>
                         <div class="threat-details">
-                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
+                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : alert.severity)}</span></div>
                             <div class="threat-ip">Origem: ${alert.ip}</div>
                         </div>
                         <div class="threat-actions">
@@ -169,7 +169,7 @@ async function updateSecurityThreats() {
                                 <i data-lucide="shield-off"></i>
                             </div>
                             <div class="threat-details">
-                                <div class="threat-domain" style="color: #f43f5e;">${q.domain} <span class="badge-threat critical">BLOCKED</span></div>
+                                <div class="threat-domain" style="color: #f43f5e;">${q.domain} <span class="badge-threat critical">BLOQUEADO</span></div>
                                 <div class="threat-ip">Tentativa de: ${q.ip}</div>
                             </div>
                             <div class="threat-time">${q.time}</div>
