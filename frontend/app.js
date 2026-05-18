@@ -134,13 +134,10 @@ async function updateSecurityThreats() {
                         </div>
                         <div class="threat-details">
                             <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity}</span></div>
-                            <div class="threat-ip" onclick="openClientDrilldown('${alert.ip}')" style="cursor:pointer; color:var(--accent-primary); font-weight:600; text-decoration:underline;" title="Clique para Investigar/Bloquear Dispositivo">Origem: ${alert.ip}</div>
+                            <div class="threat-ip">Origem: ${alert.ip}</div>
                         </div>
-                        <div class="threat-actions" style="display:flex; gap:6px;">
-                            <button onclick="openClientDrilldown('${alert.ip}')" class="btn-action" title="Investigar / Bloquear Dispositivo" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;">
-                                <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
-                            </button>
-                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;">
+                        <div class="threat-actions">
+                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
                                 <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
                             </button>
                         </div>
