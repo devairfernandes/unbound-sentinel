@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.9",
+  "version": "2.4.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.4.0": [
+      "Mapeador de Subdomínios Curinga (Wildcard): Desenvolvido algoritmo recursivo de busca de subdomínios na Blacklist. Agora, domínios filhos de regras curingas (ex: google.com.onion sob a regra geral onion ou subdomínios da Multilaser) são identificados dinamicamente em tempo real e exibidos corretamente com a tag [BLOQUEADO] no painel de controle."
+    ],
     "v2.3.9": [
       "Sincronização Imediata de Logs (Clear/Truncate): Ajustado o estado do buffer de ameaças para residir localmente no handler de requisições. Agora, ao truncar ou esvaziar o arquivo de log no sistema operacional (/var/log/unbound.log), os registros antigos são removidos instantaneamente do painel de controle sem precisar reiniciar o servidor."
     ],

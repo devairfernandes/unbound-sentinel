@@ -1186,9 +1186,21 @@ app.get('/api/security/threats', async (req, res) => {
                 }
             }
 
-            // Modifica dinamicamente a severidade para BLOCKED se o domínio estiver na blacklist
+            // Modifica dinamicamente a severidade para BLOCKED se o domínio estiver na blacklist (incluindo subdomínios curinga)
             const alertsWithBlocked = threatHistory.slice(0, 50).map(t => {
-                if (blacklistedDomains.has(t.domain.toLowerCase().trim())) {
+                const domainLower = t.domain.toLowerCase().trim();
+                let isBlocked = blacklistedDomains.has(domainLower);
+                
+                if (!isBlocked) {
+                    for (const parentDomain of blacklistedDomains) {
+                        if (domainLower.endsWith('.' + parentDomain) || domainLower === parentDomain) {
+                            isBlocked = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (isBlocked) {
                     return { ...t, severity: 'BLOCKED' };
                 }
                 return t;
