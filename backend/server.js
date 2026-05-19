@@ -826,8 +826,20 @@ app.get('/api/stats', async (req, res) => {
 
 app.get('/api/system', async (req, res) => {
     try {
+        const dateObj = new Date();
+        const serverTime = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
+
         if (process.platform === 'win32') {
-            return res.json({ cpu: '0.0', memory: [0, 0, 0, 0, 0, 0], disk: [0, 0, 0, 0, 0], uptime: 'N/A (Windows)', bandwidth: 0, top: { domains: [], clients: [] } });
+            return res.json({ 
+                cpu: '0.0', 
+                memory: [0, 0, 0, 0, 0, 0], 
+                disk: [0, 0, 0, 0, 0], 
+                uptime: 'N/A (Windows)', 
+                bandwidth: 0, 
+                top: { domains: [], clients: [] },
+                serverTime: serverTime,
+                timezone: 'America/Porto_Velho'
+            });
         }
         
         const isFree = currentLicenseStatus.type === 'free';
@@ -849,17 +861,53 @@ app.get('/api/system', async (req, res) => {
         const logData = await runSSHCommand('tail -n 5000 /var/log/unbound.log').catch(() => ({ stdout: '' }));
         const top = parseLogsForTop(logData.stdout);
 
+        const timezoneRaw = await execPromise("cat /etc/timezone").catch(() => ({ stdout: 'UTC' }));
+        const timezone = timezoneRaw.stdout.trim();
+
         res.json({ 
             cpu: cpu.toFixed(1), 
             memory: memory, 
             disk: disk, 
             uptime: uptime || 'Desconhecido', 
             bandwidth: currentBandwidth, 
-            top 
+            top,
+            serverTime: serverTime,
+            timezone: timezone
         });
     } catch (err) {
         console.error('System API Error:', err);
         res.status(500).json({ error: 'Erro ao coletar dados do sistema' });
+    }
+});
+
+app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res) => {
+    try {
+        const { timezone, syncNtp } = req.body;
+        
+        if (timezone) {
+            // Valida fuso horário para evitar command injection
+            const cleanTz = timezone.replace(/[^a-zA-Z0-9_\/-]/g, '');
+            if (process.platform !== 'win32') {
+                await execPromise(`sudo timedatectl set-timezone ${cleanTz}`);
+            }
+        }
+        
+        if (syncNtp) {
+            if (process.platform !== 'win32') {
+                // Força sincronização do NTP no Linux
+                await execPromise('sudo timedatectl set-ntp false && sudo timedatectl set-ntp true').catch(() => {});
+                await execPromise('sudo chronyc -a makestep').catch(() => {});
+                await execPromise('sudo ntpdate -u pool.ntp.br').catch(() => {});
+            }
+        }
+        
+        const dateObj = new Date();
+        const serverTime = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
+        
+        res.json({ success: true, serverTime });
+    } catch (err) {
+        console.error('Time Sync Error:', err);
+        res.status(500).json({ error: 'Erro ao sincronizar data/hora do servidor' });
     }
 });
 
@@ -1037,6 +1085,28 @@ app.get('/api/security/threats', async (req, res) => {
                             });
                         }
                         suspects[ip] = (suspects[ip] || 0) + 1;
+                    }
+                }
+
+                // Novo: Log de violações DNSSEC (Bogus)
+                if (line.includes('validation failure')) {
+                    const dnssecMatch = line.match(/validation failure\s+<([^>]+)>\s+([A-Z0-9]+)\s+IN:\s+([^for:]+)/i) ||
+                                        line.match(/validation failure\s+<([^>]+)>/i);
+                    if (dnssecMatch) {
+                        const domain = dnssecMatch[1].toLowerCase().replace(/\.$/, '').trim();
+                        const reason = dnssecMatch[3] ? dnssecMatch[3].trim() : 'Falha na assinatura criptográfica (DNSSEC)';
+                        
+                        const existing = threatHistory.find(t => t.domain === domain && t.severity === 'DNSSEC');
+                        if (!existing) {
+                            threatHistory.unshift({
+                                domain: domain,
+                                ip: 'Validador DNSSEC',
+                                time: new Date().toLocaleString('pt-BR'),
+                                timestamp: Date.now(),
+                                severity: 'DNSSEC',
+                                reason: reason
+                            });
+                        }
                     }
                 }
             });

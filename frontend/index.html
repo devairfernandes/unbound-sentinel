@@ -314,6 +314,13 @@
                         <p>Configurar acesso via domínio (DuckDNS, No-IP).</p>
                     </div>
                 </div>
+                <div class="config-card admin-only" onclick="openConfigModule('time')">
+                    <div class="card-icon" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3);"><i data-lucide="clock" style="color:#38bdf8;"></i></div>
+                    <div class="card-info">
+                        <h3>Data, Hora & Timezone</h3>
+                        <p>Ajustar fuso horário e sincronizar com servidores NTP.</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Área Dinâmica do Editor/Módulo -->
@@ -350,6 +357,7 @@
                     </div>
                     <div id="credentials-view" class="module-content" style="display:none;"></div>
                     <div id="ddns-view" class="module-content" style="display:none;"></div>
+                    <div id="time-view" class="module-content" style="display:none;"></div>
 
                     <!-- NOVO: EDITOR VISUAL DE ACCESS CONTROL -->
                     <div id="access-control-view" class="module-content" style="display:none;">

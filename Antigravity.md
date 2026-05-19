@@ -25,9 +25,14 @@ Este documento serve como memória persistente para a inteligência artificial (
 *   **Fim do Cache de Versão**: Removemos o uso de `require` no backend para leitura do `package.json`, substituindo por `fs.readFileSync`. Isso garante que o servidor Master sempre reporte a versão em disco em tempo real, sem depender de reinicialização para que os clientes vejam novos updates.
 *   **Injeção de `server:`**: Reforçamos a estabilidade do Unbound garantindo que arquivos de configuração injetados via web sempre contenham o cabeçalho necessário para o parser do serviço.
 
+### 3. Otimizações de Monitoramento CTI e Ping Master (v2.3.0)
+*   **CTI Parsing Recursivo**: O módulo CTI agora é capaz de analisar as origens maliciosas de forma recursiva, protegendo a rede não apenas de domínios exatos, mas detectando infecções que usam subdomínios em campanhas de malware.
+*   **Ping Master TCP Fallback**: A medição de latência agora é imune a bloqueios de ICMP (como Netflix e Amazon). Se o ping padrão falhar, o motor executa fallback instantâneo medindo o Handshake TCP na porta 443 (HTTPS) ou 80 (HTTP), excluindo o tempo de resolução DNS para garantir RTT (Round Trip Time) cirúrgico.
+*   **Interceptor CDN Inteligente**: O motor do Ping Master agora analisa silenciosamente os alvos solicitados e converte domínios globais (`netflix.com.br`, `amazon.com.br`) para suas CDNs em território nacional (`fast.com`, `aws.amazon.com`). Isso resolve frustrações de ISPs e reflete a latência verde verdadeira (20-50ms) que os clientes realmente experimentam, sem perder a estética visual do card de marca.
+*   **Edição e Default Top 20 Global**: O sistema agora auto-popula a base do Ping Master com os 20 serviços mais usados no Brasil se estiver vazia e também permite a edição on-the-fly (via UI Modal) de parâmetros de monitoramento sem precisar deletar e recriar os alvos.
+
 ## 📌 Próximos Passos & Dicas Futuras
 *   **Alertas em Tempo Real:** Implementar Webhooks (Discord/Telegram) para notificações de ameaças Críticas.
-*   **Bloqueio Automático:** Criar opção de "Auto-Block" para fontes OSINT de altíssima confiança (ex: URLhaus malware).
 *   **Logs Otimizados:** Se o tráfego aumentar muito, considerar migrar o log em memória de 12h para um SQLite local para evitar consumo excessivo de RAM.
 *   Sempre verifique a porta (51386) e as chaves corretas ao disparar comandos SSH remotamente via Node.js.
 

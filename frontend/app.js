@@ -130,15 +130,15 @@ async function updateSecurityThreats() {
                 alertsList.innerHTML = data.alerts.map(alert => `
                     <div class="threat-item">
                         <div class="threat-icon ${alert.severity.toLowerCase()}">
-                            <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : (alert.severity === 'BLOCKED' ? 'shield-off' : 'alert-triangle')}"></i>
+                            <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : (alert.severity === 'DNSSEC' ? 'shield-alert' : (alert.severity === 'BLOCKED' ? 'shield-off' : 'alert-triangle'))}"></i>
                         </div>
                         <div class="threat-details">
-                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : alert.severity))}</span></div>
-                            <div class="threat-ip">Origem: ${alert.ip}</div>
+                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : (alert.severity.toUpperCase() === 'DNSSEC' ? 'DNSSEC' : alert.severity)))}</span></div>
+                            <div class="threat-ip">Origem: ${alert.ip}${alert.reason ? ` | Falha: <span style="color:var(--accent-warning);">${alert.reason}</span>` : ''}</div>
                         </div>
                         <div class="threat-actions">
-                            ${alert.severity === 'BLOCKED' ? `
-                                <button class="btn-action success" disabled title="Domínio já bloqueado" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            ${alert.severity === 'BLOCKED' || alert.severity === 'DNSSEC' ? `
+                                <button class="btn-action success" disabled title="${alert.severity === 'DNSSEC' ? 'Criptografia Inválida - Bloqueado Automaticamente' : 'Domínio já bloqueado'}" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
                                     <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                                 </button>
                             ` : `
@@ -1024,8 +1024,21 @@ function openConfigModule(module) {
         document.getElementById('layout-view').style.display = 'none';
         document.getElementById('credentials-view').style.display = 'none';
         document.getElementById('ddns-view').style.display = 'block';
+        document.getElementById('time-view').style.display = 'none';
         document.querySelector('.editor-actions').style.display = 'none';
         renderDDNS();
+    } else if (module === 'time') {
+        title.innerText = 'Data, Hora & Fuso Horário (Time/NTP)';
+        document.getElementById('config-selector').style.display = 'none';
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.getElementById('credentials-view').style.display = 'none';
+        document.getElementById('ddns-view').style.display = 'none';
+        document.getElementById('time-view').style.display = 'block';
+        document.querySelector('.editor-actions').style.display = 'none';
+        renderTimeSettings();
     }
 }
 
@@ -3539,5 +3552,118 @@ async function deletePingTarget(name) {
         console.error('[PingMaster] Erro ao deletar:', err);
         alert('Erro ao remover alvo.');
     }
+}
+
+function renderTimeSettings() {
+    const view = document.getElementById('time-view');
+    view.innerHTML = `<p class="loading">Carregando configurações de fuso horário...</p>`;
+
+    apiFetch(`${API_BASE}/system`)
+        .then(r => r.json())
+        .then(data => {
+            const timezones = [
+                'America/Sao_Paulo',
+                'America/Porto_Velho',
+                'America/Manaus',
+                'America/Cuiaba',
+                'America/Recife',
+                'America/Belem',
+                'America/Fortaleza',
+                'America/Araguaina',
+                'America/Bahia',
+                'America/Campo_Grande',
+                'America/Maceio',
+                'America/Noronha',
+                'UTC'
+            ];
+
+            const tzOptions = timezones.map(tz => 
+                `<option value="${tz}" ${data.timezone === tz ? 'selected' : ''}>${tz}</option>`
+            ).join('');
+
+            view.innerHTML = `
+            <div style="max-width:600px;">
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="clock" style="color:#38bdf8;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Data & Hora Atual do Servidor</h3>
+                    </div>
+                    
+                    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); padding:1.5rem; border-radius:12px; margin-bottom:1.5rem;">
+                        <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; margin-bottom:6px; font-weight:700; letter-spacing:0.5px;">Hora do Sistema</div>
+                        <div id="server-time-display" style="font-family:'JetBrains Mono',monospace; font-size:1.8rem; font-weight:800; color:#38bdf8;">${data.serverTime || '--:--:--'}</div>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:8px;">Fuso Horário Ativo: <strong style="color:#f1f5f9;">${data.timezone || 'UTC'}</strong></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="globe" style="color:#10b981;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Configurar Fuso Horário (Timezone)</h3>
+                    </div>
+                    <div class="input-group" style="margin-bottom:1rem;">
+                        <label style="font-size:0.78rem;color:#94a3b8;margin-bottom:8px;display:block;">Selecione o Timezone do Servidor</label>
+                        <select id="time-timezone-select" style="width:100%; padding:0.75rem 1rem; background:rgba(0,0,0,0.3); border:1px solid var(--card-border); border-radius:8px; color:#fff; font-size:0.9rem; outline:none; border: 1px solid #1e293b;">
+                            ${tzOptions}
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveTimeSettings(false)" style="margin-top:0.5rem;">ALTERAR FUSO HORÁRIO</button>
+                </div>
+
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="refresh-cw" style="color:#f59e0b;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Sincronizar NTP</h3>
+                    </div>
+                    <p style="font-size:0.8rem; color:#64748b; line-height:1.5; margin-bottom:1.2rem;">
+                        Forçar uma atualização imediata do relógio usando os servidores públicos NTP brasileiros (pool.ntp.br). Útil para corrigir erros massivos de validação DNSSEC.
+                    </p>
+                    <button class="btn btn-secondary" onclick="saveTimeSettings(true)" style="border:1px solid rgba(245,158,11,0.3); color:#f59e0b; background:rgba(245,158,11,0.05); padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px;">
+                        <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> SINCRONIZAR AGORA (NTP)
+                    </button>
+                </div>
+                
+                <div id="time-save-status" style="font-size:0.8rem; font-weight:700; margin-top:1rem;"></div>
+            </div>
+            `;
+            lucide.createIcons();
+        })
+        .catch(() => view.innerHTML = '<p class="error-text">Erro ao carregar dados do fuso horário.</p>');
+}
+
+function saveTimeSettings(syncNtp) {
+    const tzSelect = document.getElementById('time-timezone-select');
+    const statusEl = document.getElementById('time-save-status');
+    if (!tzSelect && !syncNtp) return;
+
+    statusEl.innerText = syncNtp ? 'Sincronizando relógio via NTP...' : 'Salvando fuso horário...';
+    statusEl.style.color = '#f59e0b';
+
+    apiFetch(`${API_BASE}/system/sync-time`, {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+            timezone: syncNtp ? null : tzSelect.value,
+            syncNtp: syncNtp
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            statusEl.innerText = syncNtp ? '✓ Relógio sincronizado com sucesso!' : '✓ Fuso horário atualizado com sucesso!';
+            statusEl.style.color = '#10b981';
+            
+            const timeDisplay = document.getElementById('server-time-display');
+            if (timeDisplay) timeDisplay.innerText = res.serverTime;
+            
+            setTimeout(() => { statusEl.innerText = ''; }, 3000);
+        } else {
+            throw new Error(res.error || 'Erro desconhecido');
+        }
+    })
+    .catch(err => {
+        statusEl.innerText = `✗ Falha ao processar: ${err.message}`;
+        statusEl.style.color = '#ef4444';
+    });
 }
  
