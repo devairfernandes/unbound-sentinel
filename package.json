@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.2": [
+      "Feed de Changelogs Multi-Versões: Agora o modal lista todo o histórico recente de atualizações em um feed elegante e rolável.",
+      "Identificação Visual da Versão Alvo: As novidades da nova versão recebem um badge exclusivo de destaque (★ ALVO)."
+    ],
     "v2.3.1": [
       "Fuso Horário Resiliente: Adicionado symlink fallback para compatibilidade com LXC, OpenVZ e Docker.",
       "Correção de Cabeçalho: Resolvido problema de parsing da requisição no backend adicionando Content-Type JSON."

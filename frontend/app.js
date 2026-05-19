@@ -425,12 +425,39 @@ function startSystemUpdate() {
 
     const changelogList = document.getElementById('update-modal-changelog-list');
     if (changelogList) {
-        const versionKey = `v${pendingUpdateData.newVersion}`;
-        const logs = pendingUpdateData.changelog && pendingUpdateData.changelog[versionKey] 
-            ? pendingUpdateData.changelog[versionKey] 
-            : ['Melhorias de desempenho, correções gerais de segurança e estabilidade.'];
+        if (pendingUpdateData.changelog && Object.keys(pendingUpdateData.changelog).length > 0) {
+            let html = '';
+            // Ordena as versões decrescentemente
+            const sortedVersions = Object.keys(pendingUpdateData.changelog).sort((a, b) => {
+                return b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+            });
             
-        changelogList.innerHTML = logs.map(log => `<li>${log}</li>`).join('');
+            // Exibe as 4 versões mais recentes para manter o modal elegante
+            const versionsToShow = sortedVersions.slice(0, 4);
+            
+            versionsToShow.forEach(ver => {
+                const logs = pendingUpdateData.changelog[ver];
+                const isNew = ver === `v${pendingUpdateData.newVersion}`;
+                html += `
+                    <div style="margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 0.6rem; text-align: left;">
+                        <div style="font-weight: 800; color: #38bdf8; font-size: 0.8rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <span style="background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px;">${ver}</span>
+                            ${isNew ? '<span style="font-size: 0.68rem; color: #10b981; font-weight: 800; background: rgba(16,185,129,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2);">★ ALVO DESTA ATUALIZAÇÃO</span>' : ''}
+                        </div>
+                        <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.78rem; color: #94a3b8; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; list-style-type: disc;">
+                            ${logs.map(log => `<li>${log}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            changelogList.innerHTML = html;
+        } else {
+            changelogList.innerHTML = `
+                <li style="list-style-type: none; text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 10px 0;">
+                    Melhorias de desempenho, correções gerais de segurança e estabilidade.
+                </li>
+            `;
+        }
     }
     
     modal.style.display = 'flex';
