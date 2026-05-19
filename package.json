@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.5": [
+      "Bloqueio de Domínios com Falha DNSSEC (Bogus): Agora os administradores podem banir permanentemente domínios com falhas DNSSEC no feed de ameaças.",
+      "Ação CTI Desbloqueada: Habilitado o botão de ação [ban] para ameaças de severidade DNSSEC na tela de CTI."
+    ],
     "v2.3.4": [
       "Compatibilidade Universal Cross-Distribution: Adicionado algoritmo de leitura de fuso horário multi-métodos suportando CentOS, RHEL, Rocky, AlmaLinux, Debian e Ubuntu.",
       "Correção de Leitura de Fuso no CentOS: Substituída a leitura simples do arquivo /etc/timezone (inexistente no CentOS) pela leitura nativa de links do zoneinfo."

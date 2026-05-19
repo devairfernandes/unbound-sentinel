@@ -137,12 +137,12 @@ async function updateSecurityThreats() {
                             <div class="threat-ip">Origem: ${alert.ip}${alert.reason ? ` | Falha: <span style="color:var(--accent-warning);">${alert.reason}</span>` : ''}</div>
                         </div>
                         <div class="threat-actions">
-                            ${alert.severity === 'BLOCKED' || alert.severity === 'DNSSEC' ? `
-                                <button class="btn-action success" disabled title="${alert.severity === 'DNSSEC' ? 'Criptografia Inválida - Bloqueado Automaticamente' : 'Domínio já bloqueado'}" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            ${alert.severity === 'BLOCKED' ? `
+                                <button class="btn-action success" disabled title="Domínio já bloqueado permanentemente na Blacklist" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
                                     <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                                 </button>
                             ` : `
-                                <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
+                                <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear permanentemente na Blacklist (NXDOMAIN)">
                                     <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
                                 </button>
                             `}
