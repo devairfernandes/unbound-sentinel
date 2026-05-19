@@ -390,10 +390,13 @@ function updateUIByRole() {
 }
 
 // ===== AUTO-UPDATER LOGIC =====
+let pendingUpdateData = null;
+
 function checkForSystemUpdate() {
     apiFetch(`${API_BASE}/system/check-update`)
         .then(res => res.json())
         .then(data => {
+            pendingUpdateData = data;
             const btn = document.getElementById('btn-update-system');
             const versionEl = document.getElementById('system-version-display');
             if (versionEl) versionEl.innerText = `v${data.currentVersion}`;
@@ -406,8 +409,41 @@ function checkForSystemUpdate() {
         .catch(err => console.error('Update check failed:', err));
 }
 
-async function startSystemUpdate() {
-    if (!confirm('Deseja iniciar a atualização do painel? O serviço ficará indisponível por cerca de 10 segundos e recarregará automaticamente.')) return;
+function startSystemUpdate() {
+    if (!pendingUpdateData) return;
+    
+    const modal = document.getElementById('system-update-modal');
+    if (!modal) return;
+    
+    document.getElementById('update-modal-versions-subtitle').innerText = `v${pendingUpdateData.currentVersion} ➔ v${pendingUpdateData.newVersion}`;
+    
+    const sourceEl = document.getElementById('update-modal-source');
+    if (sourceEl) {
+        sourceEl.innerText = pendingUpdateData.source === 'master' ? 'PC Master' : 'GitHub Oficial';
+        sourceEl.style.color = pendingUpdateData.source === 'master' ? '#10b981' : '#38bdf8';
+    }
+
+    const changelogList = document.getElementById('update-modal-changelog-list');
+    if (changelogList) {
+        const versionKey = `v${pendingUpdateData.newVersion}`;
+        const logs = pendingUpdateData.changelog && pendingUpdateData.changelog[versionKey] 
+            ? pendingUpdateData.changelog[versionKey] 
+            : ['Melhorias de desempenho, correções gerais de segurança e estabilidade.'];
+            
+        changelogList.innerHTML = logs.map(log => `<li>${log}</li>`).join('');
+    }
+    
+    modal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+}
+
+function closeUpdateModal() {
+    const modal = document.getElementById('system-update-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function executeSystemUpdate() {
+    closeUpdateModal();
     
     const btn = document.getElementById('btn-update-system');
     if (btn) {

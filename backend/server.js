@@ -526,7 +526,8 @@ app.get('/api/system/check-update', auth, async (req, res) => {
             updateAvailable: isUpdateAvailable, 
             currentVersion: localPkg.version, 
             newVersion: remotePkg.version,
-            source: sourceUsed
+            source: sourceUsed,
+            changelog: remotePkg.changelog || {}
         });
     } catch (e) {
         res.status(500).json({ error: 'Falha ao verificar atualizações.' });

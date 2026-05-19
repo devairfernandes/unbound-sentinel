@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.2.9",
+  "version": "2.3.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,25 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "changelog": {
+    "v2.3.0": [
+      "Visualizador de Changelogs OTA: Agora ao clicar em atualizar, abre um modal interativo listando todas as novidades da nova versão.",
+      "Redundância inteligente de updates: Mostra claramente se a nova versão está vindo do PC Master ou do GitHub Oficial."
+    ],
+    "v2.2.9": [
+      "Módulo de Data & Hora: Ajuste fuso horário e sincronização do NTP (pool.ntp.br) direto na tela.",
+      "Integração do CTI: Erros DNSSEC (Bogus) capturados no feed de ameaças com detalhes e motivos."
+    ],
+    "v2.2.8": [
+      "Visual Premium DNSSEC: Nova seção gráfica com telemetria e gauge radial SVG."
+    ],
+    "v2.2.7": [
+      "Banco de dados corrigido: Preservação garantida de históricos de latência no processo de atualização."
+    ],
+    "v2.2.6": [
+      "Atualização OTA robusta: PC Master local como busca prioritária e GitHub como fallback seguro."
+    ]
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
