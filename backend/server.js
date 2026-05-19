@@ -1081,10 +1081,9 @@ app.get('/api/security/debug', async (req, res) => {
     });
 });
 
-let threatHistory = [];
-
 app.get('/api/security/threats', async (req, res) => {
     try {
+        let threatHistory = [];
         const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
         const malwareSet = new Set(threatIntel.malware_domains);
         const { exec } = require('child_process');

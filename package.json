@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.9": [
+      "Sincronização Imediata de Logs (Clear/Truncate): Ajustado o estado do buffer de ameaças para residir localmente no handler de requisições. Agora, ao truncar ou esvaziar o arquivo de log no sistema operacional (/var/log/unbound.log), os registros antigos são removidos instantaneamente do painel de controle sem precisar reiniciar o servidor."
+    ],
     "v2.3.8": [
       "Suporte a Domínios Especiais (Underscore): Ajustado o validador de expressões regulares para aceitar subdomínios que iniciam com sublinhado/underline (_), permitindo o rastreamento e exibição de falhas em domínios de infraestrutura como _dns.resolver.arpa."
     ],
