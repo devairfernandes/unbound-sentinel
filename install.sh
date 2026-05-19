@@ -84,7 +84,7 @@ if [ "$CURRENT_DIR" != "$INSTALL_DIR" ]; then
     sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
     sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-    echo "📤 Aplicando nova versão v2.2.5 (Sentinel Security Plus)..."
+    echo "📤 Aplicando nova versão v2.2.6 (Sentinel Security Plus)..."
     sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
     [ -f "$CURRENT_DIR/.env.example" ] && sudo cp -f "$CURRENT_DIR/.env.example" "$INSTALL_DIR/"
 else
