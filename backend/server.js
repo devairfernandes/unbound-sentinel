@@ -889,7 +889,15 @@ app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res)
             // Valida fuso horário para evitar command injection
             const cleanTz = timezone.replace(/[^a-zA-Z0-9_\/-]/g, '');
             if (process.platform !== 'win32') {
-                await execPromise(`sudo timedatectl set-timezone ${cleanTz}`);
+                try {
+                    await execPromise(`sudo timedatectl set-timezone ${cleanTz}`);
+                } catch (e) {
+                    console.warn('[TIMEZONE] timedatectl falhou, aplicando symlink fallback:', e.message);
+                    // Fallback universal: remove e cria link simbólico para zoneinfo
+                    await execPromise(`sudo rm -f /etc/localtime && sudo ln -sf /usr/share/zoneinfo/${cleanTz} /etc/localtime`).catch(symErr => {
+                        console.error('[TIMEZONE] Fallback de zoneinfo falhou:', symErr.message);
+                    });
+                }
             }
         }
         
@@ -899,6 +907,7 @@ app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res)
                 await execPromise('sudo timedatectl set-ntp false && sudo timedatectl set-ntp true').catch(() => {});
                 await execPromise('sudo chronyc -a makestep').catch(() => {});
                 await execPromise('sudo ntpdate -u pool.ntp.br').catch(() => {});
+                await execPromise('sudo systemctl restart systemd-timesyncd').catch(() => {});
             }
         }
         

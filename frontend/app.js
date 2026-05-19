@@ -3677,7 +3677,9 @@ function saveTimeSettings(syncNtp) {
 
     apiFetch(`${API_BASE}/system/sync-time`, {
         method: 'POST',
-        headers: getAuthHeader(),
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
             timezone: syncNtp ? null : tzSelect.value,
             syncNtp: syncNtp

@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.1": [
+      "Fuso Horário Resiliente: Adicionado symlink fallback para compatibilidade com LXC, OpenVZ e Docker.",
+      "Correção de Cabeçalho: Resolvido problema de parsing da requisição no backend adicionando Content-Type JSON."
+    ],
     "v2.3.0": [
       "Visualizador de Changelogs OTA: Agora ao clicar em atualizar, abre um modal interativo listando todas as novidades da nova versão.",
       "Redundância inteligente de updates: Mostra claramente se a nova versão está vindo do PC Master ou do GitHub Oficial."
