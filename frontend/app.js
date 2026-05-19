@@ -124,10 +124,15 @@ async function updateSecurityThreats() {
 
         const alertsList = document.getElementById('security-alerts-list');
         if (alertsList) {
-            if (data.alerts.length === 0) {
-                alertsList.innerHTML = '<div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma ameaça detectada no momento.</div>';
+            const activeFilter = window.currentThreatFilter || 'ALL';
+            const filteredAlerts = activeFilter === 'ALL'
+                ? data.alerts
+                : data.alerts.filter(a => a.severity.toUpperCase() === activeFilter.toUpperCase());
+
+            if (filteredAlerts.length === 0) {
+                alertsList.innerHTML = `<div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma interceptação do tipo [${activeFilter === 'ALL' ? 'TODOS' : activeFilter}] detectada nas últimas 12h.</div>`;
             } else {
-                alertsList.innerHTML = data.alerts.map(alert => `
+                alertsList.innerHTML = filteredAlerts.map(alert => `
                     <div class="threat-item">
                         <div class="threat-icon ${alert.severity.toLowerCase()}">
                             <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : (alert.severity === 'DNSSEC' ? 'shield-alert' : (alert.severity === 'BLOCKED' ? 'shield-off' : 'alert-triangle'))}"></i>
@@ -186,6 +191,51 @@ async function updateSecurityThreats() {
         } catch (e) {
             console.error('Erro ao buscar consultas bloqueadas:', e);
         }
+
+        // Filtro global de ameaças
+        window.currentThreatFilter = 'ALL';
+        window.filterThreats = function(filter) {
+            window.currentThreatFilter = filter;
+            
+            // Reseta estilo de todos os botões de filtro
+            const buttons = document.querySelectorAll('.btn-filter');
+            buttons.forEach(btn => {
+                btn.style.background = 'transparent';
+                btn.style.color = btn.id === 'btn-filter-all' ? '#94a3b8' : 
+                                  (btn.id === 'btn-filter-critical' ? '#f43f5e' : 
+                                  (btn.id === 'btn-filter-suspicious' ? '#fbbf24' : 
+                                  (btn.id === 'btn-filter-dnssec' ? '#10b981' : '#38bdf8')));
+                btn.style.boxShadow = 'none';
+            });
+
+            // Aplica estilo ativo específico no botão selecionado
+            const activeBtn = document.getElementById(`btn-filter-${filter.toLowerCase()}`);
+            if (activeBtn) {
+                if (filter === 'ALL') {
+                    activeBtn.style.background = 'rgba(255, 255, 255, 0.08)';
+                    activeBtn.style.color = '#ffffff';
+                } else if (filter === 'CRITICAL') {
+                    activeBtn.style.background = 'rgba(244, 63, 94, 0.15)';
+                    activeBtn.style.color = '#f43f5e';
+                    activeBtn.style.boxShadow = '0 0 10px rgba(244, 63, 94, 0.2)';
+                } else if (filter === 'SUSPICIOUS') {
+                    activeBtn.style.background = 'rgba(251, 191, 36, 0.15)';
+                    activeBtn.style.color = '#fbbf24';
+                    activeBtn.style.boxShadow = '0 0 10px rgba(251, 191, 36, 0.2)';
+                } else if (filter === 'DNSSEC') {
+                    activeBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+                    activeBtn.style.color = '#10b981';
+                    activeBtn.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.2)';
+                } else if (filter === 'BLOCKED') {
+                    activeBtn.style.background = 'rgba(56, 189, 248, 0.15)';
+                    activeBtn.style.color = '#38bdf8';
+                    activeBtn.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.2)';
+                }
+            }
+            
+            // Recarrega os dados imediatamente para atualizar a visualização filtrada
+            updateSecurityThreats();
+        };
 
         // Nova Função de Bloqueio Rápido
         window.blockThreatDomain = async function(domain) {

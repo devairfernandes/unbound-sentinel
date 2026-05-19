@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.6",
+  "version": "2.3.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.7": [
+      "Filtros de Interceptações Premium (CTI): Adicionado grupo de botões seletores no topo do log de interceptações permitindo isolar instantaneamente ameaças de tipo TODOS, CRÍTICOS, SUSPEITOS, DNSSEC e BLOQUEADOS.",
+      "UI/UX Reativa Avançada: Feedback visual premium nos botões de filtro com sombras coloridas reativas e transições suaves."
+    ],
     "v2.3.6": [
       "Suporte a Logs de DNSSEC CentOS/RHEL/Rocky: Ajustada a regex do backend para capturar corretamente violações de DNSSEC que não utilizam colchetes angulares <> no formato padrão do log do Unbound do CentOS.",
       "Parsing de Ameaças Otimizado: Detecção nativa aprimorada para registrar dnssec-failed.org e demais testes."

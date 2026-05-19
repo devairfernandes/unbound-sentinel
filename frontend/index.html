@@ -488,8 +488,18 @@
                     </div>
 
                     <div class="sys-info-box" style="grid-column: span 2;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                             <h3 style="margin:0; font-size: 1rem; color: #f8fafc;">LOG DE INTERCEPTAÇÕES (HISTÓRICO 12H)</h3>
+                            
+                            <!-- BOTOES DE FILTRO PREMIUM -->
+                            <div class="filter-buttons" style="display: flex; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); align-items: center;">
+                                <button onclick="filterThreats('ALL')" class="btn-filter" id="btn-filter-all" style="padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: none; background: rgba(255, 255, 255, 0.08); color: #ffffff; cursor: pointer; transition: all 0.2s;">TODOS</button>
+                                <button onclick="filterThreats('CRITICAL')" class="btn-filter" id="btn-filter-critical" style="padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: none; background: transparent; color: #f43f5e; cursor: pointer; transition: all 0.2s;">CRÍTICOS</button>
+                                <button onclick="filterThreats('SUSPICIOUS')" class="btn-filter" id="btn-filter-suspicious" style="padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: none; background: transparent; color: #fbbf24; cursor: pointer; transition: all 0.2s;">SUSPEITOS</button>
+                                <button onclick="filterThreats('DNSSEC')" class="btn-filter" id="btn-filter-dnssec" style="padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: none; background: transparent; color: #10b981; cursor: pointer; transition: all 0.2s;">DNSSEC</button>
+                                <button onclick="filterThreats('BLOCKED')" class="btn-filter" id="btn-filter-blocked" style="padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; border: none; background: transparent; color: #38bdf8; cursor: pointer; transition: all 0.2s;">BLOQUEADOS</button>
+                            </div>
+
                             <span class="status-tag" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success); border: 1px solid rgba(16, 185, 129, 0.2);">FLUXO EM TEMPO REAL</span>
                         </div>
                         <div id="security-alerts-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 10px;">
