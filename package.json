@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.4": [
+      "Compatibilidade Universal Cross-Distribution: Adicionado algoritmo de leitura de fuso horário multi-métodos suportando CentOS, RHEL, Rocky, AlmaLinux, Debian e Ubuntu.",
+      "Correção de Leitura de Fuso no CentOS: Substituída a leitura simples do arquivo /etc/timezone (inexistente no CentOS) pela leitura nativa de links do zoneinfo."
+    ],
     "v2.3.3": [
       "Fuso Horário Dinâmico no V8/Node: O relógio agora calcula e formata a hora dinamicamente usando a timezone ativa, sem requerer restart do Node.",
       "Atualização Instantânea de Timezone na UI: O rótulo de fuso horário ativo no dashboard atualiza instantaneamente ao salvar."

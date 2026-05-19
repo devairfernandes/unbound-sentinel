@@ -825,6 +825,32 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+async function getSystemTimezone() {
+    try {
+        // Método 1: timedatectl (CentOS, RHEL, Rocky, Debian, Ubuntu)
+        const tzData = await execPromise("timedatectl | grep 'Time zone' | awk '{print $3}'").catch(() => ({ stdout: '' }));
+        let tz = tzData.stdout.trim();
+        if (tz && tz.includes('/')) return tz;
+        
+        // Método 2: readlink de /etc/localtime (Universal para qualquer Linux)
+        const linkData = await execPromise("readlink -f /etc/localtime").catch(() => ({ stdout: '' }));
+        const linkPath = linkData.stdout.trim();
+        if (linkPath && linkPath.includes('zoneinfo/')) {
+            const parts = linkPath.split('zoneinfo/');
+            if (parts[1]) return parts[1].trim();
+        }
+
+        // Método 3: cat /etc/timezone (Debian/Ubuntu)
+        const tzFile = await execPromise("cat /etc/timezone").catch(() => ({ stdout: '' }));
+        tz = tzFile.stdout.trim();
+        if (tz && tz.includes('/')) return tz;
+
+        return 'UTC';
+    } catch (e) {
+        return 'UTC';
+    }
+}
+
 app.get('/api/system', async (req, res) => {
     try {
         if (process.platform === 'win32') {
@@ -861,8 +887,7 @@ app.get('/api/system', async (req, res) => {
         const logData = await runSSHCommand('tail -n 5000 /var/log/unbound.log').catch(() => ({ stdout: '' }));
         const top = parseLogsForTop(logData.stdout);
 
-        const timezoneRaw = await execPromise("cat /etc/timezone").catch(() => ({ stdout: 'UTC' }));
-        const timezone = timezoneRaw.stdout.trim();
+        const timezone = await getSystemTimezone();
 
         // Formata data e hora dinamicamente usando a timezone ativa no Linux para evitar cache do Node.js
         const dateObj = new Date();
@@ -920,8 +945,7 @@ app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res)
         }
         
         // Coleta o fuso horário atualizado de fato do sistema
-        const timezoneRaw = await execPromise("cat /etc/timezone").catch(() => ({ stdout: 'UTC' }));
-        const activeTz = timezoneRaw.stdout.trim();
+        const activeTz = await getSystemTimezone();
 
         const dateObj = new Date();
         let serverTime = '';
