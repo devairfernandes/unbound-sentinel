@@ -3655,7 +3655,7 @@ function renderTimeSettings() {
                     <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); padding:1.5rem; border-radius:12px; margin-bottom:1.5rem;">
                         <div style="font-size:0.75rem; text-transform:uppercase; color:#64748b; margin-bottom:6px; font-weight:700; letter-spacing:0.5px;">Hora do Sistema</div>
                         <div id="server-time-display" style="font-family:'JetBrains Mono',monospace; font-size:1.8rem; font-weight:800; color:#38bdf8;">${data.serverTime || '--:--:--'}</div>
-                        <div style="font-size:0.75rem; color:#64748b; margin-top:8px;">Fuso Horário Ativo: <strong style="color:#f1f5f9;">${data.timezone || 'UTC'}</strong></div>
+                        <div style="font-size:0.75rem; color:#64748b; margin-top:8px;">Fuso Horário Ativo: <strong id="active-timezone-display" style="color:#f1f5f9;">${data.timezone || 'UTC'}</strong></div>
                     </div>
                 </div>
 
@@ -3720,6 +3720,9 @@ function saveTimeSettings(syncNtp) {
             
             const timeDisplay = document.getElementById('server-time-display');
             if (timeDisplay) timeDisplay.innerText = res.serverTime;
+
+            const tzDisplay = document.getElementById('active-timezone-display');
+            if (tzDisplay && res.timezone) tzDisplay.innerText = res.timezone;
             
             setTimeout(() => { statusEl.innerText = ''; }, 3000);
         } else {

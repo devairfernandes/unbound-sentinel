@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.3": [
+      "Fuso Horário Dinâmico no V8/Node: O relógio agora calcula e formata a hora dinamicamente usando a timezone ativa, sem requerer restart do Node.",
+      "Atualização Instantânea de Timezone na UI: O rótulo de fuso horário ativo no dashboard atualiza instantaneamente ao salvar."
+    ],
     "v2.3.2": [
       "Feed de Changelogs Multi-Versões: Agora o modal lista todo o histórico recente de atualizações em um feed elegante e rolável.",
       "Identificação Visual da Versão Alvo: As novidades da nova versão recebem um badge exclusivo de destaque (★ ALVO)."

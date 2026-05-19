@@ -827,10 +827,9 @@ app.get('/api/stats', async (req, res) => {
 
 app.get('/api/system', async (req, res) => {
     try {
-        const dateObj = new Date();
-        const serverTime = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
-
         if (process.platform === 'win32') {
+            const dateObj = new Date();
+            const serverTime = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
             return res.json({ 
                 cpu: '0.0', 
                 memory: [0, 0, 0, 0, 0, 0], 
@@ -864,6 +863,15 @@ app.get('/api/system', async (req, res) => {
 
         const timezoneRaw = await execPromise("cat /etc/timezone").catch(() => ({ stdout: 'UTC' }));
         const timezone = timezoneRaw.stdout.trim();
+
+        // Formata data e hora dinamicamente usando a timezone ativa no Linux para evitar cache do Node.js
+        const dateObj = new Date();
+        let serverTime = '';
+        try {
+            serverTime = dateObj.toLocaleDateString('pt-BR', { timeZone: timezone }) + ' ' + dateObj.toLocaleTimeString('pt-BR', { timeZone: timezone });
+        } catch (e) {
+            serverTime = dateObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) + ' ' + dateObj.toLocaleTimeString('pt-BR', { timeZone: 'UTC' });
+        }
 
         res.json({ 
             cpu: cpu.toFixed(1), 
@@ -911,10 +919,19 @@ app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res)
             }
         }
         
+        // Coleta o fuso horário atualizado de fato do sistema
+        const timezoneRaw = await execPromise("cat /etc/timezone").catch(() => ({ stdout: 'UTC' }));
+        const activeTz = timezoneRaw.stdout.trim();
+
         const dateObj = new Date();
-        const serverTime = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR');
+        let serverTime = '';
+        try {
+            serverTime = dateObj.toLocaleDateString('pt-BR', { timeZone: activeTz }) + ' ' + dateObj.toLocaleTimeString('pt-BR', { timeZone: activeTz });
+        } catch (e) {
+            serverTime = dateObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }) + ' ' + dateObj.toLocaleTimeString('pt-BR', { timeZone: 'UTC' });
+        }
         
-        res.json({ success: true, serverTime });
+        res.json({ success: true, serverTime, timezone: activeTz });
     } catch (err) {
         console.error('Time Sync Error:', err);
         res.status(500).json({ error: 'Erro ao sincronizar data/hora do servidor' });
