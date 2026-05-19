@@ -105,7 +105,7 @@ async function updateSecurityThreats() {
         if (!criticalEl || !suspiciousEl || !monitoredEl) return;
 
         const criticalCount = data.alerts.filter(a => a.severity === 'CRITICAL').length;
-        const suspiciousCount = data.alerts.length - criticalCount;
+        const suspiciousCount = data.alerts.filter(a => a.severity === 'SUSPICIOUS').length;
         const monitoredCount = data.totalActiveIPs || data.topSuspects.length;
 
         // Atualiza na aba de Segurança
@@ -130,16 +130,22 @@ async function updateSecurityThreats() {
                 alertsList.innerHTML = data.alerts.map(alert => `
                     <div class="threat-item">
                         <div class="threat-icon ${alert.severity.toLowerCase()}">
-                            <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : 'alert-triangle'}"></i>
+                            <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : (alert.severity === 'BLOCKED' ? 'shield-off' : 'alert-triangle')}"></i>
                         </div>
                         <div class="threat-details">
-                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : alert.severity)}</span></div>
+                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : alert.severity))}</span></div>
                             <div class="threat-ip">Origem: ${alert.ip}</div>
                         </div>
                         <div class="threat-actions">
-                            <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
-                                <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
-                            </button>
+                            ${alert.severity === 'BLOCKED' ? `
+                                <button class="btn-action success" disabled title="Domínio já bloqueado" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            ` : `
+                                <button onclick="blockThreatDomain('${alert.domain}')" class="btn-action danger" title="Bloquear Domínio">
+                                    <i data-lucide="ban" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            `}
                         </div>
                         <div class="threat-time">${alert.time}</div>
                     </div>
@@ -3400,9 +3406,14 @@ function renderPingMaster(services) {
                 <!-- Bottom detail line & Delete button -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem; padding-top:0.6rem; border-top:1px solid rgba(255,255,255,0.03); font-size:0.72rem; color:#64748b;">
                     <div>Jitter: ${item.jitter}ms | Perda: ${item.loss}%</div>
-                    <button onclick="deletePingTarget('${item.name}')" style="background:none; border:none; color:#ef4444; opacity:0.4; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
-                        <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
-                    </button>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="editPingTarget('${item.name}', '${item.target}')" style="background:none; border:none; color:#3b82f6; opacity:0.6; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                            <i data-lucide="edit-2" style="width:14px; height:14px;"></i>
+                        </button>
+                        <button onclick="deletePingTarget('${item.name}')" style="background:none; border:none; color:#ef4444; opacity:0.4; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -3426,7 +3437,20 @@ function openAddPingTargetModal() {
         return;
     }
     document.getElementById('pm-target-name').value = '';
+    document.getElementById('pm-target-name').readOnly = false;
     document.getElementById('pm-target-address').value = '';
+    document.getElementById('pm-modal-error').textContent = '';
+    document.getElementById('ping-target-modal').classList.add('show');
+}
+
+function editPingTarget(name, target) {
+    if (!authCredentials) {
+        showLogin();
+        return;
+    }
+    document.getElementById('pm-target-name').value = name;
+    document.getElementById('pm-target-name').readOnly = true;
+    document.getElementById('pm-target-address').value = target;
     document.getElementById('pm-modal-error').textContent = '';
     document.getElementById('ping-target-modal').classList.add('show');
 }
@@ -3489,6 +3513,7 @@ async function deletePingTarget(name) {
         }
     } catch (err) {
         console.error('[PingMaster] Erro ao deletar:', err);
+        alert('Erro ao remover alvo.');
     }
 }
  

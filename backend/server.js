@@ -489,6 +489,7 @@ app.get('/api/system/check-update', auth, async (req, res) => {
         const localPkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
         const MASTER_URLS = process.env.MASTER_URL ? process.env.MASTER_URL.split(',') : ['http://servidor-licencas.duckdns.org:3300'];
         let remotePkg = null;
+        let sourceUsed = 'master';
 
         for (const baseUrl of MASTER_URLS) {
             try {
@@ -504,12 +505,29 @@ app.get('/api/system/check-update', auth, async (req, res) => {
             } catch (e) {}
         }
 
-        // Removido fallback via GitHub conforme solicitado.
+        // Se falhar no PC Master, usa o GitHub como segunda opção (fallback)
+        if (!remotePkg) {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/devairfernandes/unbound-sentinel/main/package.json', { timeout: 5000 });
+                if (response.ok) {
+                    remotePkg = await response.json();
+                    sourceUsed = 'github';
+                    console.log(`[UPDATE] Fallback GitHub ativado. Versão remota: ${remotePkg.version}`);
+                }
+            } catch (githubErr) {
+                console.error('[UPDATE] Falha no fallback do GitHub:', githubErr.message);
+            }
+        }
 
         if (!remotePkg) throw new Error('Falha ao obter informações da versão');
         
         const isUpdateAvailable = remotePkg.version !== localPkg.version;
-        res.json({ updateAvailable: isUpdateAvailable, currentVersion: localPkg.version, newVersion: remotePkg.version });
+        res.json({ 
+            updateAvailable: isUpdateAvailable, 
+            currentVersion: localPkg.version, 
+            newVersion: remotePkg.version,
+            source: sourceUsed
+        });
     } catch (e) {
         res.status(500).json({ error: 'Falha ao verificar atualizações.' });
     }
@@ -526,12 +544,8 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
         setTimeout(() => {
             const cleanMasterUrl = MASTER_URL.replace(/\/$/, '');
             const isMasterUpdate = cleanMasterUrl !== '';
-            const downloadUrl = isMasterUpdate 
-                ? `${cleanMasterUrl}/api/system/download-package` 
-                : 'https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz';
-
             const authHeader = Buffer.from(`${ADMIN_USER}:${ADMIN_PASS}`).toString('base64');
-
+ 
             const updateScript = `(
                 echo "--- INICIANDO ATUALIZAÇÃO SENTINEL ---" &&
                 echo "Data: $(date)" &&
@@ -542,7 +556,33 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 [ -f users.json ] && cp users.json /tmp/users_backup_sentinel && echo "[OK] Backup do users.json realizado"
                 
                 echo "Baixando atualização..." &&
-                curl -L -k -s ${isMasterUpdate ? `-H "Authorization: Basic ${authHeader}"` : ''} -o update.tar.gz "${downloadUrl}" && echo "[OK] Download concluído" || { echo "[ERRO] Falha no download (curl)"; exit 1; } &&
+                (
+                    download_success=0
+                    if [ -n "${cleanMasterUrl}" ]; then
+                        echo "Tentando baixar do servidor Master (${cleanMasterUrl})..."
+                        if curl -L -k --fail -s -H "Authorization: Basic ${authHeader}" -o update.tar.gz "${cleanMasterUrl}/api/system/download-package"; then
+                            download_success=1
+                            echo "[OK] Download do Master concluído"
+                        else
+                            echo "[AVISO] Download do Master falhou"
+                        fi
+                    fi
+                    
+                    if [ $download_success -eq 0 ]; then
+                        echo "Tentando baixar do GitHub..."
+                        if curl -L -k --fail -s -o update.tar.gz "https://github.com/devairfernandes/unbound-sentinel/archive/refs/heads/main.tar.gz"; then
+                            download_success=1
+                            echo "[OK] Download do GitHub concluído"
+                        else
+                            echo "[ERRO] Download do GitHub falhou"
+                        fi
+                    fi
+                    
+                    if [ $download_success -eq 0 ]; then
+                        echo "[ERRO] Falha no download de todas as origens"
+                        exit 1
+                    fi
+                ) &&
                 
                 echo "Extraindo arquivos..." &&
                 tar -xzf update.tar.gz --strip-components=1 && echo "[OK] Arquivos extraídos" || { echo "[ERRO] Falha na extração (tar)"; exit 1; } &&
@@ -563,8 +603,8 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 
                 echo "--- PROCESSO FINALIZADO ---"
             ) > /tmp/sentinel_update.log 2>&1`;
-
-            console.log(`[UPDATE] Iniciando atualização via: ${isMasterUpdate ? 'MASTER' : 'GITHUB'}`);
+ 
+            console.log(`[UPDATE] Iniciando script de atualização inteligente via Master/GitHub...`);
             exec(updateScript, (err, stdout, stderr) => {
                 if (err) console.error(`[UPDATE EXEC ERR] ${err.message}`);
             });
@@ -968,7 +1008,19 @@ app.get('/api/security/threats', async (req, res) => {
 
                     allActiveIPs.add(ip);
 
-                    const isMalware = malwareSet.has(domain);
+                    let isMalware = false;
+                    let currentDomain = domain;
+                    while (currentDomain) {
+                        if (malwareSet.has(currentDomain)) {
+                            isMalware = true;
+                            break;
+                        }
+                        const parts = currentDomain.split('.');
+                        if (parts.length <= 2) break; // Stop before checking just TLDs like ".com"
+                        parts.shift();
+                        currentDomain = parts.join('.');
+                    }
+
                     const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
                     if (isMalware || isSuspicious) {
@@ -996,8 +1048,31 @@ app.get('/api/security/threats', async (req, res) => {
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
 
+            // Carrega blacklist local para checagem em tempo real
+            const localZonePath = '/etc/unbound/local.d/local-zone.conf';
+            let blacklistedDomains = new Set();
+            if (fs.existsSync(localZonePath)) {
+                try {
+                    const content = fs.readFileSync(localZonePath, 'utf8');
+                    const matches = content.matchAll(/local-zone:\s*"([^"]+)"\s+always_nxdomain/g);
+                    for (const match of matches) {
+                        blacklistedDomains.add(match[1].toLowerCase().trim());
+                    }
+                } catch (e) {
+                    console.error('Erro ao ler local-zone.conf:', e);
+                }
+            }
+
+            // Modifica dinamicamente a severidade para BLOCKED se o domínio estiver na blacklist
+            const alertsWithBlocked = threatHistory.slice(0, 50).map(t => {
+                if (blacklistedDomains.has(t.domain.toLowerCase().trim())) {
+                    return { ...t, severity: 'BLOCKED' };
+                }
+                return t;
+            });
+
             res.json({ 
-                alerts: threatHistory.slice(0, 50), 
+                alerts: alertsWithBlocked, 
                 topSuspects,
                 totalActiveIPs: allActiveIPs.size
             });
@@ -1477,20 +1552,40 @@ setInterval(autoUpdateThreatIntel, 86400000);
 // ==========================================
 const pingDbPath = path.join(__dirname, 'pingmaster_db.json');
 
-let pingMasterData = {
-    servicos: [
-        { nome: "Google", targets: ["google.com"], method: "smart", active: true },
-        { nome: "YouTube", targets: ["youtube.com"], method: "smart", active: true },
-        { nome: "Google DNS", targets: ["8.8.8.8"], method: "smart", active: true },
-        { nome: "Netflix", targets: ["netflix.com"], method: "smart", active: true },
-        { nome: "Quad9.com", targets: ["quad9.com"], method: "smart", active: true }
-    ]
-};
+const top20Defaults = [
+    { nome: "Google", targets: ["google.com"], method: "smart", active: true },
+    { nome: "YouTube", targets: ["youtube.com"], method: "smart", active: true },
+    { nome: "WhatsApp", targets: ["whatsapp.net"], method: "smart", active: true },
+    { nome: "Facebook", targets: ["facebook.com"], method: "smart", active: true },
+    { nome: "Instagram", targets: ["instagram.com"], method: "smart", active: true },
+    { nome: "Netflix", targets: ["fast.com"], method: "smart", active: true },
+    { nome: "TikTok", targets: ["tiktok.com"], method: "smart", active: true },
+    { nome: "Amazon", targets: ["aws.amazon.com"], method: "smart", active: true },
+    { nome: "Mercado Livre", targets: ["mercadolivre.com.br"], method: "smart", active: true },
+    { nome: "Shopee", targets: ["cf.shopee.com.br"], method: "smart", active: true },
+    { nome: "Apple", targets: ["apple.com"], method: "smart", active: true },
+    { nome: "Microsoft", targets: ["microsoft.com"], method: "smart", active: true },
+    { nome: "Twitch", targets: ["twitch.tv"], method: "smart", active: true },
+    { nome: "Roblox", targets: ["roblox.com"], method: "smart", active: true },
+    { nome: "Spotify", targets: ["spotify.com"], method: "smart", active: true },
+    { nome: "X / Twitter", targets: ["x.com"], method: "smart", active: true },
+    { nome: "Cloudflare DNS", targets: ["1.1.1.1"], method: "smart", active: true },
+    { nome: "Quad9 DNS", targets: ["9.9.9.9"], method: "smart", active: true },
+    { nome: "Google DNS", targets: ["8.8.8.8"], method: "smart", active: true },
+    { nome: "Globo", targets: ["globo.com"], method: "smart", active: true }
+];
+
+let pingMasterData = { servicos: [...top20Defaults] };
 
 // Carrega o banco de dados se existir
 if (fs.existsSync(pingDbPath)) {
     try {
         pingMasterData = JSON.parse(fs.readFileSync(pingDbPath, 'utf8'));
+        // Se a lista estiver muito vazia, force o update para os Top 20 como requested
+        if (pingMasterData.servicos && pingMasterData.servicos.length < 2) {
+            pingMasterData.servicos = [...top20Defaults];
+            fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+        }
     } catch (e) {
         console.error('[PingMaster] Erro ao ler pingmaster_db.json:', e.message);
     }
@@ -1498,9 +1593,23 @@ if (fs.existsSync(pingDbPath)) {
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
 }
 
+app.post('/api/pingmaster/seed20', auth, (req, res) => {
+    pingMasterData.servicos = [...top20Defaults];
+    fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+    res.json({ message: 'Top 20 restaurado com sucesso!' });
+});
+
 let pingMasterStatus = {};
 
-function pingTarget(target, callback) {
+function pingTarget(originalTarget, callback) {
+    let target = originalTarget.trim().toLowerCase();
+    
+    // Interceptor Inteligente: Converte domínios globais (EUA) para CDNs Locais (Brasil)
+    // Isso garante que o painel reflita a latência real de entrega de conteúdo (CDN edge), não o landing page nos EUA
+    if (target === 'netflix.com' || target === 'netflix.com.br') target = 'fast.com';
+    else if (target === 'amazon.com' || target === 'amazon.com.br') target = 'aws.amazon.com';
+    else if (target === 'shopee.com' || target === 'shopee.com.br') target = 'cf.shopee.com.br';
+    
     const isWin = process.platform === 'win32';
     const cmd = isWin 
         ? `ping -n 2 -w 1000 ${target}` 
@@ -1527,30 +1636,45 @@ function pingTarget(target, callback) {
     });
 }
 
-function checkTcp(host, port, callback) {
+function checkPort(ip, port, callback) {
     const net = require('net');
     const start = Date.now();
     const socket = new net.Socket();
     
     socket.setTimeout(1500);
-    
     socket.on('connect', () => {
         const ms = Date.now() - start;
         socket.destroy();
         callback(true, ms);
     });
-    
     socket.on('error', () => {
         socket.destroy();
         callback(false, 0);
     });
-    
     socket.on('timeout', () => {
         socket.destroy();
         callback(false, 0);
     });
+    socket.connect(port, ip);
+}
+
+function checkTcp(host, port, callback) {
+    const dns = require('dns');
     
-    socket.connect(port, host);
+    // Resolve DNS first so we don't include lookup time in the ping latency
+    dns.lookup(host, (err, address) => {
+        if (err || !address) return callback(false, 0);
+
+        // Try HTTPS port 443 first (most likely to be open)
+        checkPort(address, 443, (success, ms) => {
+            if (success) {
+                callback(true, ms);
+            } else {
+                // Fallback to port 80 if 443 is closed
+                checkPort(address, 80, callback);
+            }
+        });
+    });
 }
 
 // Background Ping Loop
@@ -1650,6 +1774,7 @@ app.post('/api/pingmaster/delete', auth, (req, res) => {
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
     res.json({ message: 'Alvo removido do Ping Master' });
 });
+
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Sentinel Backend rodando em todas as interfaces na porta ${PORT}`);

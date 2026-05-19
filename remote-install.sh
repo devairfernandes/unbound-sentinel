@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 🛡️ UNBOUND SENTINEL — INSTALADOR REMOTO (GITHUB)
-# Versão: 1.8.1
+# Versão: 2.2.5
 
 echo "========================================================"
 echo "   🛡️  INICIANDO INSTALAÇÃO DO UNBOUND SENTINEL"
@@ -27,7 +27,7 @@ echo "📂 Preparando diretório $INSTALL_DIR..."
 mkdir -p $INSTALL_DIR
 cd /tmp
 
-echo "🌐 Baixando Unbound Sentinel v1.8.1 do GitHub..."
+echo "🌐 Baixando Unbound Sentinel v2.2.5 do GitHub..."
 curl -L $REPO_URL -o sentinel.tar.gz
 
 # 4. Extrair arquivos
@@ -38,6 +38,7 @@ cd unbound-sentinel-main
 # 5. Mover para a pasta final
 echo "🚚 Movendo arquivos para o destino..."
 cp -r ./* $INSTALL_DIR/
+[ -f .env.example ] && cp .env.example $INSTALL_DIR/
 
 # 6. Dar permissão e executar o instalador oficial
 echo "🚀 Iniciando instalador oficial..."

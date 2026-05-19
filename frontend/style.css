@@ -1927,6 +1927,12 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
     box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
 }
 
+.threat-icon.blocked {
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+}
+
 .threat-details {
     flex: 1;
 }
@@ -1963,6 +1969,7 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
 
 .badge-threat.critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
 .badge-threat.suspicious { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+.badge-threat.blocked { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
 
 /* Switch Slider Premium */
 .switch {
