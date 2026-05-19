@@ -554,6 +554,7 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 # TRAVA DE AÇO: Salva .env e users.json originais em local seguro
                 [ -f .env ] && cp .env /tmp/.env_backup_sentinel && echo "[OK] Backup do .env realizado"
                 [ -f users.json ] && cp users.json /tmp/users_backup_sentinel && echo "[OK] Backup do users.json realizado"
+                [ -f backend/pingmaster_db.json ] && cp backend/pingmaster_db.json /tmp/pingmaster_backup_sentinel && echo "[OK] Backup do pingmaster_db.json realizado"
                 
                 echo "Baixando atualização..." &&
                 (
@@ -590,6 +591,7 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 # TRAVA DE AÇO: Restaura arquivos originais
                 [ -f /tmp/.env_backup_sentinel ] && mv /tmp/.env_backup_sentinel .env && echo "[OK] .env restaurado com sucesso"
                 [ -f /tmp/users_backup_sentinel ] && mv /tmp/users_backup_sentinel users.json && echo "[OK] users.json restaurado com sucesso"
+                [ -f /tmp/pingmaster_backup_sentinel ] && mkdir -p backend && mv /tmp/pingmaster_backup_sentinel backend/pingmaster_db.json && echo "[OK] pingmaster_db.json restaurado com sucesso"
                 
                 rm -f update.tar.gz &&
                 

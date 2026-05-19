@@ -82,11 +82,18 @@ if [ "$CURRENT_DIR" != "$INSTALL_DIR" ]; then
     echo "🧹 Limpando arquivos antigos (preservando configurações)..."
     # Deleta tudo exceto arquivos de configuração e banco de dados
     sudo find "$INSTALL_DIR" -maxdepth 1 -type f ! -name ".env" ! -name "users.json" ! -name "servers.json" ! -name "licenses_database.json" -delete
+    
+    # Salva temporariamente o pingmaster_db.json se existir no destino
+    [ -f "$INSTALL_DIR/backend/pingmaster_db.json" ] && sudo cp "$INSTALL_DIR/backend/pingmaster_db.json" "/tmp/pingmaster_backup_install"
+    
     sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-    echo "📤 Aplicando nova versão v2.2.6 (Sentinel Security Plus)..."
+    echo "📤 Aplicando nova versão v2.2.7 (Sentinel Security Plus)..."
     sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
     [ -f "$CURRENT_DIR/.env.example" ] && sudo cp -f "$CURRENT_DIR/.env.example" "$INSTALL_DIR/"
+    
+    # Restaura o pingmaster_db.json
+    [ -f "/tmp/pingmaster_backup_install" ] && sudo mkdir -p "$INSTALL_DIR/backend" && sudo mv "/tmp/pingmaster_backup_install" "$INSTALL_DIR/backend/pingmaster_db.json"
 else
     echo "🔄 Atualização direta detectada. Pulando cópia redundante de arquivos."
 fi
