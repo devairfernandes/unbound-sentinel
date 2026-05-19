@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.8": [
+      "Suporte a Domínios Especiais (Underscore): Ajustado o validador de expressões regulares para aceitar subdomínios que iniciam com sublinhado/underline (_), permitindo o rastreamento e exibição de falhas em domínios de infraestrutura como _dns.resolver.arpa."
+    ],
     "v2.3.7": [
       "Filtros de Interceptações Premium (CTI): Adicionado grupo de botões seletores no topo do log de interceptações permitindo isolar instantaneamente ameaças de tipo TODOS, CRÍTICOS, SUSPEITOS, DNSSEC e BLOQUEADOS.",
       "UI/UX Reativa Avançada: Feedback visual premium nos botões de filtro com sombras coloridas reativas e transições suaves."
