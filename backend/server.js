@@ -1141,8 +1141,9 @@ app.get('/api/security/threats', async (req, res) => {
 
                 // Novo: Log de violações DNSSEC (Bogus)
                 if (line.includes('validation failure')) {
-                    const dnssecMatch = line.match(/validation failure\s+<([^>]+)>\s+([A-Z0-9]+)\s+IN:\s+([^for:]+)/i) ||
-                                        line.match(/validation failure\s+<([^>]+)>/i);
+                    const dnssecMatch = line.match(/validation failure\s+<?([a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN:\s+([^for:]+)/i) ||
+                                        line.match(/validation failure\s+<?([a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN/i) ||
+                                        line.match(/validation failure\s+<?([a-zA-Z0-9.-]+)>?/i);
                     if (dnssecMatch) {
                         const domain = dnssecMatch[1].toLowerCase().replace(/\.$/, '').trim();
                         const reason = dnssecMatch[3] ? dnssecMatch[3].trim() : 'Falha na assinatura criptográfica (DNSSEC)';

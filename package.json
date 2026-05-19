@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.3.6": [
+      "Suporte a Logs de DNSSEC CentOS/RHEL/Rocky: Ajustada a regex do backend para capturar corretamente violações de DNSSEC que não utilizam colchetes angulares <> no formato padrão do log do Unbound do CentOS.",
+      "Parsing de Ameaças Otimizado: Detecção nativa aprimorada para registrar dnssec-failed.org e demais testes."
+    ],
     "v2.3.5": [
       "Bloqueio de Domínios com Falha DNSSEC (Bogus): Agora os administradores podem banir permanentemente domínios com falhas DNSSEC no feed de ameaças.",
       "Ação CTI Desbloqueada: Habilitado o botão de ação [ban] para ameaças de severidade DNSSEC na tela de CTI."
