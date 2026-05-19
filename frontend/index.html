@@ -647,10 +647,48 @@
                     </div>
                     <button class="btn btn-secondary" onclick="clearLogs()" style="margin-top: 1rem; width: 100%;">FORÇAR LIMPEZA DE LOGS</button>
                 </div>
-                <div class="sys-info-box">
-                    <h3>SEGURANÇA DNSSEC</h3>
-                    <div class="dnssec-stats">
-                        <div class="dnssec-item"><span class="legend-dot" style="background:var(--accent-success)"></span> Seguro: <strong id="dnssec-secure">0</strong></div>
+                <div class="sys-info-box" id="dnssec-card-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin:0">SEGURANÇA DNSSEC</h3>
+                        <i data-lucide="shield-check" style="color:var(--accent-success); width:18px; height:18px;"></i>
+                    </div>
+                    
+                    <div class="dnssec-layout">
+                        <!-- Left Side: Circular Gauge -->
+                        <div class="dnssec-gauge-container">
+                            <svg class="dnssec-gauge" viewBox="0 0 100 100">
+                                <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                                <circle class="gauge-bar" id="dnssec-gauge-bar" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                            </svg>
+                            <div class="gauge-text">
+                                <span class="gauge-value" id="dnssec-percentage">100%</span>
+                                <span class="gauge-label">SEGURO</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Metrics List -->
+                        <div class="dnssec-metrics">
+                            <div class="metric-row">
+                                <div class="metric-info">
+                                    <span class="legend-dot" style="background:var(--accent-success)"></span>
+                                    <span class="metric-name">Assinaturas Válidas</span>
+                                </div>
+                                <span class="metric-val" id="dnssec-secure">0</span>
+                            </div>
+                            
+                            <div class="metric-row">
+                                <div class="metric-info">
+                                    <span class="legend-dot" style="background:var(--accent-danger)"></span>
+                                    <span class="metric-name">Falsificações (Bogus)</span>
+                                </div>
+                                <span class="metric-val" id="dnssec-bogus">0</span>
+                            </div>
+
+                            <div class="dnssec-status-badge">
+                                <span class="pulse-green"></span>
+                                VALIDAÇÃO ATIVA
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="sys-info-box" style="grid-column: span 2;">

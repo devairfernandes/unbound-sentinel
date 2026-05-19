@@ -2046,3 +2046,143 @@ input:checked + .slider {
     box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
     transform: scale(1.05);
 }
+
+/* DNSSEC Premium Layout */
+.dnssec-layout {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1rem;
+    background: rgba(255, 255, 255, 0.01);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.dnssec-gauge-container {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    flex-shrink: 0;
+}
+
+.dnssec-gauge {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.dnssec-gauge circle {
+    fill: none;
+    stroke-width: 8;
+}
+
+.dnssec-gauge .gauge-bg {
+    stroke: rgba(255, 255, 255, 0.05);
+}
+
+.dnssec-gauge .gauge-bar {
+    stroke: var(--accent-success);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+.dnssec-gauge-container .gauge-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.dnssec-gauge-container .gauge-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.1;
+}
+
+.dnssec-gauge-container .gauge-label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--accent-success);
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+.dnssec-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    flex-grow: 1;
+}
+
+.dnssec-metrics .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dnssec-metrics .metric-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dnssec-metrics .metric-name {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.dnssec-metrics .metric-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.dnssec-status-badge {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-success);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.pulse-green {
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-success);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse-green-anim 2s infinite;
+}
+
+@keyframes pulse-green-anim {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}

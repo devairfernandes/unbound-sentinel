@@ -88,7 +88,7 @@ if [ "$CURRENT_DIR" != "$INSTALL_DIR" ]; then
     
     sudo rm -rf "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend"
 
-    echo "📤 Aplicando nova versão v2.2.7 (Sentinel Security Plus)..."
+    echo "📤 Aplicando nova versão v2.2.8 (Sentinel Security Plus)..."
     sudo cp -af "$CURRENT_DIR"/* "$INSTALL_DIR/"
     [ -f "$CURRENT_DIR/.env.example" ] && sudo cp -f "$CURRENT_DIR/.env.example" "$INSTALL_DIR/"
     

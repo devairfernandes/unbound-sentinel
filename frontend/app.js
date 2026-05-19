@@ -718,10 +718,34 @@ function updateDashboard(data) {
             ]);
         }
 
+        const secureVal = data['num.answer.secure'] || 0;
+        const bogusVal = data['num.answer.bogus'] || 0;
+        
         const secureEl = document.getElementById('dnssec-secure');
         const bogusEl = document.getElementById('dnssec-bogus');
-        if (secureEl) secureEl.innerText = (data['num.answer.secure'] || 0).toLocaleString();
-        if (bogusEl) bogusEl.innerText = (data['num.answer.bogus'] || 0).toLocaleString();
+        if (secureEl) secureEl.innerText = secureVal.toLocaleString();
+        if (bogusEl) bogusEl.innerText = bogusVal.toLocaleString();
+
+        // Calcular e animar gauge de validação DNSSEC
+        const totalDnssec = secureVal + bogusVal;
+        const percentage = totalDnssec > 0 ? Math.round((secureVal / totalDnssec) * 100) : 100;
+        
+        const percentageEl = document.getElementById('dnssec-percentage');
+        if (percentageEl) percentageEl.innerText = `${percentage}%`;
+        
+        const gaugeBar = document.getElementById('dnssec-gauge-bar');
+        if (gaugeBar) {
+            // Comprimento da circunferência: 2 * PI * R (R = 40) => ~251.2
+            const strokeDashoffset = 251.2 - (251.2 * percentage) / 100;
+            gaugeBar.style.strokeDashoffset = strokeDashoffset;
+            
+            // Alterar cor se houver consultas falsificadas (Bogus)
+            if (bogusVal > 0) {
+                gaugeBar.style.stroke = 'var(--accent-danger)';
+            } else {
+                gaugeBar.style.stroke = 'var(--accent-success)';
+            }
+        }
     } catch (e) { console.error('Dashboard update error:', e); }
 }
 
