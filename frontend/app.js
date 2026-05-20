@@ -452,14 +452,23 @@ function checkForSystemUpdate() {
             if (versionEl) versionEl.innerText = `v${data.currentVersion}`;
 
             if (data.updateAvailable && btn) {
-                btn.style.display = 'flex';
-                btn.title = `Nova versão disponível: ${data.newVersion} (Atual: ${data.currentVersion})`;
+                // Só exibe o botão se o recurso de OTA estiver liberado no plano
+                if (typeof currentFeatures !== 'undefined' && currentFeatures && currentFeatures.update) {
+                    btn.style.display = 'flex';
+                    btn.title = `Nova versão disponível: ${data.newVersion} (Atual: ${data.currentVersion})`;
+                } else {
+                    btn.style.display = 'none';
+                }
             }
         })
         .catch(err => console.error('Update check failed:', err));
 }
 
 function startSystemUpdate() {
+    if (typeof currentFeatures !== 'undefined' && currentFeatures && !currentFeatures.update) {
+        alert("Atualizações remotas (OTA) são exclusivas para licenças PRO.");
+        return;
+    }
     if (!pendingUpdateData) return;
     
     const modal = document.getElementById('system-update-modal');

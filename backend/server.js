@@ -535,6 +535,10 @@ app.get('/api/system/check-update', auth, async (req, res) => {
 });
 
 app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
+    if (currentLicenseStatus && currentLicenseStatus.type === 'free') {
+        return res.status(403).json({ error: 'Atualizações remotas (OTA) são exclusivas para licenças PRO.' });
+    }
+
     try {
         const MASTER_URL = process.env.MASTER_URL || '';
         const ADMIN_USER = process.env.ADMIN_USER || 'admin';
