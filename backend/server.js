@@ -959,7 +959,11 @@ app.get('/api/enrich/virustotal', auth, async (req, res) => {
     const { domain } = req.query;
     if (!domain) return res.status(400).json({ error: 'Domínio obrigatório' });
 
-    const vtKey = (envConfig.VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY || '').trim();
+    // Relê o .env em tempo real para não precisar reiniciar o servidor após adicionar a chave
+    let liveEnv = {};
+    try { liveEnv = require('dotenv').parse(fs.readFileSync(ENV_PATH, 'utf8')); } catch(e) {}
+    const vtKey = (liveEnv.VIRUSTOTAL_API_KEY || envConfig.VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY || '').trim();
+
     if (!vtKey) {
         return res.status(503).json({ error: 'VIRUSTOTAL_API_KEY não configurada. Adicione no .env do sistema.' });
     }
