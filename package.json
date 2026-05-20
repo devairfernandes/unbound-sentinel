@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.1": [
+      "UI/UX Otimizada do Gauge DNSSEC: A cor do anel de progresso circular e o status de validação agora são dinâmicos com base na porcentagem real de segurança (Verde/SEGURO se >= 98%, Amarelo/ATENÇÃO se >= 90%, Vermelho/PERIGO se < 90%). Evita alarmes falsos em redes com excelente resiliência."
+    ],
     "v2.5.0": [
       "CTI Intelligence Report: Botão de lupa em cada card de ameaça abre um modal premium com Geolocalização + ASN da origem (ip-api.com) e Score de Risco do VirusTotal (70+ antivírus). Cache inteligente de 1h para geo e 30min para VT evita requisições repetidas."
     ],

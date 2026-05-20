@@ -972,17 +972,32 @@ function updateDashboard(data) {
         const percentageEl = document.getElementById('dnssec-percentage');
         if (percentageEl) percentageEl.innerText = `${percentage}%`;
         
+        const labelEl = document.getElementById('dnssec-label');
         const gaugeBar = document.getElementById('dnssec-gauge-bar');
         if (gaugeBar) {
             // Comprimento da circunferência: 2 * PI * R (R = 40) => ~251.2
             const strokeDashoffset = 251.2 - (251.2 * percentage) / 100;
             gaugeBar.style.strokeDashoffset = strokeDashoffset;
             
-            // Alterar cor se houver consultas falsificadas (Bogus)
-            if (bogusVal > 0) {
-                gaugeBar.style.stroke = 'var(--accent-danger)';
-            } else {
+            // Alterar cor e texto de status dinamicamente com base no percentual de segurança real
+            if (percentage >= 98) {
                 gaugeBar.style.stroke = 'var(--accent-success)';
+                if (labelEl) {
+                    labelEl.innerText = 'SEGURO';
+                    labelEl.style.color = 'var(--accent-success)';
+                }
+            } else if (percentage >= 90) {
+                gaugeBar.style.stroke = 'var(--accent-warning)';
+                if (labelEl) {
+                    labelEl.innerText = 'ATENÇÃO';
+                    labelEl.style.color = 'var(--accent-warning)';
+                }
+            } else {
+                gaugeBar.style.stroke = 'var(--accent-danger)';
+                if (labelEl) {
+                    labelEl.innerText = 'PERIGO';
+                    labelEl.style.color = 'var(--accent-danger)';
+                }
             }
         }
     } catch (e) { console.error('Dashboard update error:', e); }
