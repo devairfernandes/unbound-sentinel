@@ -721,6 +721,7 @@ app.get('/api/system/licenses-db', (req, res) => {
         res.json(db);
     } catch (e) {
         res.status(500).json({ error: 'Erro ao ler banco de licenças' });
+    }
 });
 
 // Rota para servir os preços dos planos dinamicamente (Master e Cliente)

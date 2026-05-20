@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.6": [
+      "Fix Crítico na Inicialização: Correção de chaves de fechamento ausentes no bloco de tratamento de exceções da rota '/api/system/licenses-db' que gerava erro de sintaxe e impedia o reinício do servidor."
+    ],
     "v2.5.5": [
       "Precificação Dinâmica Sentinel: Introdução do sistema centralizado de gestão de planos e preços (Free, PRO Lite, PRO). Permite que os administradores editem o valor, período, badge e rótulo de ação de cada plano diretamente no painel Master License Manager (porta 4000) com propagação instantânea em tempo real via API do Servidor Master e cache resiliente com AbortController de 3s no lado do cliente."
     ],
