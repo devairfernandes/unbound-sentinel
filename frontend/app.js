@@ -971,9 +971,25 @@ async function showSection(id, element) {
     if (id === 'security') updateSecurityThreats();
     
     if (id === 'pingmaster') {
-        loadPingMasterStatus();
-        if (pingMasterTimer) clearInterval(pingMasterTimer);
-        pingMasterTimer = setInterval(loadPingMasterStatus, 8000);
+        const isFree = currentFeatures && currentFeatures.isFree;
+        const lockEl = document.getElementById('pingmaster-lock');
+        const contentEl = document.getElementById('pingmaster-content');
+        
+        if (lockEl && contentEl) {
+            lockEl.style.display = isFree ? 'block' : 'none';
+            contentEl.style.display = isFree ? 'none' : 'block';
+        }
+        
+        if (!isFree) {
+            loadPingMasterStatus();
+            if (pingMasterTimer) clearInterval(pingMasterTimer);
+            pingMasterTimer = setInterval(loadPingMasterStatus, 8000);
+        } else {
+            if (pingMasterTimer) {
+                clearInterval(pingMasterTimer);
+                pingMasterTimer = null;
+            }
+        }
     } else {
         if (pingMasterTimer) {
             clearInterval(pingMasterTimer);

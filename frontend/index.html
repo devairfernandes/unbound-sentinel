@@ -895,41 +895,54 @@
 
         <!-- PING MASTER NATIVE SECTION -->
         <section id="pingmaster-section" style="display:none;">
-            <!-- NOC Top Summary for Ping Master -->
-            <div class="noc-grid" style="margin-bottom: 2rem;">
-                <div class="noc-card success">
-                    <div class="noc-label">Média Geral de Ping</div>
-                    <div class="noc-value" id="pm-avg-ping">0 ms</div>
-                </div>
-                <div class="noc-card info">
-                    <div class="noc-label">Serviços Ativos</div>
-                    <div class="noc-value" id="pm-active-count">0</div>
-                </div>
-                <div class="noc-card warning">
-                    <div class="noc-label">Latência Alta</div>
-                    <div class="noc-value" id="pm-high-count">0</div>
-                </div>
-                <div class="noc-card danger">
-                    <div class="noc-label">Serviços Offline</div>
-                    <div class="noc-value" id="pm-offline-count">0</div>
-                </div>
+            <div id="pingmaster-lock" style="display:none; text-align: center; padding: 100px 20px; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; margin-top: 2rem;">
+                <div style="font-size: 64px; margin-bottom: 20px;">🔒</div>
+                <h3 style="color: white; margin-bottom: 15px; font-size: 28px;">Recurso Premium: Ping Master Elite</h3>
+                <p style="color: #94a3b8; max-width: 600px; margin: 0 auto 30px; font-size: 16px; line-height: 1.6;">
+                    A telemetria avançada de rede NOC com monitoramento contínuo em tempo real de latência, jitter e packet loss é uma funcionalidade exclusiva das licenças <strong>PRO</strong> e <strong>Elite</strong>.
+                </p>
+                <button onclick="document.querySelector('[data-section=\\'licenses\\']').click()" style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                    <i data-lucide="zap" style="width:18px; height:18px; vertical-align:-3px; margin-right:5px;"></i> Atualizar para PRO
+                </button>
             </div>
 
-            <!-- Header + Control Panel -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
-                <h2 style="font-size:1.4rem; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:10px;">
-                    <i data-lucide="signal" style="color:var(--accent);"></i> Latências de Conectividade
-                </h2>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-logout" onclick="openAddPingTargetModal()" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:0.5rem 1rem; border-radius:8px;">
-                        <i data-lucide="plus"></i> Novo Alvo
-                    </button>
+            <div id="pingmaster-content">
+                <!-- NOC Top Summary for Ping Master -->
+                <div class="noc-grid" style="margin-bottom: 2rem;">
+                    <div class="noc-card success">
+                        <div class="noc-label">Média Geral de Ping</div>
+                        <div class="noc-value" id="pm-avg-ping">0 ms</div>
+                    </div>
+                    <div class="noc-card info">
+                        <div class="noc-label">Serviços Ativos</div>
+                        <div class="noc-value" id="pm-active-count">0</div>
+                    </div>
+                    <div class="noc-card warning">
+                        <div class="noc-label">Latência Alta</div>
+                        <div class="noc-value" id="pm-high-count">0</div>
+                    </div>
+                    <div class="noc-card danger">
+                        <div class="noc-label">Serviços Offline</div>
+                        <div class="noc-value" id="pm-offline-count">0</div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Ping Master Cards Grid -->
-            <div id="pingmaster-cards-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
-                <!-- Cards dynamically loaded here -->
+                <!-- Header + Control Panel -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+                    <h2 style="font-size:1.4rem; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="signal" style="color:var(--accent);"></i> Latências de Conectividade
+                    </h2>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-logout" onclick="openAddPingTargetModal()" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981; padding:0.5rem 1rem; border-radius:8px;">
+                            <i data-lucide="plus"></i> Novo Alvo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ping Master Cards Grid -->
+                <div id="pingmaster-cards-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
+                    <!-- Cards dynamically loaded here -->
+                </div>
             </div>
         </section>
 

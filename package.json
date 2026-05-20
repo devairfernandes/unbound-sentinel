@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.4.1": [
+      "Paywall Ping Master: O módulo avançado de telemetria Ping Master Elite foi bloqueado na versão FREE. Agora, usuários da versão gratuita recebem um banner de upgrade premium, sendo o recurso restrito exclusivamente para clientes PRO e Elite."
+    ],
     "v2.4.0": [
       "Mapeador de Subdomínios Curinga (Wildcard): Desenvolvido algoritmo recursivo de busca de subdomínios na Blacklist. Agora, domínios filhos de regras curingas (ex: google.com.onion sob a regra geral onion ou subdomínios da Multilaser) são identificados dinamicamente em tempo real e exibidos corretamente com a tag [BLOQUEADO] no painel de controle."
     ],
