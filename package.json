@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,15 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.4.4": [
+      "Fix: Adicionado histórico de atualizações recentes no Changelog OTA."
+    ],
+    "v2.4.3": [
+      "Lock OTA (Over-The-Air) na Versão FREE: Travas de segurança triplas (Visual, JS e Backend API) implementadas garantindo que atualizações em 1-click sejam exclusivas para licenças PRO."
+    ],
+    "v2.4.2": [
+      "Vitrine de Licenças Atualizada: Ajustadas as tags de recursos no painel para indicar explicitamente que a telemetria do Ping Master Elite agora é exclusiva das licenças PRO."
+    ],
     "v2.4.1": [
       "Paywall Ping Master: O módulo avançado de telemetria Ping Master Elite foi bloqueado na versão FREE. Agora, usuários da versão gratuita recebem um banner de upgrade premium, sendo o recurso restrito exclusivamente para clientes PRO e Elite."
     ],
