@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.4": [
+      "Fix no Renderizador do Globo 3D: Removida chamada a método inexistente (.globeColor) que causava um erro de execução silencioso e impedia a inicialização das camadas de dados (pontos, arcos, polígonos). Agora, a transparência e cor estilo vidro azul são aplicadas diretamente no material do Three.js."
+    ],
     "v2.5.3": [
       "Upgrade do Globo 3D Holográfico: O globo de tráfego de rede foi completamente reformulado. Substituímos as texturas sólidas de satélite por uma esfera translúcida premium estilo vidro, malha continental digital ultra-detalhada (margem 0.18) com brilho néon ciano, arcos tridimensionais cyberpunk com altitudes dinâmicas e efeito sonar de alta frequência (fading rings).",
       "Correção de Alinhamento Vertical: Resolvido bug visual de layout que desalinhava e empurrava o container do canvas 3D no painel."

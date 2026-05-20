@@ -3320,11 +3320,18 @@ function initGlobe() {
 
     try {
         sentinelGlobe = Globe()(container)
-            .globeColor('rgba(10, 25, 45, 0.45)')
             .backgroundColor('rgba(0,0,0,0)')
             .showAtmosphere(true)
             .atmosphereColor('#0ea5e9')
             .atmosphereAltitude(0.18);
+
+        // Ajusta o material do globo para ser um vidro azul semi-transparente
+        const globeMaterial = sentinelGlobe.globeMaterial();
+        if (globeMaterial) {
+            globeMaterial.color.set('#0a1d37');
+            globeMaterial.transparent = true;
+            globeMaterial.opacity = 0.35;
+        }
 
         sentinelGlobe.controls().autoRotate = true;
         sentinelGlobe.controls().autoRotateSpeed = 0.5;
