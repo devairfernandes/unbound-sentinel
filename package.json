@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.6",
+  "version": "2.5.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.7": [
+      "NOC Telemetry Elite: Upgrade completo do Ping Master com motor assíncrono não-bloqueante por alvo, suporte a protocolos ICMP/TCP e portas customizadas, sparklines de área premium preenchidas com gradientes néon reativos e tela de telemetria detalhada via ApexCharts mostrando Min/Max/Média, Jitter e perda de pacotes em tempo real."
+    ],
     "v2.5.6": [
       "Fix Crítico na Inicialização: Correção de chaves de fechamento ausentes no bloco de tratamento de exceções da rota '/api/system/licenses-db' que gerava erro de sintaxe e impedia o reinício do servidor."
     ],
