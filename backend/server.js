@@ -236,8 +236,14 @@ async function validateLicenseRemote() {
         if (!success) {
             const cached = loadLicenseCache();
             if (cached) {
-                currentLicenseStatus = cached;
-                return;
+                const expiry = cached.expiry;
+                const isExpired = expiry && expiry !== 'never' && new Date() > new Date(expiry);
+                if (!isExpired) {
+                    currentLicenseStatus = cached;
+                    return;
+                } else {
+                    console.log('⚠️ Cache de licença local expirado.');
+                }
             }
         }
 
@@ -427,7 +433,14 @@ app.post('/api/system/check-in', (req, res) => {
         let foundLicense = null;
         for (const key in db) {
             if (db[key].hwid === hwid || db[key].authorized_ip === clientIp) {
-                foundLicense = { ...db[key], key };
+                const lic = db[key];
+                const expiry = lic.expires_at || lic.expiry;
+                const isExpired = expiry && expiry !== 'never' && new Date() > new Date(expiry);
+                
+                // Só considera a licença ativa se não estiver expirada e se for válida/ativa
+                if (!isExpired && (lic.valid || lic.status === 'active')) {
+                    foundLicense = { ...lic, expiry, key };
+                }
                 break;
             }
         }
@@ -439,7 +452,7 @@ app.post('/api/system/check-in', (req, res) => {
             version,
             lastSeen: Date.now(),
             status: foundLicense ? foundLicense.type : 'free',
-            client: foundLicense ? foundLicense.client : (foundLicense ? foundLicense.client : 'Novo Cliente')
+            client: foundLicense ? foundLicense.client : 'Novo Cliente'
         };
         saveSessions();
         console.log(`[Check-in] Recebido de ${hostname} (${clientIp}) - Status: ${activeSessions[hwid].status}`);
@@ -449,6 +462,7 @@ app.post('/api/system/check-in', (req, res) => {
                 type: foundLicense.type,
                 valid: foundLicense.valid,
                 client: foundLicense.client,
+                expiry: foundLicense.expiry,
                 features: foundLicense.features || { tv: true, config: true, update: true, charts: true, globe: true }
             } : { 
                 type: 'free', 
@@ -713,12 +727,20 @@ app.post('/api/system/licenses-db', auth, requireRole(['admin']), (req, res) => 
         const db = req.body;
         fs.writeFileSync(path.join(__dirname, '..', 'licenses.json'), JSON.stringify(db, null, 4), 'utf8');
         
-        // Sincroniza o status PRO nas sessões ativas imediatamente
+        // Sincroniza o status nas sessões ativas imediatamente
         for (const hwid in activeSessions) {
             for (const key in db) {
                 if (db[key].hwid === hwid) {
-                    activeSessions[hwid].status = db[key].type;
-                    activeSessions[hwid].client = db[key].client;
+                    const lic = db[key];
+                    const expiry = lic.expires_at || lic.expiry;
+                    const isExpired = expiry && expiry !== 'never' && new Date() > new Date(expiry);
+                    
+                    if (!isExpired && (lic.valid || lic.status === 'active')) {
+                        activeSessions[hwid].status = lic.type;
+                    } else {
+                        activeSessions[hwid].status = 'free';
+                    }
+                    activeSessions[hwid].client = lic.client;
                     break;
                 }
             }
