@@ -2193,3 +2193,59 @@ input:checked + .slider {
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
 }
+
+/* ==========================================
+   UPGRADE PING MASTER CUSTOM STYLES
+   ========================================== */
+
+.pingmaster-card-clickable {
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.pingmaster-card-clickable:hover {
+    transform: translateY(-6px) scale(1.025) !important;
+}
+
+.pingmaster-card-clickable:active {
+    transform: translateY(-2px) scale(0.995) !important;
+}
+
+/* Glowing card overrides depending on statuses */
+.noc-card.success.pingmaster-card-clickable:hover {
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3), 0 0 0 1px rgba(16, 185, 129, 0.4) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.noc-card.warning.pingmaster-card-clickable:hover {
+    box-shadow: 0 12px 30px rgba(245, 158, 11, 0.3), 0 0 0 1px rgba(245, 158, 11, 0.4) !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.noc-card.danger.pingmaster-card-clickable:hover {
+    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.3), 0 0 0 1px rgba(239, 68, 68, 0.4) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+/* ApexCharts Details Modal Layout */
+#pingmaster-detail-modal .modal-content {
+    background: rgba(11, 19, 41, 0.9) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(56, 189, 248, 0.15) !important;
+}
+
+#pingmaster-detail-modal .modal-header h2 {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.pm-detail-stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+}
+
+/* Sparkline area fills styling */
+.pm-sparkline-svg {
+    filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.2));
+}

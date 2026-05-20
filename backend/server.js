@@ -1942,20 +1942,48 @@ if (fs.existsSync(pingDbPath)) {
 app.post('/api/pingmaster/seed20', auth, (req, res) => {
     pingMasterData.servicos = [...top20Defaults];
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+    initPingMasterEngine();
     res.json({ message: 'Top 20 restaurado com sucesso!' });
 });
 
 let pingMasterStatus = {};
+const pingTimers = {};
 
-function pingTarget(originalTarget, callback) {
+function pingTarget(originalTarget, method, port, callback) {
     let target = originalTarget.trim().toLowerCase();
     
+    // Parser inteligente de host:port se houver dois pontos no target
+    let customPort = port;
+    if (target.includes(':')) {
+        const parts = target.split(':');
+        target = parts[0];
+        customPort = parseInt(parts[1], 10) || port;
+    }
+    
     // Interceptor Inteligente: Converte domínios globais (EUA) para CDNs Locais (Brasil)
-    // Isso garante que o painel reflita a latência real de entrega de conteúdo (CDN edge), não o landing page nos EUA
     if (target === 'netflix.com' || target === 'netflix.com.br') target = 'fast.com';
     else if (target === 'amazon.com' || target === 'amazon.com.br') target = 'aws.amazon.com';
     else if (target === 'shopee.com' || target === 'shopee.com.br') target = 'cf.shopee.com.br';
     
+    const checkMethod = method || 'smart';
+    
+    if (checkMethod === 'icmp') {
+        runIcmpPing(target, callback);
+    } else if (checkMethod === 'tcp') {
+        checkTcp(target, customPort || 443, callback);
+    } else {
+        // Smart Check: tenta ICMP, se falhar tenta TCP
+        runIcmpPing(target, (success, latency) => {
+            if (success) {
+                callback(true, latency);
+            } else {
+                checkTcp(target, 443, callback);
+            }
+        });
+    }
+}
+
+function runIcmpPing(target, callback) {
     const isWin = process.platform === 'win32';
     const cmd = isWin 
         ? `ping -n 2 -w 1000 ${target}` 
@@ -1963,7 +1991,7 @@ function pingTarget(originalTarget, callback) {
         
     exec(cmd, (err, stdout) => {
         if (err || !stdout) {
-            return checkTcp(target, 80, callback);
+            return callback(false, 0);
         }
         
         let match;
@@ -1977,7 +2005,7 @@ function pingTarget(originalTarget, callback) {
             const ms = Math.round(parseFloat(match[1]));
             callback(true, ms);
         } else {
-            checkTcp(target, 80, callback);
+            callback(false, 0);
         }
     });
 }
@@ -2007,47 +2035,48 @@ function checkPort(ip, port, callback) {
 function checkTcp(host, port, callback) {
     const dns = require('dns');
     
-    // Resolve DNS first so we don't include lookup time in the ping latency
     dns.lookup(host, (err, address) => {
         if (err || !address) return callback(false, 0);
 
-        // Try HTTPS port 443 first (most likely to be open)
-        checkPort(address, 443, (success, ms) => {
+        checkPort(address, port || 443, (success, ms) => {
             if (success) {
                 callback(true, ms);
-            } else {
-                // Fallback to port 80 if 443 is closed
+            } else if (!port) {
+                // Fallback to port 80 se a 443 estiver fechada e não houver porta customizada específica
                 checkPort(address, 80, callback);
+            } else {
+                callback(false, 0);
             }
         });
     });
 }
 
-// Background Ping Loop
-function runPingMasterLoop() {
-    if (!pingMasterData.servicos) return;
+function startServiceTimer(service) {
+    stopServiceTimer(service.nome);
     
-    const activeServices = pingMasterData.servicos.filter(s => s.active);
-    let completed = 0;
+    if (!service.active) return;
     
-    if (activeServices.length === 0) {
-        setTimeout(runPingMasterLoop, 8000);
-        return;
-    }
+    const interval = parseInt(service.interval, 10) || 8000;
     
-    activeServices.forEach(service => {
+    function check() {
         const target = service.targets[0] || '8.8.8.8';
-        pingTarget(target, (success, latency) => {
+        const method = service.method || 'smart';
+        const port = service.port || null;
+        
+        pingTarget(target, method, port, (success, latency) => {
             const prev = pingMasterStatus[service.nome] || { history: [] };
-            let history = [...prev.history, latency];
-            if (history.length > 20) history.shift();
             
-            // Jitter calculation
+            // Registra latência ou null em caso de falha (para cálculo preciso de perda de pacotes)
+            let history = [...prev.history, success ? latency : null];
+            if (history.length > 50) history.shift();
+            
+            // Cálculo do Jitter baseado em desvio padrão das medições válidas
             let jitter = 0;
-            if (history.length >= 2) {
+            const validPings = history.filter(v => v !== null && v > 0);
+            if (validPings.length >= 2) {
                 const diffs = [];
-                for (let i = 1; i < history.length; i++) {
-                    diffs.push(Math.abs(history[i] - history[i-1]));
+                for (let i = 1; i < validPings.length; i++) {
+                    diffs.push(Math.abs(validPings[i] - validPings[i-1]));
                 }
                 jitter = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length);
             }
@@ -2059,27 +2088,53 @@ function runPingMasterLoop() {
                 else status = 'bad';
             }
             
+            // Taxa de perda baseada na razão de falhas no histórico atual
+            const lossCount = history.length - validPings.length;
+            const packetLoss = history.length > 0 ? Math.round((lossCount / history.length) * 100) : 0;
+            
             pingMasterStatus[service.nome] = {
                 name: service.nome,
                 target: target,
                 ping: success ? latency : null,
                 status: status,
                 jitter: success ? jitter : 0,
-                loss: success ? 0 : 100,
+                loss: packetLoss,
                 history: history,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                method: method,
+                port: port,
+                interval: interval
             };
             
-            completed++;
-            if (completed === activeServices.length) {
-                setTimeout(runPingMasterLoop, 8000);
-            }
+            pingTimers[service.nome] = setTimeout(check, interval);
         });
-    });
+    }
+    
+    // Adiciona jitter na inicialização para evitar gargalo de requests paralelos
+    const startupDelay = 500 + Math.random() * 2000;
+    pingTimers[service.nome] = setTimeout(check, startupDelay);
 }
 
-// Inicializa o Loop
-setTimeout(runPingMasterLoop, 2000);
+function stopServiceTimer(serviceName) {
+    if (pingTimers[serviceName]) {
+        clearTimeout(pingTimers[serviceName]);
+        delete pingTimers[serviceName];
+    }
+}
+
+function initPingMasterEngine() {
+    Object.keys(pingTimers).forEach(name => stopServiceTimer(name));
+    
+    if (!pingMasterData.servicos) return;
+    
+    pingMasterData.servicos.forEach(service => {
+        startServiceTimer(service);
+    });
+    console.log(`[PingMaster] Engine assíncrona inicializada com ${pingMasterData.servicos.length} alvos.`);
+}
+
+// Inicializa o Engine não-bloqueante
+setTimeout(initPingMasterEngine, 2000);
 
 // API Endpoints
 app.get('/api/pingmaster/status', auth, (req, res) => {
@@ -2090,23 +2145,36 @@ app.get('/api/pingmaster/status', auth, (req, res) => {
 });
 
 app.post('/api/pingmaster/target', auth, (req, res) => {
-    const { name, target, active } = req.body;
+    const { name, target, active, method, port, interval } = req.body;
     if (!name || !target) return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     
     let existing = pingMasterData.servicos.find(s => s.nome.toLowerCase() === name.toLowerCase());
+    const parsedInterval = parseInt(interval, 10) || 8000;
+    const parsedPort = port ? parseInt(port, 10) : null;
+    
     if (existing) {
         existing.targets = [target];
         existing.active = active !== undefined ? active : true;
+        existing.method = method || 'smart';
+        existing.port = parsedPort;
+        existing.interval = parsedInterval;
     } else {
-        pingMasterData.servicos.push({
+        existing = {
             nome: name,
             targets: [target],
-            method: 'smart',
+            method: method || 'smart',
+            port: parsedPort,
+            interval: parsedInterval,
             active: active !== undefined ? active : true
-        });
+        };
+        pingMasterData.servicos.push(existing);
     }
     
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+    
+    // Inicia ou reinicia o timer do serviço atualizado em tempo real
+    startServiceTimer(existing);
+    
     res.json({ message: 'Alvo atualizado com sucesso no Ping Master' });
 });
 
@@ -2116,6 +2184,9 @@ app.post('/api/pingmaster/delete', auth, (req, res) => {
     
     pingMasterData.servicos = pingMasterData.servicos.filter(s => s.nome.toLowerCase() !== name.toLowerCase());
     if (pingMasterStatus[name]) delete pingMasterStatus[name];
+    
+    // Para e limpa o scheduler do alvo excluído
+    stopServiceTimer(name);
     
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
     res.json({ message: 'Alvo removido do Ping Master' });

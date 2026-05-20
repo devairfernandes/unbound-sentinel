@@ -3616,6 +3616,24 @@ setTimeout(initGlobe, 1000);
 // ==========================================
 
 let pingMasterTimer = null;
+let lastPingMasterServices = {};
+let pingMasterDetailChart = null;
+let activeDetailServiceName = null;
+
+function toggleCustomPortField() {
+    const method = document.getElementById('pm-target-method').value;
+    const portContainer = document.getElementById('pm-port-container');
+    const portInput = document.getElementById('pm-target-port');
+    if (method === 'tcp') {
+        portContainer.style.opacity = '1';
+        portContainer.style.pointerEvents = 'auto';
+        if (!portInput.value) portInput.value = '443';
+    } else {
+        portContainer.style.opacity = '0.4';
+        portContainer.style.pointerEvents = 'none';
+        portInput.value = '';
+    }
+}
 
 async function loadPingMasterStatus() {
     const grid = document.getElementById('pingmaster-cards-grid');
@@ -3644,7 +3662,6 @@ async function loadPingMasterStatus() {
 function getBrandIconUrl(target, name) {
     let domain = target.toLowerCase().trim();
     
-    // Custom mappings for common targets
     if (domain === '8.8.8.8' || domain === '8.8.4.4' || name.toLowerCase().includes('google')) {
         domain = 'google.com';
     } else if (domain === '9.9.9.9' || name.toLowerCase().includes('quad9')) {
@@ -3659,7 +3676,6 @@ function getBrandIconUrl(target, name) {
         domain = 'youtube.com';
     }
     
-    // If it's a raw IP and not caught, return a generic globe/server favicon
     const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
     if (ipRegex.test(domain)) {
         return `https://www.google.com/s2/favicons?sz=64&domain=cloudflare.com`; 
@@ -3671,6 +3687,8 @@ function getBrandIconUrl(target, name) {
 function renderPingMaster(services) {
     const grid = document.getElementById('pingmaster-cards-grid');
     if (!grid) return;
+    
+    lastPingMasterServices = services;
     
     let totalPing = 0;
     let pingCount = 0;
@@ -3726,26 +3744,42 @@ function renderPingMaster(services) {
         
         const pingVal = isOffline ? 'OFFLINE' : `${item.ping} <span style="font-size:0.8rem; font-weight:normal; color:#64748b;">ms</span>`;
         
-        // Generate SVG sparkline line chart
+        // Generate SVG sparkline area/line chart
         let sparkline = '';
         if (item.history && item.history.length > 1) {
-            const maxVal = Math.max(...item.history, 100);
-            const minVal = Math.min(...item.history, 0);
+            const validHistory = item.history.filter(v => v !== null);
+            const maxVal = validHistory.length > 0 ? Math.max(...validHistory, 80) : 100;
+            const minVal = validHistory.length > 0 ? Math.min(...validHistory, 0) : 0;
             const range = maxVal - minVal || 1;
+            
             const points = item.history.map((val, idx) => {
                 const x = (idx / (item.history.length - 1)) * 120;
-                const y = 30 - ((val - minVal) / range) * 26;
+                const v = val === null ? maxVal : val;
+                const y = 30 - ((v - minVal) / range) * 26;
                 return `${x},${y}`;
             }).join(' ');
+            
+            const fillPoints = `${points} 120,30 0,30`;
+            const gradientId = `pm-grad-${item.name.replace(/\s+/g, '-').toLowerCase()}`;
+            
             sparkline = `
-                <svg width="120" height="30" style="overflow:visible;">
-                    <polyline fill="none" stroke="${isOffline ? '#ef4444' : 'var(--accent)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+                <svg width="120" height="30" style="overflow:visible;" class="pm-sparkline-svg">
+                    <defs>
+                        <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="${statusColor}" stop-opacity="0.25"/>
+                            <stop offset="100%" stop-color="${statusColor}" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <polygon fill="url(#${gradientId})" points="${fillPoints}" />
+                    <polyline fill="none" stroke="${statusColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
                 </svg>
             `;
         }
         
         html += `
-            <div class="noc-card ${statusClass}" style="display:flex; flex-direction:column; justify-content:space-between; padding:1.25rem; min-height:165px; position:relative; overflow:hidden;">
+            <div class="noc-card ${statusClass} pingmaster-card-clickable" 
+                 onclick="handleCardClick(event, '${item.name}')"
+                 style="display:flex; flex-direction:column; justify-content:space-between; padding:1.25rem; min-height:165px; position:relative; overflow:hidden;">
                 <!-- Header with Status dot and Brand Icon -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -3781,10 +3815,10 @@ function renderPingMaster(services) {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem; padding-top:0.6rem; border-top:1px solid rgba(255,255,255,0.03); font-size:0.72rem; color:#64748b;">
                     <div>Jitter: ${item.jitter}ms | Perda: ${item.loss}%</div>
                     <div style="display:flex; gap:8px;">
-                        <button onclick="editPingTarget('${item.name}', '${item.target}')" style="background:none; border:none; color:#3b82f6; opacity:0.6; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                        <button onclick="event.stopPropagation(); editPingTarget('${item.name}')" style="background:none; border:none; color:#3b82f6; opacity:0.6; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
                             <i data-lucide="edit-2" style="width:14px; height:14px;"></i>
                         </button>
-                        <button onclick="deletePingTarget('${item.name}')" style="background:none; border:none; color:#ef4444; opacity:0.4; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <button onclick="event.stopPropagation(); deletePingTarget('${item.name}')" style="background:none; border:none; color:#ef4444; opacity:0.4; cursor:pointer; padding:2px; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
                             <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
                         </button>
                     </div>
@@ -3796,15 +3830,22 @@ function renderPingMaster(services) {
     grid.innerHTML = html;
     lucide.createIcons();
     
-    // Render top card stats
-    const avgPing = pingCount > 0 ? Math.round(totalPing / pingCount) : 0;
-    document.getElementById('pm-avg-ping').textContent = `${avgPing} ms`;
+    document.getElementById('pm-avg-ping').textContent = `${pingCount > 0 ? Math.round(totalPing / pingCount) : 0} ms`;
     document.getElementById('pm-active-count').textContent = activeCount;
     document.getElementById('pm-high-count').textContent = highCount;
     document.getElementById('pm-offline-count').textContent = offlineCount;
+    
+    // Se o modal de telemetria detalhada estiver aberto e ativo, atualiza em tempo real!
+    if (activeDetailServiceName && services[activeDetailServiceName]) {
+        updateTelemetryDetailData(services[activeDetailServiceName]);
+    }
 }
 
-// Modal and target management
+function handleCardClick(event, name) {
+    if (event.target.closest('button')) return;
+    openPingMasterDetailModal(name);
+}
+
 function openAddPingTargetModal() {
     if (!authCredentials) {
         showLogin();
@@ -3813,19 +3854,30 @@ function openAddPingTargetModal() {
     document.getElementById('pm-target-name').value = '';
     document.getElementById('pm-target-name').readOnly = false;
     document.getElementById('pm-target-address').value = '';
+    document.getElementById('pm-target-method').value = 'smart';
+    document.getElementById('pm-target-port').value = '';
+    document.getElementById('pm-target-interval').value = '8000';
     document.getElementById('pm-modal-error').textContent = '';
+    toggleCustomPortField();
     document.getElementById('ping-target-modal').classList.add('show');
 }
 
-function editPingTarget(name, target) {
+function editPingTarget(name) {
     if (!authCredentials) {
         showLogin();
         return;
     }
-    document.getElementById('pm-target-name').value = name;
+    const item = lastPingMasterServices[name];
+    if (!item) return;
+    
+    document.getElementById('pm-target-name').value = item.name;
     document.getElementById('pm-target-name').readOnly = true;
-    document.getElementById('pm-target-address').value = target;
+    document.getElementById('pm-target-address').value = item.target;
+    document.getElementById('pm-target-method').value = item.method || 'smart';
+    document.getElementById('pm-target-port').value = item.port || '';
+    document.getElementById('pm-target-interval').value = item.interval || '8000';
     document.getElementById('pm-modal-error').textContent = '';
+    toggleCustomPortField();
     document.getElementById('ping-target-modal').classList.add('show');
 }
 
@@ -3836,10 +3888,18 @@ function closePingTargetModal() {
 async function savePingTarget() {
     const name = document.getElementById('pm-target-name').value.trim();
     const target = document.getElementById('pm-target-address').value.trim();
+    const method = document.getElementById('pm-target-method').value;
+    const port = document.getElementById('pm-target-port').value.trim();
+    const interval = document.getElementById('pm-target-interval').value;
     const errorEl = document.getElementById('pm-modal-error');
     
     if (!name || !target) {
-        errorEl.textContent = 'Por favor, preencha todos os campos.';
+        errorEl.textContent = 'Por favor, preencha todos os campos obrigatórios.';
+        return;
+    }
+    
+    if (method === 'tcp' && !port) {
+        errorEl.textContent = 'Por favor, informe a porta TCP para este protocolo.';
         return;
     }
     
@@ -3850,7 +3910,13 @@ async function savePingTarget() {
                 'Content-Type': 'application/json',
                 'Authorization': `Basic ${authCredentials}`
             },
-            body: JSON.stringify({ name, target })
+            body: JSON.stringify({ 
+                name, 
+                target, 
+                method, 
+                port: port ? parseInt(port, 10) : null, 
+                interval: parseInt(interval, 10) 
+            })
         });
         
         if (res.ok) {
@@ -3888,6 +3954,188 @@ async function deletePingTarget(name) {
     } catch (err) {
         console.error('[PingMaster] Erro ao deletar:', err);
         alert('Erro ao remover alvo.');
+    }
+}
+
+function openPingMasterDetailModal(name) {
+    const item = lastPingMasterServices[name];
+    if (!item) return;
+    
+    activeDetailServiceName = name;
+    
+    // Set static text and brand icon
+    document.getElementById('pm-detail-title').textContent = item.name;
+    document.getElementById('pm-detail-subtitle').textContent = item.target;
+    document.getElementById('pm-detail-brand-icon').src = getBrandIconUrl(item.target, item.name);
+    
+    // Set protocol and frequency
+    let protocolText = 'Smart Check';
+    if (item.method === 'icmp') protocolText = 'ICMP Ping';
+    else if (item.method === 'tcp') protocolText = `TCP (Porta ${item.port || 443})`;
+    document.getElementById('pm-detail-method').textContent = protocolText;
+    document.getElementById('pm-detail-interval').textContent = `${(item.interval || 8000) / 1000}s`;
+    
+    // Setup and display modal
+    const modal = document.getElementById('pingmaster-detail-modal');
+    modal.style.display = 'flex';
+    
+    // Calculate telemetry values
+    updateTelemetryDetailData(item);
+    
+    // Determine status color for graph accent
+    let statusColor = '#10b981';
+    if (item.ping === null) statusColor = '#ef4444';
+    else if (item.status === 'warning') statusColor = '#f59e0b';
+    else if (item.status === 'bad') statusColor = '#ef4444';
+    
+    // Render the interactive history chart
+    if (pingMasterDetailChart) {
+        pingMasterDetailChart.destroy();
+    }
+    
+    const options = {
+        series: [{
+            name: 'Latência',
+            data: item.history.map(val => val === null ? null : val)
+        }],
+        chart: {
+            type: 'area',
+            height: 220,
+            sparkline: { enabled: false },
+            toolbar: { show: false },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3,
+            colors: [statusColor]
+        },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.0,
+                stops: [0, 100],
+                colorStops: [
+                    { offset: 0, color: statusColor, opacity: 0.35 },
+                    { offset: 100, color: statusColor, opacity: 0.0 }
+                ]
+            }
+        },
+        grid: {
+            show: true,
+            borderColor: 'rgba(255, 255, 255, 0.04)',
+            strokeDashArray: 4,
+            xaxis: { lines: { show: false } },
+            yaxis: { lines: { show: true } }
+        },
+        xaxis: {
+            type: 'category',
+            labels: { show: false },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: {
+                    colors: '#64748b',
+                    fontSize: '11px',
+                    fontFamily: 'JetBrains Mono, monospace'
+                },
+                formatter: function(val) {
+                    return val !== null ? Math.round(val) + ' ms' : 'Off';
+                }
+            }
+        },
+        tooltip: {
+            theme: 'dark',
+            x: { show: false },
+            y: {
+                formatter: function(val) {
+                    return val !== null ? `<strong>${val} ms</strong>` : 'Offline / Perda';
+                }
+            }
+        },
+        markers: {
+            size: 0,
+            colors: [statusColor],
+            strokeColors: '#0b1329',
+            strokeWidth: 2,
+            hover: { size: 5 }
+        }
+    };
+    
+    setTimeout(() => {
+        pingMasterDetailChart = new ApexCharts(document.getElementById('pingmaster-detail-chart'), options);
+        pingMasterDetailChart.render();
+    }, 100);
+}
+
+function closePingMasterDetailModal() {
+    document.getElementById('pingmaster-detail-modal').style.display = 'none';
+    activeDetailServiceName = null;
+    if (pingMasterDetailChart) {
+        pingMasterDetailChart.destroy();
+        pingMasterDetailChart = null;
+    }
+}
+
+function updateTelemetryDetailData(item) {
+    const validPings = item.history.filter(v => v !== null && v > 0);
+    const minPing = validPings.length > 0 ? Math.min(...validPings) : 0;
+    const maxPing = validPings.length > 0 ? Math.max(...validPings) : 0;
+    const avgPing = validPings.length > 0 ? Math.round(validPings.reduce((a, b) => a + b, 0) / validPings.length) : 0;
+    
+    document.getElementById('pm-detail-min-ping').textContent = minPing ? `${minPing} ms` : '--';
+    document.getElementById('pm-detail-avg-ping').textContent = avgPing ? `${avgPing} ms` : '--';
+    document.getElementById('pm-detail-max-ping').textContent = maxPing ? `${maxPing} ms` : '--';
+    document.getElementById('pm-detail-jitter').textContent = `${item.jitter} ms`;
+    document.getElementById('pm-detail-total').textContent = item.history.length;
+    
+    const lossBadge = document.getElementById('pm-detail-loss-badge');
+    lossBadge.textContent = `Perda: ${item.loss}%`;
+    if (item.loss > 20) {
+        lossBadge.style.color = '#ef4444';
+        lossBadge.style.background = 'rgba(239, 68, 68, 0.1)';
+        lossBadge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+    } else if (item.loss > 0) {
+        lossBadge.style.color = '#f59e0b';
+        lossBadge.style.background = 'rgba(245, 158, 11, 0.1)';
+        lossBadge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+    } else {
+        lossBadge.style.color = '#10b981';
+        lossBadge.style.background = 'rgba(16, 185, 129, 0.1)';
+        lossBadge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+    }
+    
+    let statusText = 'Excelente';
+    let statusColor = '#10b981';
+    if (item.ping === null) {
+        statusText = 'Fora do Ar';
+        statusColor = '#ef4444';
+    } else if (item.status === 'warning') {
+        statusText = 'Instável';
+        statusColor = '#f59e0b';
+    } else if (item.status === 'bad') {
+        statusText = 'Latência Alta';
+        statusColor = '#ef4444';
+    }
+    
+    const badge = document.getElementById('pm-detail-status-badge');
+    badge.textContent = statusText;
+    badge.style.color = statusColor;
+    badge.style.background = `${statusColor}20`; 
+    badge.style.borderColor = `${statusColor}40`;
+    
+    if (pingMasterDetailChart) {
+        pingMasterDetailChart.updateSeries([{
+            data: item.history.map(val => val === null ? null : val)
+        }]);
     }
 }
 

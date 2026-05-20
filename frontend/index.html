@@ -1045,11 +1045,101 @@
                     <label>Endereço IP ou Domínio</label>
                     <input type="text" id="pm-target-address" placeholder="Ex: 8.8.8.8 ou erp.empresa.com">
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Protocolo de Teste</label>
+                        <select id="pm-target-method" onchange="toggleCustomPortField()" style="width: 100%; background: #070d19; border: 1px solid rgba(255,255,255,0.08); color: #f1f5f9; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
+                            <option value="smart" selected>Smart Check (ICMP/TCP)</option>
+                            <option value="icmp">ICMP Ping Direto</option>
+                            <option value="tcp">TCP Porta Customizada</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="pm-port-container" style="opacity: 0.4; pointer-events: none; margin-bottom: 0; transition: opacity 0.2s;">
+                        <label>Porta TCP</label>
+                        <input type="number" id="pm-target-port" placeholder="Ex: 80, 443, 8080" style="width: 100%; background: #070d19; border: 1px solid rgba(255,255,255,0.08); color: #f1f5f9; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Intervalo de Verificação</label>
+                    <select id="pm-target-interval" style="width: 100%; background: #070d19; border: 1px solid rgba(255,255,255,0.08); color: #f1f5f9; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <option value="5000">Muito Rápido (5 segundos)</option>
+                        <option value="8000" selected>Padrão NOC (8 segundos)</option>
+                        <option value="15000">Médio (15 segundos)</option>
+                        <option value="30000">Longo (30 segundos)</option>
+                        <option value="60000">Muito Longo (60 segundos)</option>
+                    </select>
+                </div>
                 <div id="pm-modal-error" class="error-text" style="color:#ef4444; font-size:0.8rem; margin-top:8px;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closePingTargetModal()">CANCELAR</button>
                 <button class="btn btn-primary" onclick="savePingTarget()" style="background:#10b981;">SALVAR ALVO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ping Master Telemetry Detail Modal -->
+    <div id="pingmaster-detail-modal" class="modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.8); align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width: 650px; background: #0b1329; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); border-radius:16px; padding: 2rem;">
+            <div class="modal-header" style="position: relative; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
+                    <div id="pm-detail-icon-container" style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 6px;">
+                        <img id="pm-detail-brand-icon" src="" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><circle cx=\'12\' cy=\'12\' r=\'10\'/><line x1=\'2\' y1=\'12\' x2=\'22\' y2=\'12\'/><path d=\'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\'/></svg>';" />
+                    </div>
+                    <div>
+                        <h2 id="pm-detail-title" style="margin: 0; font-size: 1.3rem; font-weight: 700; color: #f1f5f9;">Serviço</h2>
+                        <p id="pm-detail-subtitle" style="margin: 3px 0 0 0; font-size: 0.8rem; color: #64748b;">endereço</p>
+                    </div>
+                </div>
+                <span id="pm-detail-status-badge" class="live-badge" style="font-weight: 700; font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px;">
+                    Excelente
+                </span>
+            </div>
+            
+            <div class="modal-body" style="padding: 20px 0 10px 0;">
+                <!-- Mini Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Mínimo</div>
+                        <div id="pm-detail-min-ping" style="font-size: 1.15rem; font-weight: 800; color: #10b981;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Média</div>
+                        <div id="pm-detail-avg-ping" style="font-size: 1.15rem; font-weight: 800; color: #3b82f6;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Máximo</div>
+                        <div id="pm-detail-max-ping" style="font-size: 1.15rem; font-weight: 800; color: #ef4444;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Jitter</div>
+                        <div id="pm-detail-jitter" style="font-size: 1.15rem; font-weight: 800; color: #f59e0b;">--</div>
+                    </div>
+                </div>
+                
+                <!-- Main Latency History Chart -->
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 0.8rem; font-weight: 600; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="trending-up" style="width: 14px; height: 14px; color: var(--accent);"></i> Histórico de Telemetria (Últimos 50 Testes)
+                        </div>
+                        <span id="pm-detail-loss-badge" style="font-size: 0.72rem; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                            Perda: 0%
+                        </span>
+                    </div>
+                    <div id="pingmaster-detail-chart"></div>
+                </div>
+                
+                <!-- Extra Telemetry Info -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 5px; font-size: 0.75rem; color: #64748b;">
+                    <div>Protocolo: <span id="pm-detail-method" style="color: #94a3b8; font-weight: 600;">Smart</span></div>
+                    <div>Frequência: <span id="pm-detail-interval" style="color: #94a3b8; font-weight: 600;">8s</span></div>
+                    <div>Total de Testes: <span id="pm-detail-total" style="color: #94a3b8; font-weight: 600;">0</span></div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display: flex; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closePingMasterDetailModal()">FECHAR TELEMETRIA</button>
             </div>
         </div>
     </div>
