@@ -23,4 +23,7 @@ license-manager/
 .DS_Store
 Thumbs.db
 *.zip
-*.tar.gz 
+*.tar.gz
+
+# Documentação local e AI memory
+Antigravity.md
