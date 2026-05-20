@@ -918,6 +918,102 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
+// ===== CTI ENRICHMENT: GEOLOCALIZAÇÃO & VIRUSTOTAL =====
+const enrichGeoCache = {};   // { ip: { data, expires } }
+const enrichVTCache  = {};   // { domain: { data, expires } }
+const GEO_TTL = 60 * 60 * 1000;     // 1 hora
+const VT_TTL  = 30 * 60 * 1000;     // 30 minutos
+
+// Rota de Geolocalização + ASN (ip-api.com, gratuita, sem chave)
+app.get('/api/enrich/geo', auth, async (req, res) => {
+    const { ip } = req.query;
+    if (!ip) return res.status(400).json({ error: 'IP obrigatório' });
+
+    const now = Date.now();
+    if (enrichGeoCache[ip] && enrichGeoCache[ip].expires > now) {
+        return res.json(enrichGeoCache[ip].data);
+    }
+
+    try {
+        const http = require('http');
+        const url = `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,countryCode,region,regionName,city,isp,org,as,query`;
+
+        const raw = await new Promise((resolve, reject) => {
+            http.get(url, r => {
+                let body = '';
+                r.on('data', d => body += d);
+                r.on('end', () => resolve(body));
+            }).on('error', reject);
+        });
+
+        const data = JSON.parse(raw);
+        enrichGeoCache[ip] = { data, expires: now + GEO_TTL };
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: 'Falha ao consultar geolocalização', detail: e.message });
+    }
+});
+
+// Rota de Scan VirusTotal (leitura do informe público por URL hash)
+app.get('/api/enrich/virustotal', auth, async (req, res) => {
+    const { domain } = req.query;
+    if (!domain) return res.status(400).json({ error: 'Domínio obrigatório' });
+
+    const vtKey = (envConfig.VIRUSTOTAL_API_KEY || process.env.VIRUSTOTAL_API_KEY || '').trim();
+    if (!vtKey) {
+        return res.status(503).json({ error: 'VIRUSTOTAL_API_KEY não configurada. Adicione no .env do sistema.' });
+    }
+
+    const now = Date.now();
+    const cacheKey = domain.toLowerCase();
+    if (enrichVTCache[cacheKey] && enrichVTCache[cacheKey].expires > now) {
+        return res.json(enrichVTCache[cacheKey].data);
+    }
+
+    try {
+        const https = require('https');
+        const cleanDomain = domain.replace(/\/$/, '');
+        const url = `https://www.virustotal.com/api/v3/domains/${encodeURIComponent(cleanDomain)}`;
+
+        const raw = await new Promise((resolve, reject) => {
+            https.get(url, { headers: { 'x-apikey': vtKey } }, r => {
+                let body = '';
+                r.on('data', d => body += d);
+                r.on('end', () => resolve(body));
+            }).on('error', reject);
+        });
+
+        const parsed = JSON.parse(raw);
+        const attrs = parsed.data?.attributes || {};
+        const stats = attrs.last_analysis_stats || {};
+        const total = Object.values(stats).reduce((a, b) => a + b, 0);
+        const malicious = stats.malicious || 0;
+        const suspicious = stats.suspicious || 0;
+        const score = total > 0 ? Math.round(((malicious + suspicious) / total) * 100) : 0;
+
+        const result = {
+            domain: cleanDomain,
+            score,
+            malicious,
+            suspicious,
+            total,
+            harmless: stats.harmless || 0,
+            undetected: stats.undetected || 0,
+            reputation: attrs.reputation || 0,
+            categories: attrs.categories || {},
+            lastAnalysis: attrs.last_analysis_date
+                ? new Date(attrs.last_analysis_date * 1000).toLocaleString('pt-BR')
+                : 'Desconhecido',
+            vtLink: `https://www.virustotal.com/gui/domain/${encodeURIComponent(cleanDomain)}`
+        };
+
+        enrichVTCache[cacheKey] = { data: result, expires: now + VT_TTL };
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: 'Falha ao consultar VirusTotal', detail: e.message });
+    }
+});
+
 app.post('/api/system/sync-time', auth, requireRole(['admin']), async (req, res) => {
     try {
         const { timezone, syncNtp } = req.body;

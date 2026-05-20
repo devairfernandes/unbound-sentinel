@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.4.4",
+  "version": "2.5.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.0": [
+      "CTI Intelligence Report: Botão de lupa em cada card de ameaça abre um modal premium com Geolocalização + ASN da origem (ip-api.com) e Score de Risco do VirusTotal (70+ antivírus). Cache inteligente de 1h para geo e 30min para VT evita requisições repetidas."
+    ],
     "v2.4.4": [
       "Fix: Adicionado histórico de atualizações recentes no Changelog OTA."
     ],

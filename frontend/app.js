@@ -141,7 +141,10 @@ async function updateSecurityThreats() {
                             <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : (alert.severity.toUpperCase() === 'DNSSEC' ? 'DNSSEC' : alert.severity)))}</span></div>
                             <div class="threat-ip">Origem: ${alert.ip}${alert.reason ? ` | Falha: <span style="color:var(--accent-warning);">${alert.reason}</span>` : ''}</div>
                         </div>
-                        <div class="threat-actions">
+                        <div class="threat-actions" style="display:flex;gap:6px;">
+                            <button onclick="openEnrichModal('${alert.domain.replace(/'/g,"&apos;")}', '${(alert.ip||'').replace(/'/g,"&apos;")}')" class="btn-action" title="Enriquecer: Geolocalização + VirusTotal" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;">
+                                <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                            </button>
                             ${alert.severity === 'BLOCKED' ? `
                                 <button class="btn-action success" disabled title="Domínio já bloqueado permanentemente na Blacklist" style="opacity: 0.6; cursor: not-allowed; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">
                                     <i data-lucide="check" style="width: 14px; height: 14px;"></i>
@@ -331,6 +334,120 @@ async function syncCTI() {
             if (window.lucide) lucide.createIcons();
         }, 2000);
     }
+}
+
+// ===== CTI ENRICHMENT MODAL =====
+const countryFlagMap = { 'BR':'🇧🇷','US':'🇺🇸','RU':'🇷🇺','CN':'🇨🇳','DE':'🇩🇪','FR':'🇫🇷','NL':'🇳🇱','GB':'🇬🇧','UA':'🇺🇦','IR':'🇮🇷','IN':'🇮🇳','JP':'🇯🇵','KR':'🇰🇷','CA':'🇨🇦','AU':'🇦🇺','SG':'🇸🇬','SE':'🇸🇪','NO':'🇳🇴','FI':'🇫🇮','PL':'🇵🇱','IT':'🇮🇹','ES':'🇪🇸','TR':'🇹🇷','MX':'🇲🇽','AR':'🇦🇷','CL':'🇨🇱','PT':'🇵🇹','CH':'🇨🇭' };
+
+function flagEmoji(code) {
+    return countryFlagMap[code] || '🌐';
+}
+
+async function openEnrichModal(domain, ip) {
+    const modal = document.getElementById('enrich-modal');
+    const titleEl = document.getElementById('enrich-domain-title');
+    const geoBody = document.getElementById('enrich-geo-body');
+    const vtBody = document.getElementById('enrich-vt-body');
+    const vtLink = document.getElementById('enrich-vt-link');
+
+    titleEl.textContent = domain;
+    vtLink.style.display = 'none';
+    geoBody.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:#64748b;font-size:0.85rem;"><i data-lucide="loader" style="width:16px;height:16px;" class="spin"></i> Consultando ip-api.com...</div>`;
+    vtBody.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:#64748b;font-size:0.85rem;"><i data-lucide="loader" style="width:16px;height:16px;" class="spin"></i> Consultando VirusTotal...</div>`;
+    modal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+
+    // --- GEO / ASN ---
+    if (ip && ip !== '--' && ip !== '?' && !/[a-zA-Z]/.test(ip.replace(/^[0-9.:]+$/, ''))) {
+        try {
+            const geoRes = await apiFetch(`/api/enrich/geo?ip=${encodeURIComponent(ip)}`);
+            const geo = await geoRes.json();
+            if (geo.status === 'success') {
+                geoBody.innerHTML = `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.85rem;">
+                            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">País</div>
+                            <div style="font-size:1rem;font-weight:700;color:#f1f5f9;">${flagEmoji(geo.countryCode)} ${geo.country || '--'}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.85rem;">
+                            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Cidade / Região</div>
+                            <div style="font-size:0.9rem;font-weight:600;color:#94a3b8;">${geo.city || '--'}, ${geo.regionName || '--'}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.85rem;">
+                            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">ISP / Operadora</div>
+                            <div style="font-size:0.8rem;font-weight:600;color:#94a3b8;word-break:break-all;">${geo.isp || '--'}</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.85rem;">
+                            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">ASN (Autonomous System)</div>
+                            <div style="font-size:0.8rem;font-weight:600;color:#38bdf8;word-break:break-all;">${geo.as || '--'}</div>
+                        </div>
+                    </div>`;
+            } else {
+                geoBody.innerHTML = `<div style="color:#64748b;font-size:0.85rem;">⚠️ Não foi possível localizar o IP <strong>${ip}</strong> (IP privado ou reservado).</div>`;
+            }
+        } catch (e) {
+            geoBody.innerHTML = `<div style="color:#f43f5e;font-size:0.85rem;">Erro ao consultar geolocalização.</div>`;
+        }
+    } else {
+        geoBody.innerHTML = `<div style="color:#64748b;font-size:0.85rem;">Endereço IP não disponível para geolocalização.</div>`;
+    }
+
+    // --- VIRUSTOTAL ---
+    try {
+        const vtRes = await apiFetch(`/api/enrich/virustotal?domain=${encodeURIComponent(domain)}`);
+        if (vtRes.status === 503) {
+            vtBody.innerHTML = `<div style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:1rem;font-size:0.83rem;color:#fbbf24;">
+                ⚠️ <strong>Chave da API não configurada.</strong><br>
+                <span style="color:#94a3b8;">Adicione <code style="background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:4px;">VIRUSTOTAL_API_KEY=sua_chave</code> no arquivo <strong>.env</strong> do servidor.<br>
+                Chave gratuita em: <a href="https://www.virustotal.com" target="_blank" style="color:#38bdf8;">virustotal.com</a></span>
+            </div>`;
+            return;
+        }
+        const vt = await vtRes.json();
+        if (vt.error) {
+            vtBody.innerHTML = `<div style="color:#f43f5e;font-size:0.85rem;">Erro: ${vt.error}</div>`;
+            return;
+        }
+
+        const scoreColor = vt.score >= 20 ? '#f43f5e' : (vt.score >= 5 ? '#fbbf24' : '#10b981');
+        const scoreLabel = vt.score >= 20 ? 'ALTO RISCO' : (vt.score >= 5 ? 'SUSPEITO' : 'LIMPO');
+        const scoreBg = vt.score >= 20 ? 'rgba(244,63,94,0.1)' : (vt.score >= 5 ? 'rgba(251,191,36,0.1)' : 'rgba(16,185,129,0.1)');
+
+        vtBody.innerHTML = `
+            <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap;">
+                <div style="background:${scoreBg};border:2px solid ${scoreColor};border-radius:14px;padding:1rem 1.5rem;text-align:center;min-width:110px;">
+                    <div style="font-size:2rem;font-weight:900;color:${scoreColor};">${vt.malicious + vt.suspicious}</div>
+                    <div style="font-size:0.6rem;font-weight:800;color:${scoreColor};letter-spacing:1px;">${scoreLabel}</div>
+                    <div style="font-size:0.6rem;color:#64748b;margin-top:2px;">de ${vt.total} engines</div>
+                </div>
+                <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                    <div style="background:rgba(244,63,94,0.07);border:1px solid rgba(244,63,94,0.2);border-radius:8px;padding:0.6rem;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:800;color:#f43f5e;">${vt.malicious}</div>
+                        <div style="font-size:0.6rem;color:#f43f5e;">Maliciosos</div>
+                    </div>
+                    <div style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:0.6rem;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:800;color:#fbbf24;">${vt.suspicious}</div>
+                        <div style="font-size:0.6rem;color:#fbbf24;">Suspeitos</div>
+                    </div>
+                    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:0.6rem;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:800;color:#10b981;">${vt.harmless}</div>
+                        <div style="font-size:0.6rem;color:#10b981;">Limpos</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:0.6rem;text-align:center;">
+                        <div style="font-size:1.2rem;font-weight:800;color:#64748b;">${vt.undetected}</div>
+                        <div style="font-size:0.6rem;color:#64748b;">Sem detecção</div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;font-size:0.7rem;color:#475569;">⏱️ Última análise: ${vt.lastAnalysis} &nbsp;|&nbsp; Reputação VT: <span style="color:${vt.reputation >= 0 ? '#10b981':'#f43f5e'}">${vt.reputation}</span></div>`;
+
+        vtLink.href = vt.vtLink;
+        vtLink.style.display = 'inline-flex';
+    } catch (e) {
+        vtBody.innerHTML = `<div style="color:#f43f5e;font-size:0.85rem;">Erro ao consultar VirusTotal.</div>`;
+    }
+
+    if (window.lucide) lucide.createIcons();
 }
 
 const historySize = 60; // Sincronizado com o backend (10 min)
