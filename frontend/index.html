@@ -775,8 +775,9 @@
 
                 <!-- FREE -->
                 <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:1.75rem;position:relative;">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#475569;margin-bottom:0.75rem;">Gratuito</div>
-                    <div style="font-size:2rem;font-weight:900;color:#94a3b8;margin-bottom:1.25rem;">Free</div>
+                    <div id="plan-free-badge" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#475569;margin-bottom:0.75rem;">Gratuito</div>
+                    <div style="font-size:2rem;font-weight:900;color:#94a3b8;margin-bottom:0.5rem;">Free</div>
+                    <div id="plan-free-price" style="font-size:1.5rem;font-weight:800;color:#f1f5f9;margin-bottom:1.25rem;">R$ 0,00 <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/sempre</span></div>
                     <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
                         <li style="color:#64748b;">✓ &nbsp;Dashboard de Monitoramento</li>
                         <li style="color:#64748b;">✓ &nbsp;Configuração Básica (unbound.conf)</li>
@@ -791,9 +792,10 @@
 
                 <!-- PRO LITE -->
                 <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(56,189,248,0.05));border:1px solid rgba(16,185,129,0.35);border-radius:20px;padding:1.75rem;position:relative;box-shadow:0 0 30px rgba(16,185,129,0.08);">
-                    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#10b981,#38bdf8);color:#000;font-size:0.6rem;font-weight:900;padding:3px 14px;border-radius:20px;letter-spacing:1.5px;text-transform:uppercase;">VIA DOAÇÃO ❤</div>
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#10b981;margin-bottom:0.75rem;">Apoiador</div>
-                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#10b981,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.25rem;">PRO Lite</div>
+                    <div id="plan-pro-lite-floating-badge" style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#10b981,#38bdf8);color:#000;font-size:0.6rem;font-weight:900;padding:3px 14px;border-radius:20px;letter-spacing:1.5px;text-transform:uppercase;">VIA DOAÇÃO ❤</div>
+                    <div id="plan-pro-lite-badge" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#10b981;margin-bottom:0.75rem;">Apoiador</div>
+                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#10b981,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">PRO Lite</div>
+                    <div id="plan-pro-lite-price" style="font-size:1.5rem;font-weight:800;color:#10b981;margin-bottom:1.25rem;">R$ 49,90 <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/mês</span></div>
                     <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
                         <li style="color:#94a3b8;">✓ &nbsp;Tudo do Plano Free</li>
                         <li style="color:#94a3b8;">✓ &nbsp;Configurações Avançadas</li>
@@ -804,7 +806,7 @@
                         <li style="color:#334155;">✗ &nbsp;Benchmark DNS</li>
                         <li style="color:#334155;">✗ &nbsp;Visão Global (Globe)</li>
                     </ul>
-                    <button onclick="document.getElementById('donation-area').scrollIntoView({behavior:'smooth'})"
+                    <button id="btn-plan-pro-lite" onclick="document.getElementById('donation-area').scrollIntoView({behavior:'smooth'})"
                         style="width:100%;margin-top:1.5rem;padding:0.7rem;background:linear-gradient(90deg,rgba(16,185,129,0.2),rgba(56,189,248,0.2));border:1px solid rgba(16,185,129,0.4);color:#10b981;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.8rem;letter-spacing:0.5px;transition:all 0.2s;"
                         onmouseover="this.style.background='linear-gradient(90deg,rgba(16,185,129,0.35),rgba(56,189,248,0.35))';"
                         onmouseout="this.style.background='linear-gradient(90deg,rgba(16,185,129,0.2),rgba(56,189,248,0.2))';">
@@ -814,8 +816,9 @@
 
                 <!-- PRO FULL -->
                 <div style="background:linear-gradient(135deg,rgba(56,189,248,0.08),rgba(168,85,247,0.05));border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:1.75rem;position:relative;box-shadow:0 0 30px rgba(56,189,248,0.07);">
-                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;margin-bottom:0.75rem;">Premium</div>
-                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.25rem;">PRO</div>
+                    <div id="plan-pro-badge" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;margin-bottom:0.75rem;">Premium</div>
+                    <div style="font-size:2rem;font-weight:900;background:linear-gradient(90deg,#38bdf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">PRO</div>
+                    <div id="plan-pro-price" style="font-size:1.5rem;font-weight:800;color:#38bdf8;margin-bottom:1.25rem;">R$ 99,90 <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/mês</span></div>
                     <ul style="list-style:none;display:flex;flex-direction:column;gap:0.6rem;font-size:0.83rem;">
                         <li style="color:#94a3b8;">✓ &nbsp;Tudo do PRO Lite</li>
                         <li style="color:#94a3b8;">✓ &nbsp;Modo TV / NOC Fullscreen</li>
@@ -825,9 +828,9 @@
                         <li style="color:#94a3b8;">✓ &nbsp;Multi-Servidor</li>
                         <li style="color:#94a3b8;">✓ &nbsp;Acesso a Novas Features Beta</li>
                     </ul>
-                    <a href="https://wa.me/5569992214709?text=Quero+ativar+licença+PRO+do+Sentinel" target="_blank"
+                    <a id="btn-plan-pro" href="https://wa.me/5569992214709?text=Quero+ativar+licença+PRO+do+Sentinel" target="_blank"
                         style="display:block;width:100%;margin-top:1.5rem;padding:0.7rem;background:linear-gradient(90deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15));border:1px solid rgba(56,189,248,0.4);color:#38bdf8;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.8rem;letter-spacing:0.5px;text-align:center;text-decoration:none;box-sizing:border-box;">
-                        &#9993; FALAR COM SUPORTE
+                        ✉ FALAR COM SUPORTE
                     </a>
                 </div>
             </div>

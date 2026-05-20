@@ -1,0 +1,20 @@
+{
+    "free": {
+        "badge": "Gratuito",
+        "price": "R$ 0,00",
+        "period": "sempre",
+        "action_label": "Uso Padrão"
+    },
+    "pro_lite": {
+        "badge": "VIA DOAÇÃO ❤",
+        "price": "R$ 49,90",
+        "period": "mês",
+        "action_label": "❤ FAZER DOAÇÃO (PIX)"
+    },
+    "pro": {
+        "badge": "Premium",
+        "price": "R$ 99,90",
+        "period": "mês",
+        "action_label": "✉ FALAR COM SUPORTE"
+    }
+}

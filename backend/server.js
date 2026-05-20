@@ -721,6 +721,81 @@ app.get('/api/system/licenses-db', (req, res) => {
         res.json(db);
     } catch (e) {
         res.status(500).json({ error: 'Erro ao ler banco de licenças' });
+});
+
+// Rota para servir os preços dos planos dinamicamente (Master e Cliente)
+app.get('/api/system/pricing', async (req, res) => {
+    const isMaster = envConfig.IS_MASTER === 'true';
+    const localPricingPath = path.join(__dirname, '..', 'pricing.json');
+    
+    // Configurações de fallback padrão dos preços
+    const defaultPricing = {
+        free: {
+            badge: "Gratuito",
+            price: "R$ 0,00",
+            period: "sempre",
+            action_label: "Uso Padrão"
+        },
+        pro_lite: {
+            badge: "VIA DOAÇÃO ❤",
+            price: "R$ 49,90",
+            period: "mês",
+            action_label: "❤ FAZER DOAÇÃO (PIX)"
+        },
+        pro: {
+            badge: "Premium",
+            price: "R$ 99,90",
+            period: "mês",
+            action_label: "✉ FALAR COM SUPORTE"
+        }
+    };
+
+    if (isMaster) {
+        try {
+            if (!fs.existsSync(localPricingPath)) {
+                fs.writeFileSync(localPricingPath, JSON.stringify(defaultPricing, null, 4), 'utf8');
+            }
+            const data = fs.readFileSync(localPricingPath, 'utf8');
+            return res.json(JSON.parse(data));
+        } catch (e) {
+            console.error('[Pricing] Erro ao carregar preços locais no Master:', e.message);
+            return res.json(defaultPricing);
+        }
+    } else {
+        // CLIENT MODE: Tenta buscar do Master Server, com cache local e fallback resiliente
+        const cachePath = path.join(__dirname, 'pricing_cache.json');
+        const MASTER_URLS = process.env.MASTER_URL ? process.env.MASTER_URL.split(',') : ['http://servidor-licencas.duckdns.org:3300'];
+        
+        for (const baseUrl of MASTER_URLS) {
+            try {
+                const url = `${baseUrl.trim()}/api/system/pricing?t=${Date.now()}`;
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                
+                const fetchRes = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (fetchRes.ok) {
+                    const pricingData = await fetchRes.json();
+                    fs.writeFileSync(cachePath, JSON.stringify(pricingData, null, 4), 'utf8');
+                    return res.json(pricingData);
+                }
+            } catch (e) {
+                // Tenta o próximo MASTER_URL ou vai para o fallback
+            }
+        }
+        
+        // Em caso de offline, tenta recuperar o cache local do cliente
+        try {
+            if (fs.existsSync(cachePath)) {
+                const data = fs.readFileSync(cachePath, 'utf8');
+                return res.json(JSON.parse(data));
+            }
+        } catch (e) {}
+
+        // Fallback absoluto caso tudo falhe
+        return res.json(defaultPricing);
     }
 });
 

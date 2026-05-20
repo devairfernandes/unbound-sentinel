@@ -832,6 +832,56 @@ async function fetchSystem() {
     } catch (err) { console.error('System fetch error:', err); }
 }
 
+async function fetchPricing() {
+    try {
+        const res = await fetch(`${API_BASE}/system/pricing`);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        // Free Plan
+        if (data.free) {
+            const badgeEl = document.getElementById('plan-free-badge');
+            if (badgeEl) badgeEl.innerText = data.free.badge || 'Gratuito';
+            
+            const priceEl = document.getElementById('plan-free-price');
+            if (priceEl) {
+                priceEl.innerHTML = `${data.free.price || 'R$ 0,00'} <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/${data.free.period || 'sempre'}</span>`;
+            }
+        }
+        
+        // PRO Lite Plan
+        if (data.pro_lite) {
+            const badgeEl = document.getElementById('plan-pro-lite-floating-badge');
+            if (badgeEl) badgeEl.innerText = data.pro_lite.badge || 'VIA DOAÇÃO ❤';
+            
+            const priceEl = document.getElementById('plan-pro-lite-price');
+            if (priceEl) {
+                priceEl.innerHTML = `${data.pro_lite.price || 'R$ 49,90'} <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/${data.pro_lite.period || 'mês'}</span>`;
+            }
+            
+            const btnEl = document.getElementById('btn-plan-pro-lite');
+            if (btnEl) btnEl.innerText = data.pro_lite.action_label || '❤ FAZER DOAÇÃO (PIX)';
+        }
+        
+        // PRO Plan
+        if (data.pro) {
+            const badgeEl = document.getElementById('plan-pro-badge');
+            if (badgeEl) badgeEl.innerText = data.pro.badge || 'Premium';
+            
+            const priceEl = document.getElementById('plan-pro-price');
+            if (priceEl) {
+                priceEl.innerHTML = `${data.pro.price || 'R$ 99,90'} <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">/${data.pro.period || 'mês'}</span>`;
+            }
+            
+            const btnEl = document.getElementById('btn-plan-pro');
+            if (btnEl) btnEl.innerText = data.pro.action_label || '✉ FALAR COM SUPORTE';
+        }
+    } catch (err) {
+        console.error('Pricing fetch error:', err);
+    }
+}
+
+
 async function fetchHistory() {
     try {
         const res = await fetch(`${API_BASE}/history`);
@@ -2375,6 +2425,7 @@ function refreshAll() {
     fetchSystem(); 
     fetchSettings(); 
     fetchLogs();
+    fetchPricing();
 }
 
 function toggleSidebar() {

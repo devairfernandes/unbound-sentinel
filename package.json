@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.4",
+  "version": "2.5.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.5": [
+      "Precificação Dinâmica Sentinel: Introdução do sistema centralizado de gestão de planos e preços (Free, PRO Lite, PRO). Permite que os administradores editem o valor, período, badge e rótulo de ação de cada plano diretamente no painel Master License Manager (porta 4000) com propagação instantânea em tempo real via API do Servidor Master e cache resiliente com AbortController de 3s no lado do cliente."
+    ],
     "v2.5.4": [
       "Fix no Renderizador do Globo 3D: Removida chamada a método inexistente (.globeColor) que causava um erro de execução silencioso e impedia a inicialização das camadas de dados (pontos, arcos, polígonos). Agora, a transparência e cor estilo vidro azul são aplicadas diretamente no material do Three.js."
     ],
