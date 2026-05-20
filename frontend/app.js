@@ -2667,7 +2667,7 @@ async function loadActiveClients() {
                 isAnyPro = true;
             }
 
-            const actionBtn = isAnyPro
+            const actionBtn = (isAnyPro || c.isRegistered)
                 ? `<button onclick="openEditLicenseByHWID('${hwid}')"
                     style="background:transparent; border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.72rem; font-weight:600; letter-spacing:0.5px; transition:all 0.2s;"
                     onmouseover="this.style.borderColor='#38bdf8';this.style.color='#38bdf8';"
@@ -3320,12 +3320,11 @@ function initGlobe() {
 
     try {
         sentinelGlobe = Globe()(container)
-            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-            .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .globeColor('rgba(10, 25, 45, 0.45)')
             .backgroundColor('rgba(0,0,0,0)')
             .showAtmosphere(true)
-            .atmosphereColor('#38bdf8');
+            .atmosphereColor('#0ea5e9')
+            .atmosphereAltitude(0.18);
 
         sentinelGlobe.controls().autoRotate = true;
         sentinelGlobe.controls().autoRotateSpeed = 0.5;
@@ -3333,32 +3332,35 @@ function initGlobe() {
 
         // Configuração de Hubs e Arcos (Sync)
         sentinelGlobe.pointsData(hubs)
-            .pointAltitude(0.01)
-            .pointColor(() => '#38bdf8')
-            .pointRadius(0.4)
+            .pointAltitude(0.02)
+            .pointColor(() => '#00f2fe')
+            .pointRadius(0.6)
             .pointResolution(32)
-            .pointLabel(d => `<div style="background:rgba(0,0,0,0.9); padding:8px; border:1px solid #38bdf8; border-radius:8px; box-shadow:0 0 15px rgba(56,189,248,0.3);">
-                <strong style="color:#38bdf8; font-size:14px;">${d.name}</strong><br>
-                <span style="color:#fff; font-size:11px; opacity:0.8;">Sentinel Node Active</span>
+            .pointLabel(d => `<div style="background:rgba(10,18,36,0.95); padding:10px 14px; border:1px solid #00f2fe; border-radius:12px; box-shadow:0 0 20px rgba(0,242,254,0.4); backdrop-filter:blur(8px);">
+                <strong style="color:#00f2fe; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">${d.name}</strong><br>
+                <span style="color:#fff; font-size:11px; opacity:0.85; display:flex; align-items:center; gap:5px; margin-top:4px;">
+                    <span style="display:inline-block; width:6px; height:6px; background:#10b981; border-radius:50%; box-shadow:0 0 8px #10b981; animation:livePulse 2s infinite;"></span>
+                    Sentinel Node Active
+                </span>
             </div>`);
 
         sentinelGlobe
             .arcColor(d => d.color)
-            .arcDashLength(0.4)
-            .arcDashGap(2)
-            .arcDashAnimateTime(2000)
-            .arcStroke(1.5)
-            .arcAltitude(0.25);
+            .arcDashLength(0.5)
+            .arcDashGap(1.5)
+            .arcDashAnimateTime(1500)
+            .arcStroke(1.8)
+            .arcAltitude(d => d.altitude);
 
         // Inicia Arcos Imediatamente
         updateGlobeArcs();
 
         // Pulsação (Sync)
         sentinelGlobe.ringsData(hubs)
-            .ringColor(() => '#38bdf8')
-            .ringMaxRadius(5)
-            .ringPropagationSpeed(1.5)
-            .ringRepeatPeriod(2000);
+            .ringColor(() => t => `rgba(0, 242, 254, ${1 - t})`)
+            .ringMaxRadius(8)
+            .ringPropagationSpeed(2.5)
+            .ringRepeatPeriod(1500);
 
         // Ajuste de Dimensões
         updateDimensions();
@@ -3372,8 +3374,8 @@ function initGlobe() {
                 if (sentinelGlobe) {
                     sentinelGlobe.hexPolygonsData(countries.features)
                         .hexPolygonResolution(3)
-                        .hexPolygonMargin(0.7)
-                        .hexPolygonColor(() => 'rgba(56, 189, 248, 0.4)');
+                        .hexPolygonMargin(0.18)
+                        .hexPolygonColor(() => 'rgba(0, 242, 254, 0.7)');
                 }
             })
             .catch(err => console.warn('Erro ao carregar malha digital:', err));
@@ -3394,6 +3396,12 @@ function updateGlobeArcs() {
         { lat: 25.2048, lng: 55.2708 }
     ];
 
+    const neonColors = [
+        "rgba(0, 242, 254, 0.8)",  // Cyber Cyan
+        "rgba(217, 70, 239, 0.8)", // Neon Magenta/Purple
+        "rgba(16, 185, 129, 0.8)"  // Emerald Green
+    ];
+
     const arcs = Array.from({ length: 15 }, () => {
         const start = hubs[Math.floor(Math.random() * hubs.length)];
         let end = hubs[Math.floor(Math.random() * hubs.length)];
@@ -3405,7 +3413,8 @@ function updateGlobeArcs() {
         return {
             startLat: start.lat, startLng: start.lng,
             endLat: end.lat, endLng: end.lng,
-            color: ["#38bdf8", "#10b981", "#f59e0b"][Math.floor(Math.random() * 3)]
+            color: neonColors[Math.floor(Math.random() * neonColors.length)],
+            altitude: Math.random() * 0.3 + 0.15
         };
     });
 

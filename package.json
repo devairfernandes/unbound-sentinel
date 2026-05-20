@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.3": [
+      "Upgrade do Globo 3D Holográfico: O globo de tráfego de rede foi completamente reformulado. Substituímos as texturas sólidas de satélite por uma esfera translúcida premium estilo vidro, malha continental digital ultra-detalhada (margem 0.18) com brilho néon ciano, arcos tridimensionais cyberpunk com altitudes dinâmicas e efeito sonar de alta frequência (fading rings).",
+      "Correção de Alinhamento Vertical: Resolvido bug visual de layout que desalinhava e empurrava o container do canvas 3D no painel."
+    ],
     "v2.5.2": [
       "Fix no Sistema de Licenciamento: Corrigida falha no validador de check-in do Master e no fallback de cache que permitiam que licenças expiradas permanecessem marcadas como ativas. Agora a expiração é verificada rigorosamente em tempo real e em todas as camadas de segurança (Check-in, Cache local e Sincronização imediata)."
     ],

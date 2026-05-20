@@ -431,9 +431,11 @@ app.post('/api/system/check-in', (req, res) => {
 
         // Busca licença associada a este HWID ou IP
         let foundLicense = null;
+        let registeredClientName = null;
         for (const key in db) {
             if (db[key].hwid === hwid || db[key].authorized_ip === clientIp) {
                 const lic = db[key];
+                registeredClientName = lic.client;
                 const expiry = lic.expires_at || lic.expiry;
                 const isExpired = expiry && expiry !== 'never' && new Date() > new Date(expiry);
                 
@@ -452,7 +454,8 @@ app.post('/api/system/check-in', (req, res) => {
             version,
             lastSeen: Date.now(),
             status: foundLicense ? foundLicense.type : 'free',
-            client: foundLicense ? foundLicense.client : 'Novo Cliente'
+            client: foundLicense ? foundLicense.client : (registeredClientName || 'Novo Cliente'),
+            isRegistered: !!registeredClientName
         };
         saveSessions();
         console.log(`[Check-in] Recebido de ${hostname} (${clientIp}) - Status: ${activeSessions[hwid].status}`);
@@ -729,6 +732,7 @@ app.post('/api/system/licenses-db', auth, requireRole(['admin']), (req, res) => 
         
         // Sincroniza o status nas sessões ativas imediatamente
         for (const hwid in activeSessions) {
+            let found = false;
             for (const key in db) {
                 if (db[key].hwid === hwid) {
                     const lic = db[key];
@@ -741,8 +745,13 @@ app.post('/api/system/licenses-db', auth, requireRole(['admin']), (req, res) => 
                         activeSessions[hwid].status = 'free';
                     }
                     activeSessions[hwid].client = lic.client;
+                    activeSessions[hwid].isRegistered = true;
+                    found = true;
                     break;
                 }
+            }
+            if (!found) {
+                activeSessions[hwid].isRegistered = false;
             }
         }
         saveSessions();
