@@ -894,11 +894,14 @@ function parseLogsForTop(stdout) {
     const domains = {}, clients = {};
     const lines = stdout.split('\n');
     lines.forEach(line => {
-        const match = line.match(/info: ([0-9.]+) (\S+) (\S+) (\S+)/);
+        const match = line.match(/info: ([0-9a-fA-F.:]+) (\S+) (\S+) (\S+)/) || line.match(/info: ([0-9.]+) (\S+) (\S+) (\S+)/);
         if (match) {
             const client = match[1], domain = match[2];
-            domains[domain] = (domains[domain] || 0) + 1;
-            clients[client] = (clients[client] || 0) + 1;
+            const isLoopback = client === '127.0.0.1' || client === '::1' || client === 'localhost';
+            if (!isLoopback) {
+                domains[domain] = (domains[domain] || 0) + 1;
+                clients[client] = (clients[client] || 0) + 1;
+            }
         }
     });
 
@@ -1624,36 +1627,40 @@ async function parseLogsForThreats() {
                     const ip = match.length === 4 ? match[2] : match[1];
                     let domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
 
-                    allActiveIPs.add(ip);
+                    const isLoopback = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost';
+                    
+                    if (!isLoopback) {
+                        allActiveIPs.add(ip);
 
-                    let isMalware = false;
-                    let currentDomain = domain;
-                    while (currentDomain) {
-                        if (malwareSet.has(currentDomain)) {
-                            isMalware = true;
-                            break;
+                        let isMalware = false;
+                        let currentDomain = domain;
+                        while (currentDomain) {
+                            if (malwareSet.has(currentDomain)) {
+                                isMalware = true;
+                                break;
+                            }
+                            const parts = currentDomain.split('.');
+                            if (parts.length <= 2) break;
+                            parts.shift();
+                            currentDomain = parts.join('.');
                         }
-                        const parts = currentDomain.split('.');
-                        if (parts.length <= 2) break;
-                        parts.shift();
-                        currentDomain = parts.join('.');
-                    }
 
-                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
+                        const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
 
-                    if (isMalware || isSuspicious) {
-                        const existing = threatHistory.find(t => t.domain === domain && t.ip === ip);
-                        if (!existing) {
-                            threatHistory.unshift({
-                                domain: domain,
-                                ip: ip,
-                                time: new Date().toLocaleString('pt-BR'),
-                                timestamp: Date.now(),
-                                severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
-                            });
-                            hasNewThreats = true;
+                        if (isMalware || isSuspicious) {
+                            const existing = threatHistory.find(t => t.domain === domain && t.ip === ip);
+                            if (!existing) {
+                                threatHistory.unshift({
+                                    domain: domain,
+                                    ip: ip,
+                                    time: new Date().toLocaleString('pt-BR'),
+                                    timestamp: Date.now(),
+                                    severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
+                                });
+                                hasNewThreats = true;
+                            }
+                            suspects[ip] = (suspects[ip] || 0) + 1;
                         }
-                        suspects[ip] = (suspects[ip] || 0) + 1;
                     }
                 }
 
@@ -1822,7 +1829,9 @@ app.get('/api/security/blocked', auth, async (req, res) => {
                     const ip = match.length === 4 ? match[2] : match[1];
                     const domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
 
-                    if (blacklistedDomains.has(domain)) {
+                    const isLoopback = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost';
+
+                    if (blacklistedDomains.has(domain) && !isLoopback) {
                         // Evita duplicatas no histórico baseado no IP, Domínio e Hora (aproximada para evitar spam)
                         const exists = blockedHistory.some(h => h.ip === ip && h.domain === domain && h.time === time);
                         if (!exists) {
