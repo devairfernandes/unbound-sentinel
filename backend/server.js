@@ -634,6 +634,9 @@ app.post('/api/system/update', auth, requireRole(['admin']), (req, res) => {
                 
                 rm -f update.tar.gz &&
                 
+                echo "Instalando/atualizando dependências npm (se houver)..." &&
+                (npm install --omit=dev --no-audit --no-fund || sudo npm install --omit=dev --no-audit --no-fund || echo "[AVISO] Falha ao rodar npm install") &&
+                
                 echo "Reiniciando sistema..." &&
                 (
                     systemctl restart unbound-dashboard || 
@@ -1083,11 +1086,20 @@ const enrichVTCache  = {};   // { domain: { data, expires } }
 const GEO_TTL = 60 * 60 * 1000;     // 1 hora
 const VT_TTL  = 30 * 60 * 1000;     // 30 minutos
 
-const maxmind = require('maxmind');
+let maxmind = null;
+try {
+    maxmind = require('maxmind');
+} catch (err) {
+    console.warn(`[GeoIP] Biblioteca 'maxmind' não está instalada no Node.js. Usando fallback de Geolocalização ip-api.com e Web API.`);
+}
 let dbLookup = null;
 
 // Tenta abrir o banco de dados MaxMind em locais conhecidos ou no caminho configurado
 function initLocalMaxMind() {
+    if (!maxmind) {
+        dbLookup = null;
+        return false;
+    }
     const dbPaths = [
         process.env.MAXMIND_DB_PATH,
         path.join(__dirname, '..', 'GeoLite2-City.mmdb'),
