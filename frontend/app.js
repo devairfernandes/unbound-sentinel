@@ -1210,6 +1210,25 @@ function openConfigModule(module) {
     grid.style.display = 'none';
     area.style.display = 'block';
 
+    // Oculta todas as sub-views para evitar vazamentos e sobreposições indesejadas entre telas
+    const allConfigSubViews = [
+        'config-editor',
+        'static-dns-view',
+        'access-control-view',
+        'blacklist-view',
+        'firewall-view',
+        'network-view',
+        'layout-view',
+        'credentials-view',
+        'ddns-view',
+        'time-view',
+        'geoip-view'
+    ];
+    allConfigSubViews.forEach(viewId => {
+        const el = document.getElementById(viewId);
+        if (el) el.style.display = 'none';
+    });
+
     if (module === 'unbound') {
         title.innerText = 'Configuração Unbound';
         document.getElementById('config-selector').style.display = 'block';

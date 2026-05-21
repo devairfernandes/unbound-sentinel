@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.9",
+  "version": "2.5.10",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.10": [
+      "Hotfix do Painel de Configurações: Correção de bug no roteamento SPA que causava o vazamento visual e sobreposição das telas de Fuso Horário (Time/NTP) e GeoIP em outros menus de configuração (Blacklist CTI, IP Blocks, Static DNS)."
+    ],
     "v2.5.9": [
       "Hotfix de Estabilidade: Importação resiliente da biblioteca GeoIP 'maxmind' para prevenir crashes na inicialização pós-update e adição de execução automática do npm install no script de atualização OTA."
     ],
