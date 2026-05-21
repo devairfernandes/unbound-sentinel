@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.7",
+  "version": "2.5.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,11 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.8": [
+      "GeoIP MaxMind Integrado: Painel dedicado 'GeoIP / MaxMind' visível para todos os clientes. Suporte completo a banco local GeoLite2 (.mmdb) com consultas ILIMITADAS e offline, Web API MaxMind e fallback automático ip-api.com. Botão de download com 1 clique que baixa, extrai e ativa o banco GeoLite2-City.mmdb diretamente no servidor sem reinicializações.",
+      "Globo 3D Inteligente: O mapa 3D agora exibe arcos de ameaças em tempo real geolocalizadas — origem (IP do cliente) conectada ao destino (domínio malicioso). Arcos vermelhos para CRÍTICO/BLOQUEADO, magenta para SUSPEITO e ciano para tráfego geral. Legenda lateral glassmorphism com as últimas conexões detectadas.",
+      "Autodetecção de Localização do Servidor: O backend descobre dinamicamente a localização geográfica do servidor no startup para centralizar corretamente os arcos privados no globo."
+    ],
     "v2.5.7": [
       "NOC Telemetry Elite: Upgrade completo do Ping Master com motor assíncrono não-bloqueante por alvo, suporte a protocolos ICMP/TCP e portas customizadas, sparklines de área premium preenchidas com gradientes néon reativos e tela de telemetria detalhada via ApexCharts mostrando Min/Max/Média, Jitter e perda de pacotes em tempo real."
     ],
@@ -107,6 +112,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "maxmind": "^5.0.6",
     "ssh2": "^1.17.0"
   }
 }

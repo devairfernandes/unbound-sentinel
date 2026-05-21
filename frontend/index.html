@@ -233,6 +233,18 @@
                 </div>
 
                 <div id="sentinel-globe" style="width: 100%; height: 100%;"></div>
+
+                <!-- Glassmorphic Connection Flow Legend -->
+                <div class="globe-legend" style="position: absolute; top: 20px; right: 20px; width: 280px; max-height: 250px; overflow-y: auto; z-index: 10; background: rgba(10,25,50,0.4); backdrop-filter: blur(12px); border: 1px solid rgba(0,242,254,0.25); border-radius: 14px; padding: 12px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span class="live-dot" style="display:inline-block; width:6px; height:6px; background:#00f2fe; border-radius:50%; box-shadow:0 0 8px #00f2fe;"></span>
+                        Fluxo de Tráfego Recente
+                    </div>
+                    <div id="globe-connections-list" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.7rem; color: #94a3b8;">
+                        <div style="text-align: center; opacity: 0.5; padding: 20px 0;">Aguardando conexões...</div>
+                    </div>
+                </div>
+
                 <div class="globe-stats" style="position: absolute; bottom: 20px; right: 20px; z-index: 10; text-align: right;">
                     <div id="globe-queries" style="font-family: 'JetBrains Mono'; font-size: 1.5rem; font-weight: 800; color: var(--accent-primary);">0</div>
                     <div style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Consultas em Tempo Real</div>
@@ -313,6 +325,13 @@
                         <p>Configurar acesso via domínio (DuckDNS, No-IP).</p>
                     </div>
                 </div>
+                <div class="config-card" onclick="openConfigModule('geoip')">
+                    <div class="card-icon" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);"><i data-lucide="map-pin" style="color:#10b981;"></i></div>
+                    <div class="card-info">
+                        <h3>GeoIP / MaxMind</h3>
+                        <p>Configurar geolocalização de IPs para o Globo 3D e CTI.</p>
+                    </div>
+                </div>
                 <div class="config-card admin-only" onclick="openConfigModule('time')">
                     <div class="card-icon" style="background:rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.3);"><i data-lucide="clock" style="color:#38bdf8;"></i></div>
                     <div class="card-info">
@@ -357,6 +376,7 @@
                     <div id="credentials-view" class="module-content" style="display:none;"></div>
                     <div id="ddns-view" class="module-content" style="display:none;"></div>
                     <div id="time-view" class="module-content" style="display:none;"></div>
+                    <div id="geoip-view" class="module-content" style="display:none;"></div>
 
                     <!-- NOVO: EDITOR VISUAL DE ACCESS CONTROL -->
                     <div id="access-control-view" class="module-content" style="display:none;">

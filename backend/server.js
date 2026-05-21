@@ -377,12 +377,15 @@ app.get('/api/settings/credentials', auth, requireRole(['admin']), (req, res) =>
         githubToken: GITHUB_TOKEN ? '********' : '',
         masterUrl: process.env.MASTER_URL || '',
         isMaster: process.platform === 'win32',
-        os: process.platform
+        os: process.platform,
+        maxmindAccountId: process.env.MAXMIND_ACCOUNT_ID || envConfig.MAXMIND_ACCOUNT_ID || '',
+        maxmindLicenseKey: (process.env.MAXMIND_LICENSE_KEY || envConfig.MAXMIND_LICENSE_KEY) ? '********' : '',
+        maxmindDbPath: process.env.MAXMIND_DB_PATH || envConfig.MAXMIND_DB_PATH || ''
     });
 });
 
 app.post('/api/settings/credentials', auth, requireRole(['admin']), (req, res) => {
-    const { dashUser, dashPass, sshHost, sshPort, sshUser, sshPass } = req.body;
+    const { dashUser, dashPass, sshHost, sshPort, sshUser, sshPass, maxmindAccountId, maxmindLicenseKey, maxmindDbPath } = req.body;
     let env = readEnvFile();
 
     if (dashUser)  { env = updateEnvKey(env, 'DASH_USER', dashUser); ADMIN_USER = dashUser; }
@@ -399,6 +402,19 @@ app.post('/api/settings/credentials', auth, requireRole(['admin']), (req, res) =
         env = updateEnvKey(env, 'MASTER_URL', req.body.masterUrl);
         process.env.MASTER_URL = req.body.masterUrl;
     }
+    if (maxmindAccountId !== undefined) {
+        env = updateEnvKey(env, 'MAXMIND_ACCOUNT_ID', maxmindAccountId);
+        process.env.MAXMIND_ACCOUNT_ID = maxmindAccountId;
+    }
+    if (maxmindLicenseKey !== undefined && maxmindLicenseKey !== '********') {
+        env = updateEnvKey(env, 'MAXMIND_LICENSE_KEY', maxmindLicenseKey);
+        process.env.MAXMIND_LICENSE_KEY = maxmindLicenseKey;
+    }
+    if (maxmindDbPath !== undefined) {
+        env = updateEnvKey(env, 'MAXMIND_DB_PATH', maxmindDbPath);
+        process.env.MAXMIND_DB_PATH = maxmindDbPath;
+        initLocalMaxMind();
+    }
 
     try {
         fs.writeFileSync(ENV_PATH, env, 'utf8');
@@ -413,7 +429,8 @@ app.get('/api/system/license', auth, (req, res) => {
     res.json({
         key: LICENSE_KEY === 'FREE' ? '' : LICENSE_KEY,
         status: currentLicenseStatus,
-        isMaster: envConfig.IS_MASTER === 'true'
+        isMaster: envConfig.IS_MASTER === 'true',
+        serverGeo: global.serverGeo || null
     });
 });
 
@@ -1025,25 +1042,185 @@ app.get('/api/system', async (req, res) => {
     }
 });
 
+// ===== GEOLOCALIZAÇÃO DO SERVIDOR (Startup) =====
+global.serverGeo = { lat: -23.5505, lon: -46.6333, countryCode: 'BR', city: 'São Paulo', country: 'Brasil' };
+
+function detectServerGeo() {
+    const http = require('http');
+    const url = 'http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,lat,lon';
+    
+    http.get(url, (res) => {
+        let body = '';
+        res.on('data', (d) => body += d);
+        res.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                if (data && data.status === 'success' && data.lat !== undefined && data.lon !== undefined) {
+                    global.serverGeo = {
+                        lat: parseFloat(data.lat),
+                        lon: parseFloat(data.lon),
+                        city: data.city || 'São Paulo',
+                        country: data.country || 'Brasil',
+                        countryCode: data.countryCode || 'BR'
+                    };
+                    console.log(`[GeoIP] Localização do servidor detectada com sucesso: ${global.serverGeo.city}, ${global.serverGeo.country} (${global.serverGeo.lat}, ${global.serverGeo.lon})`);
+                }
+            } catch (err) {
+                console.error('[GeoIP] Falha ao parsear geolocalização do servidor:', err.message);
+            }
+        });
+    }).on('error', (err) => {
+        console.error('[GeoIP] Erro ao consultar geolocalização do servidor:', err.message);
+    });
+}
+
+// Inicializa no startup
+detectServerGeo();
+
 // ===== CTI ENRICHMENT: GEOLOCALIZAÇÃO & VIRUSTOTAL =====
 const enrichGeoCache = {};   // { ip: { data, expires } }
 const enrichVTCache  = {};   // { domain: { data, expires } }
 const GEO_TTL = 60 * 60 * 1000;     // 1 hora
 const VT_TTL  = 30 * 60 * 1000;     // 30 minutos
 
-// Rota de Geolocalização + ASN (ip-api.com, gratuita, sem chave)
+const maxmind = require('maxmind');
+let dbLookup = null;
+
+// Tenta abrir o banco de dados MaxMind em locais conhecidos ou no caminho configurado
+function initLocalMaxMind() {
+    const dbPaths = [
+        process.env.MAXMIND_DB_PATH,
+        path.join(__dirname, '..', 'GeoLite2-City.mmdb'),
+        path.join(__dirname, '..', 'GeoLite2-Country.mmdb'),
+        '/opt/unbound-dashboard/GeoLite2-City.mmdb',
+        '/opt/unbound-dashboard/GeoLite2-Country.mmdb'
+    ].filter(Boolean);
+    
+    for (const p of dbPaths) {
+        if (fs.existsSync(p)) {
+            try {
+                dbLookup = maxmind.openSync(p);
+                console.log(`[GeoIP] Banco de dados MaxMind carregado com sucesso de: ${p}`);
+                return true;
+            } catch (err) {
+                console.error(`[GeoIP] Erro ao carregar banco MaxMind de ${p}:`, err.message);
+            }
+        }
+    }
+    dbLookup = null;
+    return false;
+}
+
+// Inicializa no startup
+initLocalMaxMind();
+
+function translateMaxMind(maxmindData, source) {
+    if (!maxmindData) return null;
+    const country = maxmindData.country ? (maxmindData.country.names['pt-BR'] || maxmindData.country.names['en'] || '') : '';
+    const countryCode = maxmindData.country ? (maxmindData.country.iso_code || '') : '';
+    const city = maxmindData.city ? (maxmindData.city.names['pt-BR'] || maxmindData.city.names['en'] || '') : '';
+    
+    let regionName = '';
+    if (maxmindData.subdivisions && maxmindData.subdivisions.length > 0) {
+        regionName = maxmindData.subdivisions[0].names['pt-BR'] || maxmindData.subdivisions[0].names['en'] || '';
+    }
+    
+    const traits = maxmindData.traits || {};
+    const isp = traits.isp || traits.organization || '';
+    const asNum = traits.autonomous_system_number ? `AS${traits.autonomous_system_number}` : '';
+    const asOrg = traits.autonomous_system_organization || '';
+    const asField = asNum && asOrg ? `${asNum} ${asOrg}` : (asNum || asOrg || '');
+    
+    const lat = maxmindData.location ? maxmindData.location.latitude : null;
+    const lon = maxmindData.location ? maxmindData.location.longitude : null;
+    
+    return {
+        status: 'success',
+        country: country || '--',
+        countryCode: countryCode || '--',
+        city: city || '--',
+        regionName: regionName || '--',
+        isp: isp || 'Desconhecido',
+        as: asField || 'Desconhecido',
+        lat: lat,
+        lon: lon,
+        source: source
+    };
+}
+
+// Rota de Geolocalização + ASN (MaxMind GeoIP/GeoLite com fallback para ip-api.com)
 app.get('/api/enrich/geo', auth, async (req, res) => {
     const { ip } = req.query;
-    if (!ip) return res.status(400).json({ error: 'IP obrigatório' });
+    if (!ip) return res.status(400).json({ error: 'IP ou Domínio obrigatório' });
 
-    const now = Date.now();
-    if (enrichGeoCache[ip] && enrichGeoCache[ip].expires > now) {
-        return res.json(enrichGeoCache[ip].data);
+    let lookupIp = ip.trim();
+    if (/[a-zA-Z]/.test(lookupIp)) {
+        try {
+            const dns = require('dns').promises;
+            const ips = await dns.resolve4(lookupIp);
+            if (ips && ips.length > 0) {
+                lookupIp = ips[0];
+            }
+        } catch (dnsErr) {
+            // Se falhar a resolução, tenta com o valor original
+        }
     }
 
+    const now = Date.now();
+    if (enrichGeoCache[lookupIp] && enrichGeoCache[lookupIp].expires > now) {
+        return res.json(enrichGeoCache[lookupIp].data);
+    }
+
+    // 1. Tentar banco local MaxMind
+    if (dbLookup) {
+        try {
+            const mmData = dbLookup.get(lookupIp);
+            if (mmData) {
+                const translated = translateMaxMind(mmData, 'MaxMind (Local DB)');
+                if (translated) {
+                    enrichGeoCache[lookupIp] = { data: translated, expires: now + GEO_TTL };
+                    return res.json(translated);
+                }
+            }
+        } catch (localErr) {
+            console.error('[GeoIP] Erro ao consultar banco local:', localErr.message);
+        }
+    }
+
+    // 2. Tentar API do MaxMind se configurada
+    let liveEnv = {};
+    try { liveEnv = require('dotenv').parse(fs.readFileSync(ENV_PATH, 'utf8')); } catch(e) {}
+    
+    const accId = (liveEnv.MAXMIND_ACCOUNT_ID || envConfig.MAXMIND_ACCOUNT_ID || process.env.MAXMIND_ACCOUNT_ID || '').trim();
+    const licKey = (liveEnv.MAXMIND_LICENSE_KEY || envConfig.MAXMIND_LICENSE_KEY || process.env.MAXMIND_LICENSE_KEY || '').trim();
+    
+    if (accId && licKey) {
+        try {
+            const authHeader = 'Basic ' + Buffer.from(`${accId}:${licKey}`).toString('base64');
+            const apiUrl = (liveEnv.MAXMIND_API_URL || envConfig.MAXMIND_API_URL || 'https://geoip.maxmind.com/geoip/v2.1/city/').trim();
+            const response = await fetch(`${apiUrl}${encodeURIComponent(lookupIp)}`, {
+                timeout: 5000,
+                headers: { 'Authorization': authHeader }
+            });
+            if (response.ok) {
+                const mmData = await response.json();
+                const translated = translateMaxMind(mmData, 'MaxMind (Web API)');
+                if (translated) {
+                    enrichGeoCache[lookupIp] = { data: translated, expires: now + GEO_TTL };
+                    return res.json(translated);
+                }
+            } else {
+                console.error(`[GeoIP] MaxMind Web API retornou status ${response.status}`);
+            }
+        } catch (apiErr) {
+            console.error('[GeoIP] Erro ao consultar MaxMind Web API:', apiErr.message);
+        }
+    }
+
+    // 3. Fallback original: ip-api.com
     try {
         const http = require('http');
-        const url = `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,countryCode,region,regionName,city,isp,org,as,query`;
+        const url = `http://ip-api.com/json/${encodeURIComponent(lookupIp)}?fields=status,message,country,countryCode,region,regionName,city,isp,org,as,query,lat,lon`;
 
         const raw = await new Promise((resolve, reject) => {
             http.get(url, r => {
@@ -1054,10 +1231,123 @@ app.get('/api/enrich/geo', auth, async (req, res) => {
         });
 
         const data = JSON.parse(raw);
-        enrichGeoCache[ip] = { data, expires: now + GEO_TTL };
+        data.source = 'ip-api.com (Gratuito)';
+        enrichGeoCache[lookupIp] = { data, expires: now + GEO_TTL };
         res.json(data);
     } catch (e) {
         res.status(500).json({ error: 'Falha ao consultar geolocalização', detail: e.message });
+    }
+});
+
+// ===== DOWNLOAD DO BANCO GEOLITE2 LOCAL =====
+app.post('/api/geoip/download-db', auth, async (req, res) => {
+    let liveEnv = {};
+    try { liveEnv = require('dotenv').parse(fs.readFileSync(ENV_PATH, 'utf8')); } catch(e) {}
+
+    const licKey = (liveEnv.MAXMIND_LICENSE_KEY || envConfig.MAXMIND_LICENSE_KEY || process.env.MAXMIND_LICENSE_KEY || '').trim();
+    if (!licKey) {
+        return res.status(400).json({ error: 'License Key do MaxMind não configurada. Configure em GeoIP / MaxMind.' });
+    }
+
+    const configuredPath = (liveEnv.MAXMIND_DB_PATH || process.env.MAXMIND_DB_PATH || '').trim();
+    const destDir  = configuredPath
+        ? path.dirname(configuredPath)
+        : '/opt/unbound-dashboard';
+    const destFile = path.join(destDir, 'GeoLite2-City.mmdb');
+    const tmpFile  = path.join(destDir, 'geolite2_tmp.tar.gz');
+    // Nova URL oficial MaxMind com Basic Auth (Account ID + License Key)
+    const accId = (liveEnv.MAXMIND_ACCOUNT_ID || envConfig.MAXMIND_ACCOUNT_ID || process.env.MAXMIND_ACCOUNT_ID || '').trim();
+    const basicAuth = accId ? 'Basic ' + Buffer.from(`${accId}:${licKey}`).toString('base64') : null;
+    // URL nova (pós-2022) — também suporta a URL legada como fallback
+    const downloadUrl = `https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz`;
+
+    try {
+        // 1. Garantir que o diretório existe
+        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+        // 2. Baixar o arquivo tar.gz via https com suporte a redirects (301/302)
+        console.log('[GeoIP] Iniciando download do GeoLite2-City.mmdb...');
+        await new Promise((resolve, reject) => {
+            const https = require('https');
+            const http  = require('http');
+            const { URL } = require('url');
+            const maxmindHost = 'download.maxmind.com';
+
+            function doGet(url, redirectCount, sendAuth) {
+                if (redirectCount > 5) return reject(new Error('Muitos redirecionamentos ao baixar banco MaxMind.'));
+                const lib = url.startsWith('https') ? https : http;
+
+                // Só envia Authorization para o host MaxMind — CDNs externos (S3 etc.) rejeitam com 400
+                const headers = { 'User-Agent': 'UnboundSentinel/1.0' };
+                if (sendAuth && basicAuth) headers['Authorization'] = basicAuth;
+
+                lib.get(url, { headers }, (response) => {
+                    // Seguir redirects automaticamente
+                    if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307) {
+                        const location = response.headers['location'];
+                        if (!location) return reject(new Error('Redirect sem header Location.'));
+                        response.resume(); // descartar corpo
+                        // Verifica se o redirect é para host externo (ex: S3)
+                        let isMaxMindHost = true;
+                        try { isMaxMindHost = new URL(location).hostname.includes('maxmind.com'); } catch(e) {}
+                        console.log(`[GeoIP] Seguindo redirect (${response.statusCode}) → ${location} [auth=${isMaxMindHost}]`);
+                        return doGet(location, redirectCount + 1, isMaxMindHost);
+                    }
+                    if (response.statusCode === 401) return reject(new Error('Credenciais inválidas (401). Verifique Account ID e License Key.'));
+                    if (response.statusCode === 403) return reject(new Error('Acesso negado (403). Ative o GeoLite2 em maxmind.com → My Account → Download Files.'));
+                    if (response.statusCode !== 200) return reject(new Error(`Erro HTTP ${response.statusCode} ao baixar banco MaxMind.`));
+
+                    const file = fs.createWriteStream(tmpFile);
+                    response.pipe(file);
+                    file.on('finish', () => { file.close(); resolve(); });
+                    file.on('error', (err) => { try { fs.unlinkSync(tmpFile); } catch(e) {} reject(err); });
+                }).on('error', (err) => { try { fs.unlinkSync(tmpFile); } catch(e) {} reject(err); });
+            }
+
+            doGet(downloadUrl, 0, true); // começa enviando auth para o MaxMind
+        });
+
+        // 3. Extrair o .mmdb do tar.gz
+        const { execSync } = require('child_process');
+        const extractDir = path.join(destDir, '_geolite2_extract_tmp');
+        try { execSync(`rm -rf "${extractDir}"`); } catch(e) {}
+        fs.mkdirSync(extractDir, { recursive: true });
+        execSync(`tar -xzf "${tmpFile}" -C "${extractDir}"`);
+
+        // 4. Encontrar o arquivo .mmdb extraído recursivamente
+        const findMmdb = (dir) => {
+            for (const item of fs.readdirSync(dir)) {
+                const full = path.join(dir, item);
+                if (item.endsWith('.mmdb')) return full;
+                if (fs.statSync(full).isDirectory()) { const found = findMmdb(full); if (found) return found; }
+            }
+            return null;
+        };
+        const extractedMmdb = findMmdb(extractDir);
+        if (!extractedMmdb) throw new Error('Arquivo .mmdb não encontrado no pacote baixado.');
+
+        // 5. Mover para o destino final e limpar temporários
+        fs.copyFileSync(extractedMmdb, destFile);
+        try { execSync(`rm -rf "${extractDir}" "${tmpFile}"`); } catch(e) {}
+        console.log(`[GeoIP] GeoLite2-City.mmdb instalado com sucesso em: ${destFile}`);
+
+        // 6. Atualizar env e recarregar o banco em memória
+        process.env.MAXMIND_DB_PATH = destFile;
+        initLocalMaxMind();
+
+        // 7. Limpar cache para forçar releitura com novo banco
+        Object.keys(enrichGeoCache).forEach(k => delete enrichGeoCache[k]);
+
+        res.json({
+            success: true,
+            message: `GeoLite2-City.mmdb baixado e ativado com sucesso!`,
+            path: destFile,
+            active: !!dbLookup
+        });
+    } catch (err) {
+        console.error('[GeoIP] Erro no download do banco:', err.message);
+        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch(e) {}
+        res.status(500).json({ error: err.message });
     }
 });
 

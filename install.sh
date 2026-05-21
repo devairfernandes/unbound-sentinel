@@ -103,11 +103,11 @@ cd "$INSTALL_DIR"
 echo "⚡ Aplicando otimizações avançadas e anti-DDoS no Unbound..."
 if [ -d "/etc/unbound/conf.d" ]; then
     sudo cp -f "$INSTALL_DIR/sentinel-optimizations.conf" "/etc/unbound/conf.d/sentinel-optimizations.conf"
-    sudo systemctl restart unbound || true
+    # sudo systemctl restart unbound || true
     echo "✅ Otimizações anti-DDoS instaladas em /etc/unbound/conf.d/sentinel-optimizations.conf"
 elif [ -d "/etc/unbound/local.d" ]; then
     sudo cp -f "$INSTALL_DIR/sentinel-optimizations.conf" "/etc/unbound/local.d/sentinel-optimizations.conf"
-    sudo systemctl restart unbound || true
+    # sudo systemctl restart unbound || true
     echo "✅ Otimizações anti-DDoS instaladas em /etc/unbound/local.d/sentinel-optimizations.conf"
 else
     echo "⚠️  Não foi possível detectar diretório de configuração do Unbound. Copie sentinel-optimizations.conf manualmente."

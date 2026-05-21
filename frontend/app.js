@@ -97,6 +97,10 @@ async function updateSecurityThreats() {
     try {
         const response = await fetch('/api/security/threats');
         const data = await response.json();
+        window.latestThreats = data.alerts || [];
+        if (window.sentinelGlobe) {
+            updateGlobeArcs();
+        }
 
         const criticalEl = document.getElementById('total-critical-threats');
         const suspiciousEl = document.getElementById('total-suspicious-threats');
@@ -352,7 +356,7 @@ async function openEnrichModal(domain, ip) {
 
     titleEl.textContent = domain;
     vtLink.style.display = 'none';
-    geoBody.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:#64748b;font-size:0.85rem;"><i data-lucide="loader" style="width:16px;height:16px;" class="spin"></i> Consultando ip-api.com...</div>`;
+    geoBody.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:#64748b;font-size:0.85rem;"><i data-lucide="loader" style="width:16px;height:16px;" class="spin"></i> Consultando IP...</div>`;
     vtBody.innerHTML = `<div style="display:flex;gap:10px;align-items:center;color:#64748b;font-size:0.85rem;"><i data-lucide="loader" style="width:16px;height:16px;" class="spin"></i> Consultando VirusTotal...</div>`;
     modal.style.display = 'flex';
     if (window.lucide) lucide.createIcons();
@@ -364,6 +368,10 @@ async function openEnrichModal(domain, ip) {
             const geo = await geoRes.json();
             if (geo.status === 'success') {
                 geoBody.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:6px 12px; font-size:0.7rem; font-weight:700; color:#38bdf8; backdrop-filter:blur(10px); margin-bottom:1rem; width:fit-content; text-transform:uppercase; letter-spacing:0.5px;">
+                        <span class="live-dot" style="display:inline-block; width:8px; height:8px; background:#0ea5e9; border-radius:50%; box-shadow:0 0 8px #0ea5e9;"></span>
+                        <span>Provedor Ativo: ${geo.source || 'Desconhecido'}</span>
+                    </div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
                         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:0.85rem;">
                             <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">País</div>
@@ -1359,6 +1367,238 @@ function openConfigModule(module) {
         document.getElementById('time-view').style.display = 'block';
         document.querySelector('.editor-actions').style.display = 'none';
         renderTimeSettings();
+    } else if (module === 'geoip') {
+        title.innerText = 'GeoIP / MaxMind — Geolocalização';
+        document.getElementById('config-selector').style.display = 'none';
+        document.getElementById('config-editor').style.display = 'none';
+        document.getElementById('firewall-view').style.display = 'none';
+        document.getElementById('network-view').style.display = 'none';
+        document.getElementById('layout-view').style.display = 'none';
+        document.getElementById('credentials-view').style.display = 'none';
+        document.getElementById('ddns-view').style.display = 'none';
+        document.getElementById('time-view').style.display = 'none';
+        document.getElementById('geoip-view').style.display = 'block';
+        document.querySelector('.editor-actions').style.display = 'none';
+        renderGeoIP();
+    }
+}
+
+
+function renderGeoIP() {
+    const view = document.getElementById('geoip-view');
+    view.innerHTML = `<p class="loading">Carregando configurações de GeoIP...</p>`;
+
+    apiFetch(`${API_BASE}/settings/credentials`)
+        .then(r => r.json())
+        .then(data => {
+            view.innerHTML = `
+            <div style="max-width:600px;">
+
+                <!-- Header informativo -->
+                <div style="margin-bottom:1.5rem;padding:1rem 1.2rem;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.25);border-radius:10px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+                        <i data-lucide="map-pin" style="color:#10b981;width:18px;height:18px;"></i>
+                        <strong style="color:#10b981;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;">MaxMind GeoIP / GeoLite2</strong>
+                    </div>
+                    <p style="font-size:0.78rem;color:var(--text-secondary);margin:0;">Configure suas credenciais para ativar geolocalização precisa de IPs no Globo 3D e no painel de Inteligência de Ameaças (CTI). Sem configuração, o sistema usa o serviço gratuito ip-api.com como fallback automático.</p>
+                </div>
+
+                <!-- MaxMind Geolocation Settings -->
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="globe" style="color:#10b981;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Credenciais MaxMind (Web API)</h3>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div>
+                            <label class="cred-label">Account ID</label>
+                            <input id="geo-maxmind-account" type="text" class="cred-input" value="${data.maxmindAccountId || ''}" placeholder="Ex: 123456">
+                        </div>
+                        <div>
+                            <label class="cred-label">License Key</label>
+                            <div style="position:relative;">
+                                <input id="geo-maxmind-key" type="password" class="cred-input" placeholder="${data.maxmindLicenseKey ? 'Chave já configurada (********)' : 'Sua chave de licença'}" autocomplete="new-password">
+                                <button onclick="togglePassVisibility('geo-maxmind-key')" class="pass-eye-btn"><i data-lucide="eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banco Local MMDB -->
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="database" style="color:#38bdf8;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Banco de Dados Local (MMDB)</h3>
+                    </div>
+                    <div>
+                        <label class="cred-label">Caminho do arquivo .mmdb no servidor</label>
+                        <input id="geo-maxmind-dbpath" type="text" class="cred-input" value="${data.maxmindDbPath || '/opt/unbound-dashboard/GeoLite2-City.mmdb'}" placeholder="/opt/unbound-dashboard/GeoLite2-City.mmdb">
+                        <span style="font-size:0.65rem;color:#64748b;display:block;margin-top:4px;">Deixe em branco para usar detecção automática. Prioridade: Banco Local → Web API → ip-api.com (gratuito)</span>
+                    </div>
+                </div>
+
+                <!-- Provedor Ativo (Status) -->
+                <div style="margin-bottom:2rem;padding:1rem 1.2rem;background:rgba(0,0,0,0.2);border:1px solid var(--card-border);border-radius:10px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+                        <i data-lucide="activity" style="color:var(--accent-primary);width:15px;height:15px;"></i>
+                        <span style="font-size:0.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Provedor Ativo</span>
+                    </div>
+                    <div id="geo-provider-status" style="font-size:0.85rem;">
+                        <span id="geo-provider-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#64748b;margin-right:8px;"></span>
+                        <span id="geo-provider-label" style="color:var(--text-secondary);">Verificando...</span>
+                    </div>
+                </div>
+
+                <!-- Banco Local Offline (Ilimitado) -->
+                <div style="margin-bottom:2rem;padding:1rem 1.2rem;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:10px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.3rem;">
+                                <i data-lucide="database-zap" style="color:#10b981;width:16px;height:16px;"></i>
+                                <strong style="font-size:0.82rem;color:#10b981;">Banco Local GeoLite2 — Consultas ILIMITADAS</strong>
+                            </div>
+                            <p style="font-size:0.73rem;color:var(--text-secondary);margin:0;">Baixe o banco .mmdb uma vez e use offline sem limite de consultas. A Web API tem limite de 1.000/dia (plano gratuito).</p>
+                        </div>
+                        <button id="btn-download-db" onclick="downloadGeoLite2DB()" style="flex-shrink:0;padding:0.55rem 1.1rem;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
+                            <i data-lucide="download-cloud" style="width:15px;height:15px;"></i> Baixar Banco Local
+                        </button>
+                    </div>
+                    <!-- Barra de progresso (oculta por padrão) -->
+                    <div id="geo-dl-progress-wrap" style="display:none;margin-top:0.8rem;">
+                        <div style="background:rgba(0,0,0,0.3);border-radius:20px;overflow:hidden;height:6px;">
+                            <div id="geo-dl-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#10b981,#06d6a0);border-radius:20px;transition:width 0.3s;"></div>
+                        </div>
+                        <p id="geo-dl-label" style="font-size:0.72rem;color:#10b981;margin-top:5px;">Iniciando download...</p>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="saveGeoIPSettings()" style="padding:0.6rem 1.5rem;">
+                        <i data-lucide="save"></i> Salvar Configurações
+                    </button>
+                    <button class="btn" onclick="testGeoIP()" style="padding:0.6rem 1.2rem;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;">
+                        <i data-lucide="zap"></i> Testar Agora
+                    </button>
+                    <p id="geo-status" style="font-size:0.8rem;margin:0;"></p>
+                </div>
+
+            </div>`;
+            if (window.lucide) lucide.createIcons();
+            checkGeoIPProvider();
+        })
+        .catch(() => {
+            view.innerHTML = '<p style="color:var(--accent-danger);">Erro ao carregar configurações de GeoIP.</p>';
+        });
+}
+
+async function saveGeoIPSettings() {
+    const statusEl = document.getElementById('geo-status');
+    const account = document.getElementById('geo-maxmind-account')?.value.trim();
+    const key = document.getElementById('geo-maxmind-key')?.value.trim();
+    const dbpath = document.getElementById('geo-maxmind-dbpath')?.value.trim();
+
+    const payload = {};
+    if (account !== undefined) payload.maxmindAccountId = account;
+    if (key) payload.maxmindLicenseKey = key;
+    if (dbpath !== undefined) payload.maxmindDbPath = dbpath;
+
+    try {
+        if (statusEl) { statusEl.style.color = 'var(--accent-warning)'; statusEl.innerText = 'Salvando...'; }
+        const res = await apiFetch(`${API_BASE}/settings/credentials`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (statusEl) { statusEl.style.color = 'var(--accent-success)'; statusEl.innerText = '✅ Configurações salvas com sucesso!'; }
+        setTimeout(checkGeoIPProvider, 500);
+    } catch (e) {
+        if (statusEl) { statusEl.style.color = 'var(--accent-danger)'; statusEl.innerText = 'Erro ao salvar: ' + e.message; }
+    }
+}
+
+async function testGeoIP() {
+    const statusEl = document.getElementById('geo-status');
+    if (statusEl) { statusEl.style.color = 'var(--accent-warning)'; statusEl.innerText = '⏳ Testando com 8.8.8.8...'; }
+    try {
+        const res = await apiFetch('/api/enrich/geo?ip=8.8.8.8');
+        const data = await res.json();
+        if (data && data.status === 'success') {
+            if (statusEl) {
+                statusEl.style.color = 'var(--accent-success)';
+                statusEl.innerText = `✅ OK — ${data.city}, ${data.country} via ${data.source}`;
+            }
+        } else {
+            if (statusEl) { statusEl.style.color = 'var(--accent-danger)'; statusEl.innerText = '❌ Resposta inválida do provedor.'; }
+        }
+    } catch(e) {
+        if (statusEl) { statusEl.style.color = 'var(--accent-danger)'; statusEl.innerText = 'Erro: ' + e.message; }
+    }
+}
+
+async function checkGeoIPProvider() {
+    const dot = document.getElementById('geo-provider-dot');
+    const label = document.getElementById('geo-provider-label');
+    if (!dot || !label) return;
+    try {
+        const res = await apiFetch('/api/enrich/geo?ip=8.8.8.8');
+        const data = await res.json();
+        if (data && data.source) {
+            const isMaxMind = data.source.includes('MaxMind');
+            const isLocal = data.source.includes('Local');
+            dot.style.background = isMaxMind ? '#10b981' : '#f59e0b';
+            dot.style.boxShadow = isMaxMind ? '0 0 6px #10b981' : '0 0 6px #f59e0b';
+            label.style.color = isMaxMind ? '#10b981' : '#f59e0b';
+            label.innerText = data.source;
+        }
+    } catch(e) {
+        if (label) label.innerText = 'Erro ao verificar provedor';
+    }
+}
+
+async function downloadGeoLite2DB() {
+    const btn      = document.getElementById('btn-download-db');
+    const wrap     = document.getElementById('geo-dl-progress-wrap');
+    const bar      = document.getElementById('geo-dl-bar');
+    const dlLabel  = document.getElementById('geo-dl-label');
+    const statusEl = document.getElementById('geo-status');
+
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+    if (wrap) wrap.style.display = 'block';
+    if (bar)  { bar.style.width = '0%'; bar.style.background = 'linear-gradient(90deg,#10b981,#06d6a0)'; }
+    if (dlLabel) { dlLabel.style.color = '#10b981'; dlLabel.innerText = 'Conectando ao MaxMind...'; }
+    if (statusEl) { statusEl.style.color = 'var(--accent-warning)'; statusEl.innerText = ''; }
+
+    // Progresso visual simulado enquanto aguarda o download
+    let fakeProgress = 0;
+    const progressInterval = setInterval(() => {
+        fakeProgress = Math.min(fakeProgress + (Math.random() * 7), 88);
+        if (bar) bar.style.width = fakeProgress + '%';
+        if (fakeProgress < 30 && dlLabel)       dlLabel.innerText = 'Baixando GeoLite2-City.tar.gz...';
+        else if (fakeProgress < 65 && dlLabel)  dlLabel.innerText = 'Extraindo arquivo .mmdb...';
+        else if (dlLabel)                       dlLabel.innerText = 'Instalando banco de dados...';
+    }, 400);
+
+    try {
+        const res = await apiFetch('/api/geoip/download-db', { method: 'POST' });
+        const data = await res.json();
+        clearInterval(progressInterval);
+
+        if (data.success) {
+            if (bar) bar.style.width = '100%';
+            if (dlLabel) { dlLabel.style.color = '#10b981'; dlLabel.innerText = `✅ ${data.message}`; }
+            if (statusEl) { statusEl.style.color = 'var(--accent-success)'; statusEl.innerText = '✅ Banco local ativado! Consultas agora são ilimitadas.'; }
+            setTimeout(checkGeoIPProvider, 800);
+        } else {
+            throw new Error(data.error || 'Erro desconhecido');
+        }
+    } catch(err) {
+        clearInterval(progressInterval);
+        if (bar) { bar.style.width = '100%'; bar.style.background = 'linear-gradient(90deg,#f43f5e,#e11d48)'; }
+        if (dlLabel) { dlLabel.style.color = '#f43f5e'; dlLabel.innerText = '❌ ' + err.message; }
+        if (statusEl) { statusEl.style.color = 'var(--accent-danger)'; statusEl.innerText = 'Erro: ' + err.message; }
+    } finally {
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     }
 }
 
@@ -1453,6 +1693,34 @@ function renderCredentials() {
                     </div>
                 </div>
 
+                <!-- MaxMind Geolocation Settings -->
+                <div style="margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;padding-bottom:0.75rem;border-bottom:1px solid var(--card-border);">
+                        <i data-lucide="globe" style="color:#10b981;width:18px;height:18px;"></i>
+                        <h3 style="font-size:0.85rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Geolocalização MaxMind GeoIP</h3>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div>
+                            <label class="cred-label">MaxMind Account ID (Web API)</label>
+                            <input id="cred-maxmind-account" type="text" class="cred-input" value="${data.maxmindAccountId || ''}" placeholder="Ex: 123456">
+                        </div>
+                        <div>
+                            <label class="cred-label">MaxMind License Key (Web API)</label>
+                            <div style="position:relative;">
+                                <input id="cred-maxmind-key" type="password" class="cred-input" placeholder="${data.maxmindLicenseKey ? 'Chave já configurada (********)' : 'Sua licença'}" autocomplete="new-password">
+                                <button onclick="togglePassVisibility('cred-maxmind-key')" class="pass-eye-btn"><i data-lucide="eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr;gap:1rem;">
+                        <div>
+                            <label class="cred-label">Caminho do Banco MaxMind Local (MMDB)</label>
+                            <input id="cred-maxmind-dbpath" type="text" class="cred-input" value="${data.maxmindDbPath || '/opt/unbound-dashboard/GeoLite2-City.mmdb'}" placeholder="/opt/unbound-dashboard/GeoLite2-City.mmdb">
+                            <span style="font-size:0.65rem;color:#64748b;">Deixe em branco para usar a detecção automática (/opt/unbound-dashboard/GeoLite2-City.mmdb ou local)</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="display:flex;align-items:center;gap:1rem;">
                     <button class="btn btn-primary" onclick="saveCredentials()" style="padding:0.6rem 1.5rem;">
                         <i data-lucide="save"></i> Salvar Alterações
@@ -1491,6 +1759,9 @@ async function saveCredentials() {
     const sshPass  = document.getElementById('cred-ssh-pass')?.value.trim();
     const githubToken = document.getElementById('cred-github-token')?.value.trim();
     const masterUrl = document.getElementById('cred-master-url')?.value.trim();
+    const maxmindAccountId = document.getElementById('cred-maxmind-account')?.value.trim();
+    const maxmindLicenseKey = document.getElementById('cred-maxmind-key')?.value.trim();
+    const maxmindDbPath = document.getElementById('cred-maxmind-dbpath')?.value.trim();
 
     if (dashUser) payload.dashUser = dashUser;
     if (dashPass) payload.dashPass = dashPass;
@@ -1500,6 +1771,9 @@ async function saveCredentials() {
     if (sshPass)  payload.sshPass  = sshPass;
     if (githubToken) payload.githubToken = githubToken;
     if (masterUrl !== undefined) payload.masterUrl = masterUrl;
+    if (maxmindAccountId !== undefined) payload.maxmindAccountId = maxmindAccountId;
+    if (maxmindLicenseKey !== undefined && maxmindLicenseKey !== '') payload.maxmindLicenseKey = maxmindLicenseKey;
+    if (maxmindDbPath !== undefined) payload.maxmindDbPath = maxmindDbPath;
 
     if (Object.keys(payload).length === 0) {
         status.style.color = 'var(--accent-warning)';
@@ -2543,6 +2817,9 @@ async function checkLicenseStatus() {
         if (!res) return;
         
         const data = await res.json();
+        if (data.serverGeo) {
+            window.serverGeo = data.serverGeo;
+        }
         const isPro = data.status.type === 'pro' && data.status.valid;
         const isFree = data.status.type === 'free';
         currentFeatures = data.status.features || { tv: false, config: false, update: false, charts: false };
@@ -3443,42 +3720,168 @@ function initGlobe() {
     }
 }
 
-function updateGlobeArcs() {
-    if (!sentinelGlobe) return;
-    const hubs = [
-        { lat: -23.5505, lng: -46.6333 },
-        { lat: 40.7128, lng: -74.0060 },
-        { lat: 51.5074, lng: -0.1278 },
-        { lat: 35.6762, lng: 139.6503 },
-        { lat: -33.8688, lng: 151.2093 },
-        { lat: 25.2048, lng: 55.2708 }
-    ];
+window.globeGeoCache = window.globeGeoCache || {};
 
-    const neonColors = [
-        "rgba(0, 242, 254, 0.8)",  // Cyber Cyan
-        "rgba(217, 70, 239, 0.8)", // Neon Magenta/Purple
-        "rgba(16, 185, 129, 0.8)"  // Emerald Green
-    ];
-
-    const arcs = Array.from({ length: 15 }, () => {
-        const start = hubs[Math.floor(Math.random() * hubs.length)];
-        let end = hubs[Math.floor(Math.random() * hubs.length)];
-        
-        while (end === start) {
-            end = hubs[Math.floor(Math.random() * hubs.length)];
-        }
-
-        return {
-            startLat: start.lat, startLng: start.lng,
-            endLat: end.lat, endLng: end.lng,
-            color: neonColors[Math.floor(Math.random() * neonColors.length)],
-            altitude: Math.random() * 0.3 + 0.15
+async function geolocateForGlobe(ipOrDomain) {
+    if (!ipOrDomain) return null;
+    
+    // 1. Verificar cache local em memória
+    if (window.globeGeoCache[ipOrDomain]) {
+        return window.globeGeoCache[ipOrDomain];
+    }
+    
+    // 2. Tratar IPs locais / privados / loopbacks
+    const isPrivate = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|localhost|::1)/.test(ipOrDomain);
+    if (isPrivate) {
+        const sGeo = window.serverGeo || { lat: -23.5505, lon: -46.6333, countryCode: 'BR', city: 'São Paulo', country: 'Brasil' };
+        // Leve jitter/deslocamento para não sobrepor perfeitamente no mesmo pixel
+        const jitter = () => (Math.random() - 0.5) * 0.4;
+        const res = {
+            lat: sGeo.lat + jitter(),
+            lon: sGeo.lon + jitter(),
+            city: sGeo.city,
+            country: sGeo.country,
+            countryCode: sGeo.countryCode,
+            isPrivate: true
         };
+        window.globeGeoCache[ipOrDomain] = res;
+        return res;
+    }
+    
+    // 3. Consultar no backend
+    try {
+        const geoRes = await apiFetch(`/api/enrich/geo?ip=${encodeURIComponent(ipOrDomain)}`);
+        const geo = await geoRes.json();
+        if (geo && geo.status === 'success' && geo.lat !== null && geo.lon !== null) {
+            const res = {
+                lat: parseFloat(geo.lat),
+                lon: parseFloat(geo.lon),
+                city: geo.city || '--',
+                country: geo.country || '--',
+                countryCode: geo.countryCode || '--'
+            };
+            window.globeGeoCache[ipOrDomain] = res;
+            return res;
+        }
+    } catch (err) {
+        console.warn(`[GlobeGeo] Falha ao geolocalizar ${ipOrDomain}:`, err.message);
+    }
+    
+    return null;
+}
+
+let globeTimeoutId = null;
+
+async function updateGlobeArcs() {
+    if (globeTimeoutId) clearTimeout(globeTimeoutId);
+    if (!sentinelGlobe) return;
+
+    const sGeo = window.serverGeo || { lat: -23.5505, lon: -46.6333, countryCode: 'BR', city: 'São Paulo', country: 'Brasil' };
+    const alerts = window.latestThreats || [];
+    const arcs = [];
+    const listItems = [];
+
+    // Processar os alertas reais mais recentes
+    const recentAlerts = alerts.slice(0, 10);
+    
+    for (const alert of recentAlerts) {
+        const originGeo = await geolocateForGlobe(alert.ip);
+        const destGeo = await geolocateForGlobe(alert.domain);
+        
+        if (originGeo && destGeo) {
+            let color = "rgba(0, 242, 254, 0.7)"; // Cyan para tráfego geral
+            let severityLabel = "Geral";
+            let severityColor = "#00f2fe";
+            
+            if (alert.severity === 'CRITICAL' || alert.severity === 'BLOCKED') {
+                color = "rgba(244, 63, 94, 0.9)"; // Red
+                severityLabel = alert.severity === 'BLOCKED' ? 'BLOQUEADO' : 'CRÍTICO';
+                severityColor = "#f43f5e";
+            } else if (alert.severity === 'SUSPICIOUS') {
+                color = "rgba(217, 70, 239, 0.9)"; // Magenta
+                severityLabel = 'SUSPEITO';
+                severityColor = "#d946ef";
+            }
+            
+            arcs.push({
+                startLat: originGeo.lat,
+                startLng: originGeo.lon,
+                endLat: destGeo.lat,
+                endLng: destGeo.lon,
+                color: color,
+                altitude: Math.random() * 0.25 + 0.15
+            });
+            
+            const originFlag = flagEmoji(originGeo.countryCode);
+            const destFlag = flagEmoji(destGeo.countryCode);
+            
+            listItems.push(`
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: ${severityColor}; font-size: 0.65rem; letter-spacing: 0.5px;">${severityLabel}</span>
+                        <span style="font-size: 0.6.rem; opacity: 0.5;">${alert.time || ''}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">
+                            <span>${originFlag}</span>
+                            <span style="color: #f1f5f9; font-weight: 600;">${alert.ip}</span>
+                        </div>
+                        <span style="opacity: 0.5; font-size: 0.8rem;">→</span>
+                        <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; text-align: right;">
+                            <span style="color: #38bdf8; font-weight: 600;" title="${alert.domain}">${alert.domain}</span>
+                            <span>${destFlag}</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.6rem; opacity: 0.5; display: flex; justify-content: space-between;">
+                        <span>${originGeo.city || '--'}, ${originGeo.countryCode || '--'}</span>
+                        <span>${destGeo.city || '--'}, ${destGeo.countryCode || '--'}</span>
+                    </div>
+                </div>
+            `);
+        }
+    }
+    
+    // Adicionar conexões de tráfego geral/seguro (Cyan) de background para manter o globo vibrante
+    const backgroundHubs = [
+        { lat: 40.7128, lon: -74.0060, city: 'New York', countryCode: 'US' },
+        { lat: 51.5074, lon: -0.1278, city: 'London', countryCode: 'GB' },
+        { lat: 35.6762, lon: 139.6503, city: 'Tokyo', countryCode: 'JP' },
+        { lat: -33.8688, lon: 151.2093, city: 'Sydney', countryCode: 'AU' },
+        { lat: 25.2048, lon: 55.2708, city: 'Dubai', countryCode: 'AE' }
+    ];
+    
+    // Desenha conexões dos hubs mundiais para o próprio servidor DNS Sentinel
+    backgroundHubs.forEach(hub => {
+        // Apenas adicionamos alguns arcos de background se tivermos poucos arcos de ameaças reais
+        if (arcs.length < 12) {
+            arcs.push({
+                startLat: hub.lat,
+                startLng: hub.lon,
+                endLat: sGeo.lat + (Math.random() - 0.5) * 0.2,
+                endLng: sGeo.lon + (Math.random() - 0.5) * 0.2,
+                color: "rgba(0, 242, 254, 0.35)", // Ciano translúcido de background
+                altitude: Math.random() * 0.2 + 0.1
+            });
+        }
     });
 
     sentinelGlobe.arcsData(arcs);
 
-    setTimeout(updateGlobeArcs, 5000);
+    const listEl = document.getElementById('globe-connections-list');
+    if (listEl) {
+        if (listItems.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align: center; opacity: 0.4; padding: 25px 0; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <i data-lucide="shield-check" style="width:20px; height:20px; color:#10b981;"></i>
+                    Sem ameaças recentes. Tráfego geral ativo.
+                </div>`;
+            if (window.lucide) lucide.createIcons();
+        } else {
+            listEl.innerHTML = listItems.join('');
+        }
+    }
+
+    globeTimeoutId = setTimeout(updateGlobeArcs, 10000);
 }
 
 window.addEventListener("resize", () => {
