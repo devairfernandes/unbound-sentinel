@@ -4034,14 +4034,14 @@ async function updateGlobeArcs() {
                         <span style="font-size: 0.6.rem; opacity: 0.5;">${alert.time || ''}</span>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-                        <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">
-                            <span>${originFlag}</span>
-                            <span style="color: #f1f5f9; font-weight: 600;">${alert.ip}</span>
+                        <div style="display: flex; align-items: center; gap: 4px; max-width: 110px; min-width: 0;">
+                            <span style="flex-shrink: 0; display: flex; align-items: center;">${originFlag}</span>
+                            <span style="color: #f1f5f9; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85px;">${alert.ip}</span>
                         </div>
-                        <span style="opacity: 0.5; font-size: 0.8rem;">→</span>
-                        <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; text-align: right;">
-                            <span style="color: #38bdf8; font-weight: 600;" title="${alert.domain}">${alert.domain}</span>
-                            <span>${destFlag}</span>
+                        <span style="opacity: 0.5; font-size: 0.8rem; flex-shrink: 0;">→</span>
+                        <div style="display: flex; align-items: center; gap: 4px; max-width: 110px; justify-content: flex-end; text-align: right; min-width: 0;">
+                            <span style="color: #38bdf8; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85px;" title="${alert.domain}">${alert.domain}</span>
+                            <span style="flex-shrink: 0; display: flex; align-items: center;">${destFlag}</span>
                         </div>
                     </div>
                     <div style="font-size: 0.6rem; opacity: 0.5; display: flex; justify-content: space-between;">

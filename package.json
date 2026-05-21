@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.13",
+  "version": "2.5.14",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.14": [
+      "Ajuste Fino na Exibição de Bandeiras (Frontend): Correção de bug de layout flex/overflow no widget de Fluxo de Tráfego Recente (legenda do Globo 3D), impedindo que domínios muito compridos truncassem ou ocultassem as bandeiras de destino."
+    ],
     "v2.5.13": [
       "Filtro de IPs Loopback (127.0.0.1): Remoção de ruídos locais (127.0.0.1, ::1 e localhost) nos widgets de Top Clientes, Top Suspeitos, Histórico de Ameaças e Logs de Bloqueio da Blacklist."
     ],
