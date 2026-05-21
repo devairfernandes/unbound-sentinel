@@ -1,6 +1,6 @@
 {
   "name": "dashbord",
-  "version": "2.5.10",
+  "version": "2.5.12",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "changelog": {
+    "v2.5.12": [
+      "Compatibilidade de Emojis de Bandeira (FlagCDN): Substituição dos emojis de bandeira nativos (que não renderizam no Windows) por imagens do FlagCDN com ótima performance e compatibilidade universal.",
+      "Logs CTI Otimizados (Retenção de 2h): Redução do tempo limite de histórico de logs em memória e disco de 12 horas / 7 dias para uma janela fixa de 2 horas, evitando gargalos em grandes provedores de internet."
+    ],
     "v2.5.10": [
       "Hotfix do Painel de Configurações: Correção de bug no roteamento SPA que causava o vazamento visual e sobreposição das telas de Fuso Horário (Time/NTP) e GeoIP em outros menus de configuração (Blacklist CTI, IP Blocks, Static DNS)."
     ],

@@ -1578,6 +1578,180 @@ app.post('/api/config/:file', auth, async (req, res) => {
 // ==========================================
 // ROTA DE SEGURANÇA: DETECÇÃO DE AMEAÇAS
 // ==========================================
+let threatHistory = [];
+let latestTopSuspects = [];
+let latestTotalActiveIPs = 0;
+const threatsFilePath = path.join(__dirname, 'threats_history.json');
+try {
+    if (fs.existsSync(threatsFilePath)) {
+        threatHistory = JSON.parse(fs.readFileSync(threatsFilePath, 'utf8'));
+        // Limpa registros mais antigos que 2 horas na inicialização para reter histórico otimizado
+        const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+        threatHistory = threatHistory.filter(t => t.timestamp > twoHoursAgo);
+    }
+} catch (e) {
+    console.error('Erro ao carregar threats_history.json:', e);
+}
+
+// Background Threat Parser
+async function parseLogsForThreats() {
+    try {
+        const intelPath = path.join(__dirname, 'threat_intel.json');
+        if (!fs.existsSync(intelPath)) return;
+        
+        const threatIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
+        const malwareSet = new Set(threatIntel.malware_domains);
+        const { exec } = require('child_process');
+        
+        // Utiliza tail de 20.000 linhas com buffer estendido de 10MB para tolerar tráfego pesado
+        exec('sudo tail -n 20000 /var/log/unbound.log', { maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+            if (err) {
+                console.error('[Threat Parser] Erro ao ler log:', err.message);
+                return;
+            }
+
+            const lines = stdout.split('\n');
+            const suspects = {};
+            const allActiveIPs = new Set();
+            let hasNewThreats = false;
+
+            lines.forEach(line => {
+                const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || 
+                              line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
+                
+                if (match) {
+                    const timeStr = match.length === 4 ? match[1] : new Date().toLocaleTimeString('pt-BR');
+                    const ip = match.length === 4 ? match[2] : match[1];
+                    let domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
+
+                    allActiveIPs.add(ip);
+
+                    let isMalware = false;
+                    let currentDomain = domain;
+                    while (currentDomain) {
+                        if (malwareSet.has(currentDomain)) {
+                            isMalware = true;
+                            break;
+                        }
+                        const parts = currentDomain.split('.');
+                        if (parts.length <= 2) break;
+                        parts.shift();
+                        currentDomain = parts.join('.');
+                    }
+
+                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
+
+                    if (isMalware || isSuspicious) {
+                        const existing = threatHistory.find(t => t.domain === domain && t.ip === ip);
+                        if (!existing) {
+                            threatHistory.unshift({
+                                domain: domain,
+                                ip: ip,
+                                time: new Date().toLocaleString('pt-BR'),
+                                timestamp: Date.now(),
+                                severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
+                            });
+                            hasNewThreats = true;
+                        }
+                        suspects[ip] = (suspects[ip] || 0) + 1;
+                    }
+                }
+
+                // Log de violações DNSSEC (Bogus) - Corrigido o regex de captura da causa técnica para evitar truncamento
+                if (line.includes('validation failure')) {
+                    const dnssecMatch = line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN:\s+(.+)$/i) ||
+                                        line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN/i) ||
+                                        line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?/i);
+                    if (dnssecMatch) {
+                        const domain = dnssecMatch[1].toLowerCase().replace(/\.$/, '').trim();
+                        const reason = dnssecMatch[3] ? dnssecMatch[3].trim() : 'Falha na assinatura criptográfica (DNSSEC)';
+                        
+                        const existing = threatHistory.find(t => t.domain === domain && t.severity === 'DNSSEC');
+                        if (!existing) {
+                            threatHistory.unshift({
+                                domain: domain,
+                                ip: 'Validador DNSSEC',
+                                time: new Date().toLocaleString('pt-BR'),
+                                timestamp: Date.now(),
+                                severity: 'DNSSEC',
+                                reason: reason
+                            });
+                            hasNewThreats = true;
+                        }
+                    }
+                }
+            });
+
+            // Limpa ameaças mais antigas que 2 horas (2 * 60 * 60 * 1000 ms) para economizar recursos
+            const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+            const originalLength = threatHistory.length;
+            threatHistory = threatHistory.filter(t => t.timestamp > twoHoursAgo);
+            if (threatHistory.length !== originalLength) {
+                hasNewThreats = true;
+            }
+
+            // Persiste no arquivo se houver atualizações
+            if (hasNewThreats) {
+                try {
+                    fs.writeFileSync(threatsFilePath, JSON.stringify(threatHistory, null, 4));
+                } catch (writeErr) {
+                    console.error('Erro ao gravar threats_history.json:', writeErr);
+                }
+            }
+
+            // Consolida os top suspects e estatísticas globais
+            latestTopSuspects = Object.entries(suspects)
+                .map(([ip, count]) => ({ ip, count, uniqueDomains: 1 }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 5);
+
+            latestTotalActiveIPs = allActiveIPs.size;
+        });
+    } catch (e) {
+        console.error('[Threat Parser] Falha catastrófica:', e);
+    }
+}
+
+// Inicia o processador contínuo em segundo plano
+setTimeout(parseLogsForThreats, 1000);
+setInterval(parseLogsForThreats, 15000);
+
+// Auxiliar para cruzar ameaças com a blacklist local em tempo real
+function getAlertsWithBlocked(threats) {
+    const localZonePath = '/etc/unbound/local.d/local-zone.conf';
+    let blacklistedDomains = new Set();
+    if (fs.existsSync(localZonePath)) {
+        try {
+            const content = fs.readFileSync(localZonePath, 'utf8');
+            const matches = content.matchAll(/local-zone:\s*"([^"]+)"\s+always_nxdomain/g);
+            for (const match of matches) {
+                blacklistedDomains.add(match[1].toLowerCase().trim());
+            }
+        } catch (e) {
+            console.error('Erro ao ler local-zone.conf:', e);
+        }
+    }
+
+    return threats.map(t => {
+        const domainLower = t.domain.toLowerCase().trim();
+        let isBlocked = blacklistedDomains.has(domainLower);
+        
+        if (!isBlocked) {
+            for (const parentDomain of blacklistedDomains) {
+                if (domainLower.endsWith('.' + parentDomain) || domainLower === parentDomain) {
+                    isBlocked = true;
+                    break;
+                }
+            }
+        }
+
+        if (isBlocked) {
+            return { ...t, severity: 'BLOCKED' };
+        }
+        return t;
+    });
+}
+
 // ===== ENDPOINT DE DEBUG DE SEGURANÇA =====
 app.get('/api/security/debug', async (req, res) => {
     const { exec } = require('child_process');
@@ -1596,134 +1770,11 @@ app.get('/api/security/debug', async (req, res) => {
 
 app.get('/api/security/threats', async (req, res) => {
     try {
-        let threatHistory = [];
-        const threatIntel = JSON.parse(fs.readFileSync(path.join(__dirname, 'threat_intel.json'), 'utf8'));
-        const malwareSet = new Set(threatIntel.malware_domains);
-        const { exec } = require('child_process');
-        
-        exec('sudo tail -n 2000 /var/log/unbound.log', (err, stdout) => {
-            if (err) {
-                console.error('Erro ao ler log:', err);
-                return res.json({ alerts: threatHistory, topSuspects: [] });
-            }
-
-            const lines = stdout.split('\n');
-            const suspects = {};
-            const allActiveIPs = new Set();
-
-            lines.forEach(line => {
-                const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || line.match(/info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/);
-                
-                if (match) {
-                    const timeStr = match.length === 4 ? match[1] : new Date().toLocaleTimeString('pt-BR');
-                    const ip = match.length === 4 ? match[2] : match[1];
-                    let domain = (match.length === 4 ? match[3] : match[2]).toLowerCase().replace(/\.$/, '').trim();
-
-                    allActiveIPs.add(ip);
-
-                    let isMalware = false;
-                    let currentDomain = domain;
-                    while (currentDomain) {
-                        if (malwareSet.has(currentDomain)) {
-                            isMalware = true;
-                            break;
-                        }
-                        const parts = currentDomain.split('.');
-                        if (parts.length <= 2) break; // Stop before checking just TLDs like ".com"
-                        parts.shift();
-                        currentDomain = parts.join('.');
-                    }
-
-                    const isSuspicious = threatIntel.suspicious_patterns.some(p => domain.includes(p.toLowerCase().trim()));
-
-                    if (isMalware || isSuspicious) {
-                        const existing = threatHistory.find(t => t.domain === domain && t.ip === ip);
-                        if (!existing) {
-                            threatHistory.unshift({
-                                domain: domain,
-                                ip: ip,
-                                time: new Date().toLocaleString('pt-BR'),
-                                timestamp: Date.now(),
-                                severity: isMalware ? 'CRITICAL' : 'SUSPICIOUS'
-                            });
-                        }
-                        suspects[ip] = (suspects[ip] || 0) + 1;
-                    }
-                }
-
-                // Novo: Log de violações DNSSEC (Bogus)
-                if (line.includes('validation failure')) {
-                    const dnssecMatch = line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN:\s+([^for:]+)/i) ||
-                                        line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?\s+([A-Z0-9]+)\s+IN/i) ||
-                                        line.match(/validation failure\s+<?([_a-zA-Z0-9.-]+)>?/i);
-                    if (dnssecMatch) {
-                        const domain = dnssecMatch[1].toLowerCase().replace(/\.$/, '').trim();
-                        const reason = dnssecMatch[3] ? dnssecMatch[3].trim() : 'Falha na assinatura criptográfica (DNSSEC)';
-                        
-                        const existing = threatHistory.find(t => t.domain === domain && t.severity === 'DNSSEC');
-                        if (!existing) {
-                            threatHistory.unshift({
-                                domain: domain,
-                                ip: 'Validador DNSSEC',
-                                time: new Date().toLocaleString('pt-BR'),
-                                timestamp: Date.now(),
-                                severity: 'DNSSEC',
-                                reason: reason
-                            });
-                        }
-                    }
-                }
-            });
-
-            // Limpa ameaças mais antigas que 12 horas (12 * 60 * 60 * 1000 ms)
-            const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
-            threatHistory = threatHistory.filter(t => t.timestamp > twelveHoursAgo);
-
-            const topSuspects = Object.entries(suspects)
-                .map(([ip, count]) => ({ ip, count, uniqueDomains: 1 }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 5);
-
-            // Carrega blacklist local para checagem em tempo real
-            const localZonePath = '/etc/unbound/local.d/local-zone.conf';
-            let blacklistedDomains = new Set();
-            if (fs.existsSync(localZonePath)) {
-                try {
-                    const content = fs.readFileSync(localZonePath, 'utf8');
-                    const matches = content.matchAll(/local-zone:\s*"([^"]+)"\s+always_nxdomain/g);
-                    for (const match of matches) {
-                        blacklistedDomains.add(match[1].toLowerCase().trim());
-                    }
-                } catch (e) {
-                    console.error('Erro ao ler local-zone.conf:', e);
-                }
-            }
-
-            // Modifica dinamicamente a severidade para BLOCKED se o domínio estiver na blacklist (incluindo subdomínios curinga)
-            const alertsWithBlocked = threatHistory.slice(0, 50).map(t => {
-                const domainLower = t.domain.toLowerCase().trim();
-                let isBlocked = blacklistedDomains.has(domainLower);
-                
-                if (!isBlocked) {
-                    for (const parentDomain of blacklistedDomains) {
-                        if (domainLower.endsWith('.' + parentDomain) || domainLower === parentDomain) {
-                            isBlocked = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (isBlocked) {
-                    return { ...t, severity: 'BLOCKED' };
-                }
-                return t;
-            });
-
-            res.json({ 
-                alerts: alertsWithBlocked, 
-                topSuspects,
-                totalActiveIPs: allActiveIPs.size
-            });
+        const alertsWithBlocked = getAlertsWithBlocked(threatHistory);
+        res.json({ 
+            alerts: alertsWithBlocked.slice(0, 500), // Aumentado para 500 para permitir filtragem estendida no frontend
+            topSuspects: latestTopSuspects,
+            totalActiveIPs: latestTotalActiveIPs
         });
     } catch (error) {
         console.error('Erro na API de Segurança:', error);
@@ -1760,7 +1811,7 @@ app.get('/api/security/blocked', auth, async (req, res) => {
 
             const lines = stdout.split('\n');
             const now = Date.now();
-            const twelveHoursAgo = now - (12 * 60 * 60 * 1000);
+            const twoHoursAgo = now - (2 * 60 * 60 * 1000);
 
             lines.forEach(line => {
                 const match = line.match(/([a-zA-Z]{3}\s+\d+\s+\d{2}:\d{2}:\d{2}).*info:\s+([0-9a-fA-F.:]+)\s+([a-zA-Z0-9.-]+)/) || 
@@ -1786,8 +1837,8 @@ app.get('/api/security/blocked', auth, async (req, res) => {
                 }
             });
 
-            // 3. Aplica retenção de 12 horas
-            blockedHistory = blockedHistory.filter(h => h.timestamp > twelveHoursAgo);
+            // 3. Aplica retenção de 2 horas
+            blockedHistory = blockedHistory.filter(h => h.timestamp > twoHoursAgo);
 
             // Retorna o histórico consolidado
             res.json({ blockedQueries: blockedHistory.slice(0, 100) });
@@ -2013,8 +2064,17 @@ app.post('/api/settings', auth, (req, res) => {
 
 app.get('/api/benchmark', auth, async (req, res) => {
     const customTarget = req.query.target;
-    const baseDomains = ['google.com', 'facebook.com', 'youtube.com', 'netflix.com', 'wikipedia.org'];
-    const domains = customTarget ? [customTarget] : baseDomains;
+    const category = req.query.category || 'popular';
+    
+    const categories = {
+        popular: ['google.com', 'facebook.com', 'youtube.com', 'netflix.com', 'wikipedia.org'],
+        gaming: ['steampowered.com', 'playstation.com', 'epicgames.com', 'roblox.com', 'twitch.tv'],
+        ecommerce: ['amazon.com', 'mercadolivre.com.br', 'aliexpress.com', 'shopee.com.br', 'ebay.com'],
+        finance: ['bradesco.com.br', 'itau.com.br', 'nubank.com.br', 'caixa.gov.br', 'bb.com.br'],
+        dev: ['github.com', 'stackoverflow.com', 'npmjs.com', 'aws.amazon.com', 'cloudflare.com']
+    };
+    
+    const domains = customTarget ? [customTarget] : (categories[category] || categories.popular);
     
     const servers = [
         { name: 'Sentinel (Local)', ip: '127.0.0.1' },

@@ -1866,6 +1866,8 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
     border-radius: 4px;
     text-transform: uppercase;
     font-weight: 800;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .badge-threat.critical { background: #ef4444; color: white; }
@@ -1971,6 +1973,8 @@ body.tv-mode header { padding: 0 1rem 2rem 1rem; }
     text-transform: uppercase;
     margin-left: 8px;
     letter-spacing: 0.5px;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .badge-threat.critical { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
@@ -2249,3 +2253,17 @@ input:checked + .slider {
 .pm-sparkline-svg {
     filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.2));
 }
+
+/* ===== PREMIUM BENCHMARK DIAL & SCORE ANIMATIONS ===== */
+@keyframes scalePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+}
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+.score-ring-wrapper {
+    animation: float 6s ease-in-out infinite;
+}
+

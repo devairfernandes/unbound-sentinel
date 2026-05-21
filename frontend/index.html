@@ -508,7 +508,7 @@
 
                     <div class="sys-info-box" style="grid-column: span 2;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                            <h3 style="margin:0; font-size: 1rem; color: #f8fafc;">LOG DE INTERCEPTAÇÕES (HISTÓRICO 12H)</h3>
+                            <h3 style="margin:0; font-size: 1rem; color: #f8fafc;">LOG DE INTERCEPTAÇÕES (HISTÓRICO 2H)</h3>
                             
                             <!-- BOTOES DE FILTRO PREMIUM -->
                             <div class="filter-buttons" style="display: flex; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); align-items: center;">
@@ -532,7 +532,7 @@
                             <span class="status-tag" style="background: rgba(244, 63, 94, 0.1); color: var(--accent-danger); border: 1px solid rgba(244, 63, 94, 0.2);">BLOQUEADO</span>
                         </div>
                         <div id="blocked-queries-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                            <div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 12h...</div>
+                            <div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 2h...</div>
                         </div>
                     </div>
                 </div>
@@ -744,18 +744,40 @@
                     <h2>Sentinel Speed Test | Benchmark DNS</h2>
                     <p>Compara o tempo de resposta do seu servidor local contra os gigantes globais.</p>
                 </div>
-                <div class="benchmark-controls" style="margin: 2rem 0; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                    <div class="input-group" style="margin:0; flex-grow: 1; min-width: 250px;">
-                        <input type="text" id="benchmark-target" placeholder="Digite um domínio ou IP para testar (ex: uol.com.br)" style="width:100%; padding: 0.75rem 1rem;">
+                
+                <div class="benchmark-controls" style="margin: 2rem 0; display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; background: rgba(30, 41, 59, 0.2); border: 1px solid var(--card-border); padding: 1.25rem; border-radius: 16px; backdrop-filter: blur(8px);">
+                    <div class="input-group" style="margin:0; flex-grow: 2; min-width: 250px;">
+                        <label style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem; display:block;">Domínio Alvo Opcional</label>
+                        <input type="text" id="benchmark-target" placeholder="Ex: uol.com.br (deixe em branco para testar múltiplos)" style="width:100%; padding: 0.75rem 1rem; background:rgba(0,0,0,0.3); border:1px solid var(--card-border); color:var(--text-primary); border-radius:8px;">
                     </div>
-                    <button class="btn btn-primary" id="run-benchmark-btn" onclick="runBenchmark()">
-                        <i data-lucide="play"></i> INICIAR TESTE
-                    </button>
-                    <div id="benchmark-loader" style="display:none; color: var(--accent-primary);">
-                        <i data-lucide="refresh-cw" class="icon-spin"></i> Testando performance...
+                    <div class="input-group" style="margin:0; flex-grow: 1; min-width: 180px;">
+                        <label style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem; display:block;">Categoria de Teste</label>
+                        <select id="benchmark-category" style="width:100%; padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 8px; font-weight: 600; cursor:pointer;">
+                            <option value="popular">🌎 Popular / Geral</option>
+                            <option value="gaming">🎮 Gaming / Jogos</option>
+                            <option value="ecommerce">🛒 E-commerce</option>
+                            <option value="finance">🏦 Bancos & Finanças</option>
+                            <option value="dev">💻 Devs & APIs</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button class="btn btn-primary" id="run-benchmark-btn" onclick="runBenchmark()" style="padding:0.75rem 1.5rem; height:45px;">
+                            <i data-lucide="play"></i> INICIAR TESTE
+                        </button>
                     </div>
                 </div>
-                <div id="benchmarkChart" style="min-height: 400px; margin-bottom: 3rem;"></div>
+
+                <div id="benchmark-loader" style="display:none; margin: 1.5rem 0; padding: 1.25rem; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; box-shadow: 0 0 15px rgba(56, 189, 248, 0.05);">
+                    <div style="display:flex; align-items:center; gap:12px; color: var(--accent-primary);">
+                        <i data-lucide="refresh-cw" class="icon-spin" style="width:20px; height:20px;"></i>
+                        <span id="benchmark-loader-text" style="font-weight: 600; font-size:0.85rem;">Iniciando testes comparativos de latência...</span>
+                    </div>
+                </div>
+
+                <div id="benchmarkChart" style="min-height: 400px; margin-bottom: 2.5rem;"></div>
+
+                <!-- Insights de Performance (Injetado via JS) -->
+                <div id="benchmark-insights" style="display:none; margin-bottom: 2rem;"></div>
 
                 <div id="benchmark-results" class="benchmark-grid" style="display:none;">
                     <!-- Injetado via JS -->

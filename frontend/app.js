@@ -93,11 +93,63 @@ function animateValue(el, newText) {
     setTimeout(() => el.classList.remove('updated'), 600);
 }
 
+// Filtro global de ameaças e persistência de estado
+window.currentThreatFilter = 'ALL';
+
+function applyActiveFilterStyles(filter) {
+    const buttons = document.querySelectorAll('.btn-filter');
+    if (!buttons || buttons.length === 0) return;
+    
+    buttons.forEach(btn => {
+        btn.style.background = 'transparent';
+        btn.style.color = btn.id === 'btn-filter-all' ? '#94a3b8' : 
+                          (btn.id === 'btn-filter-critical' ? '#f43f5e' : 
+                          (btn.id === 'btn-filter-suspicious' ? '#fbbf24' : 
+                          (btn.id === 'btn-filter-dnssec' ? '#10b981' : '#38bdf8')));
+        btn.style.boxShadow = 'none';
+    });
+
+    const activeBtn = document.getElementById(`btn-filter-${filter.toLowerCase()}`);
+    if (activeBtn) {
+        if (filter === 'ALL') {
+            activeBtn.style.background = 'rgba(255, 255, 255, 0.08)';
+            activeBtn.style.color = '#ffffff';
+        } else if (filter === 'CRITICAL') {
+            activeBtn.style.background = 'rgba(244, 63, 94, 0.15)';
+            activeBtn.style.color = '#f43f5e';
+            activeBtn.style.boxShadow = '0 0 10px rgba(244, 63, 94, 0.2)';
+        } else if (filter === 'SUSPICIOUS') {
+            activeBtn.style.background = 'rgba(251, 191, 36, 0.15)';
+            activeBtn.style.color = '#fbbf24';
+            activeBtn.style.boxShadow = '0 0 10px rgba(251, 191, 36, 0.2)';
+        } else if (filter === 'DNSSEC') {
+            activeBtn.style.background = 'rgba(16, 185, 129, 0.15)';
+            activeBtn.style.color = '#10b981';
+            activeBtn.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.2)';
+        } else if (filter === 'BLOCKED') {
+            activeBtn.style.background = 'rgba(56, 189, 248, 0.15)';
+            activeBtn.style.color = '#38bdf8';
+            activeBtn.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.2)';
+        }
+    }
+}
+
+window.filterThreats = function(filter) {
+    window.currentThreatFilter = filter;
+    applyActiveFilterStyles(filter);
+    updateSecurityThreats();
+};
+
 async function updateSecurityThreats() {
     try {
         const response = await fetch('/api/security/threats');
         const data = await response.json();
-        window.latestThreats = data.alerts || [];
+        
+        // Obter referências seguras com fallbacks para evitar erros se a API retornar dados incompletos
+        const alerts = data.alerts || [];
+        const suspects = data.topSuspects || [];
+        
+        window.latestThreats = alerts;
         if (window.sentinelGlobe) {
             updateGlobeArcs();
         }
@@ -108,9 +160,9 @@ async function updateSecurityThreats() {
         
         if (!criticalEl || !suspiciousEl || !monitoredEl) return;
 
-        const criticalCount = data.alerts.filter(a => a.severity === 'CRITICAL').length;
-        const suspiciousCount = data.alerts.filter(a => a.severity === 'SUSPICIOUS').length;
-        const monitoredCount = data.totalActiveIPs || data.topSuspects.length;
+        const criticalCount = alerts.filter(a => a.severity === 'CRITICAL').length;
+        const suspiciousCount = alerts.filter(a => a.severity === 'SUSPICIOUS').length;
+        const monitoredCount = data.totalActiveIPs || suspects.length;
 
         // Atualiza na aba de Segurança
         if (criticalEl) criticalEl.innerText = criticalCount;
@@ -127,22 +179,23 @@ async function updateSecurityThreats() {
         if (dMonitored) dMonitored.innerText = monitoredCount;
 
         const alertsList = document.getElementById('security-alerts-list');
+        const activeFilter = window.currentThreatFilter || 'ALL';
+
         if (alertsList) {
-            const activeFilter = window.currentThreatFilter || 'ALL';
             const filteredAlerts = activeFilter === 'ALL'
-                ? data.alerts
-                : data.alerts.filter(a => a.severity.toUpperCase() === activeFilter.toUpperCase());
+                ? alerts
+                : alerts.filter(a => a.severity && a.severity.toUpperCase() === activeFilter.toUpperCase());
 
             if (filteredAlerts.length === 0) {
-                alertsList.innerHTML = `<div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma interceptação do tipo [${activeFilter === 'ALL' ? 'TODOS' : activeFilter}] detectada nas últimas 12h.</div>`;
+                alertsList.innerHTML = `<div style="text-align:center; padding:3rem; opacity:0.3; grid-column: span 2;">Nenhuma interceptação do tipo [${activeFilter === 'ALL' ? 'TODOS' : activeFilter}] detectada nas últimas 2h.</div>`;
             } else {
                 alertsList.innerHTML = filteredAlerts.map(alert => `
                     <div class="threat-item">
-                        <div class="threat-icon ${alert.severity.toLowerCase()}">
+                        <div class="threat-icon ${alert.severity ? alert.severity.toLowerCase() : 'suspicious'}">
                             <i data-lucide="${alert.severity === 'CRITICAL' ? 'shield-x' : (alert.severity === 'DNSSEC' ? 'shield-alert' : (alert.severity === 'BLOCKED' ? 'shield-off' : 'alert-triangle'))}"></i>
                         </div>
                         <div class="threat-details">
-                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity.toLowerCase()}">${alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : (alert.severity.toUpperCase() === 'DNSSEC' ? 'DNSSEC' : alert.severity)))}</span></div>
+                            <div class="threat-domain">${alert.domain} <span class="badge-threat ${alert.severity ? alert.severity.toLowerCase() : 'suspicious'}">${alert.severity && alert.severity.toUpperCase() === 'CRITICAL' ? 'CRÍTICO' : (alert.severity && alert.severity.toUpperCase() === 'SUSPICIOUS' ? 'SUSPEITO' : (alert.severity && alert.severity.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : (alert.severity && alert.severity.toUpperCase() === 'DNSSEC' ? 'DNSSEC' : (alert.severity || 'SUSPEITO'))))}</span></div>
                             <div class="threat-ip">Origem: ${alert.ip}${alert.reason ? ` | Falha: <span style="color:var(--accent-warning);">${alert.reason}</span>` : ''}</div>
                         </div>
                         <div class="threat-actions" style="display:flex;gap:6px;">
@@ -173,15 +226,17 @@ async function updateSecurityThreats() {
             const manualBlocksEl = document.getElementById('total-manual-blocks');
             const manualBlocksDashEl = document.getElementById('total-manual-blocks-dash');
             
-            if (manualBlocksEl) manualBlocksEl.innerText = blockedData.blockedQueries.length;
-            if (manualBlocksDashEl) manualBlocksDashEl.innerText = blockedData.blockedQueries.length;
+            const blockedQueries = (blockedData && blockedData.blockedQueries) ? blockedData.blockedQueries : [];
+            
+            if (manualBlocksEl) manualBlocksEl.innerText = blockedQueries.length;
+            if (manualBlocksDashEl) manualBlocksDashEl.innerText = blockedQueries.length;
 
             const blockedList = document.getElementById('blocked-queries-list');
             if (blockedList) {
-                if (blockedData.blockedQueries.length === 0) {
-                    blockedList.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 12h...</div>';
+                if (blockedQueries.length === 0) {
+                    blockedList.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.3; grid-column: span 2;">Nenhum bloqueio manual detectado nas últimas 2h...</div>';
                 } else {
-                    blockedList.innerHTML = blockedData.blockedQueries.map(q => `
+                    blockedList.innerHTML = blockedQueries.map(q => `
                         <div class="threat-item" style="border-left: 3px solid var(--accent-danger); background: rgba(244, 63, 94, 0.05);">
                             <div class="threat-icon critical">
                                 <i data-lucide="shield-off"></i>
@@ -199,50 +254,8 @@ async function updateSecurityThreats() {
             console.error('Erro ao buscar consultas bloqueadas:', e);
         }
 
-        // Filtro global de ameaças
-        window.currentThreatFilter = 'ALL';
-        window.filterThreats = function(filter) {
-            window.currentThreatFilter = filter;
-            
-            // Reseta estilo de todos os botões de filtro
-            const buttons = document.querySelectorAll('.btn-filter');
-            buttons.forEach(btn => {
-                btn.style.background = 'transparent';
-                btn.style.color = btn.id === 'btn-filter-all' ? '#94a3b8' : 
-                                  (btn.id === 'btn-filter-critical' ? '#f43f5e' : 
-                                  (btn.id === 'btn-filter-suspicious' ? '#fbbf24' : 
-                                  (btn.id === 'btn-filter-dnssec' ? '#10b981' : '#38bdf8')));
-                btn.style.boxShadow = 'none';
-            });
-
-            // Aplica estilo ativo específico no botão selecionado
-            const activeBtn = document.getElementById(`btn-filter-${filter.toLowerCase()}`);
-            if (activeBtn) {
-                if (filter === 'ALL') {
-                    activeBtn.style.background = 'rgba(255, 255, 255, 0.08)';
-                    activeBtn.style.color = '#ffffff';
-                } else if (filter === 'CRITICAL') {
-                    activeBtn.style.background = 'rgba(244, 63, 94, 0.15)';
-                    activeBtn.style.color = '#f43f5e';
-                    activeBtn.style.boxShadow = '0 0 10px rgba(244, 63, 94, 0.2)';
-                } else if (filter === 'SUSPICIOUS') {
-                    activeBtn.style.background = 'rgba(251, 191, 36, 0.15)';
-                    activeBtn.style.color = '#fbbf24';
-                    activeBtn.style.boxShadow = '0 0 10px rgba(251, 191, 36, 0.2)';
-                } else if (filter === 'DNSSEC') {
-                    activeBtn.style.background = 'rgba(16, 185, 129, 0.15)';
-                    activeBtn.style.color = '#10b981';
-                    activeBtn.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.2)';
-                } else if (filter === 'BLOCKED') {
-                    activeBtn.style.background = 'rgba(56, 189, 248, 0.15)';
-                    activeBtn.style.color = '#38bdf8';
-                    activeBtn.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.2)';
-                }
-            }
-            
-            // Recarrega os dados imediatamente para atualizar a visualização filtrada
-            updateSecurityThreats();
-        };
+        // Aplica estilo ativo do filtro atualizado para manter a consistência reativa
+        applyActiveFilterStyles(activeFilter);
 
         // Nova Função de Bloqueio Rápido
         window.blockThreatDomain = async function(domain) {
@@ -266,17 +279,21 @@ async function updateSecurityThreats() {
 
         const suspectsList = document.getElementById('security-suspects-list');
         if (suspectsList) {
-            suspectsList.innerHTML = data.topSuspects.map(s => `
-                <div class="bar-item">
-                    <div class="bar-info">
-                        <span class="bar-label">${s.ip}</span>
-                        <span class="bar-value">${s.count} reqs (${s.uniqueDomains} domínios)</span>
+            if (suspects.length === 0) {
+                suspectsList.innerHTML = `<div style="text-align:center; padding:2rem; opacity:0.35; font-size:0.75rem;">Aguardando telemetria...</div>`;
+            } else {
+                suspectsList.innerHTML = suspects.map(s => `
+                    <div class="bar-item">
+                        <div class="bar-info">
+                            <span class="bar-label">${s.ip}</span>
+                            <span class="bar-value">${s.count} reqs (${s.uniqueDomains || 1} domínios)</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill danger" style="width: ${Math.min(100, (s.count / 10) * 100)}%"></div>
+                        </div>
                     </div>
-                    <div class="bar-bg">
-                        <div class="bar-fill danger" style="width: ${Math.min(100, (s.count / 10) * 100)}%"></div>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         if (window.lucide) lucide.createIcons();
@@ -341,10 +358,12 @@ async function syncCTI() {
 }
 
 // ===== CTI ENRICHMENT MODAL =====
-const countryFlagMap = { 'BR':'🇧🇷','US':'🇺🇸','RU':'🇷🇺','CN':'🇨🇳','DE':'🇩🇪','FR':'🇫🇷','NL':'🇳🇱','GB':'🇬🇧','UA':'🇺🇦','IR':'🇮🇷','IN':'🇮🇳','JP':'🇯🇵','KR':'🇰🇷','CA':'🇨🇦','AU':'🇦🇺','SG':'🇸🇬','SE':'🇸🇪','NO':'🇳🇴','FI':'🇫🇮','PL':'🇵🇱','IT':'🇮🇹','ES':'🇪🇸','TR':'🇹🇷','MX':'🇲🇽','AR':'🇦🇷','CL':'🇨🇱','PT':'🇵🇹','CH':'🇨🇭' };
-
 function flagEmoji(code) {
-    return countryFlagMap[code] || '🌐';
+    if (!code || code === '--' || code === '?') return '🌐';
+    const cleanCode = code.toUpperCase().trim();
+    if (cleanCode.length !== 2) return '🌐';
+    const lowerCode = cleanCode.toLowerCase();
+    return `<img src="https://flagcdn.com/w20/${lowerCode}.png" srcset="https://flagcdn.com/w40/${lowerCode}.png 2x" width="20" alt="${cleanCode}" style="vertical-align: middle; border-radius: 2px; margin-right: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); display: inline-block;">`;
 }
 
 async function openEnrichModal(domain, ip) {
@@ -2632,6 +2651,8 @@ async function runBenchmark() {
     const loader = document.getElementById('benchmark-loader');
     const resultsContainer = document.getElementById('benchmark-results');
     const targetInput = document.getElementById('benchmark-target');
+    const categorySelect = document.getElementById('benchmark-category');
+    const insightsContainer = document.getElementById('benchmark-insights');
     if (!btn || !loader || !charts.benchmark) return;
 
     if (!authCredentials) {
@@ -2645,15 +2666,42 @@ async function runBenchmark() {
     }
 
     const target = targetInput ? targetInput.value.trim() : '';
+    const category = categorySelect ? categorySelect.value : 'popular';
+    
     btn.disabled = true;
     loader.style.display = 'block';
     if (resultsContainer) resultsContainer.style.display = 'none';
+    if (insightsContainer) insightsContainer.style.display = 'none';
+
+    // Simulated Active Progress Loading Steps
+    const loaderText = document.getElementById('benchmark-loader-text');
+    const steps = [
+        "Iniciando testes comparativos de latência...",
+        "Testando Sentinel (Local) nos domínios...",
+        "Testando Google DNS (8.8.8.8)...",
+        "Testando Cloudflare DNS (1.1.1.1)...",
+        "Testando Quad9 (9.9.9.9)...",
+        "Testando OpenDNS (208.67.222.222)...",
+        "Calculando médias e construindo gráficos...",
+        "Finalizando insights de performance..."
+    ];
+    let currentStep = 0;
+    if (loaderText) loaderText.textContent = steps[0];
+    const stepInterval = setInterval(() => {
+        currentStep++;
+        if (currentStep < steps.length) {
+            if (loaderText) loaderText.textContent = steps[currentStep];
+        }
+    }, 1200);
     
     try {
-        const query = target ? `?target=${encodeURIComponent(target)}` : '';
+        const query = `?category=${category}${target ? '&target=' + encodeURIComponent(target) : ''}`;
         const res = await apiFetch(`${API_BASE}/benchmark${query}`);
         const data = await res.json();
         
+        // Expose data globally for the copy function
+        window.lastBenchmarkData = { data, category, target };
+
         // Update Main Chart
         charts.benchmark.updateOptions({
             xaxis: { categories: data.map(d => d.name) }
@@ -2663,6 +2711,104 @@ async function runBenchmark() {
             data: data.map(d => d.avg)
         }]);
 
+        // Calculate statistics
+        const sentinelData = data.find(d => d.name.toLowerCase().includes('sentinel')) || { avg: 0.5 };
+        const sentinelAvg = sentinelData.avg || 0.5;
+        const globalServers = data.filter(d => !d.name.toLowerCase().includes('sentinel'));
+        const globalAvg = globalServers.reduce((acc, curr) => acc + curr.avg, 0) / (globalServers.length || 1);
+        const speedupPct = sentinelAvg < globalAvg ? Math.round(((globalAvg - sentinelAvg) / globalAvg) * 100) : 0;
+
+        // Rank determination
+        let rank = 'D';
+        let rankTitle = 'Lento';
+        let rankColor = '#f43f5e';
+        if (sentinelAvg <= 1.0) {
+            rank = 'S+';
+            rankTitle = 'Desempenho Soberano';
+            rankColor = '#10b981';
+        } else if (sentinelAvg <= 5.0) {
+            rank = 'A+';
+            rankTitle = 'Otimização Extrema';
+            rankColor = '#10b981';
+        } else if (sentinelAvg <= 15.0) {
+            rank = 'A';
+            rankTitle = 'Excelente';
+            rankColor = '#38bdf8';
+        } else if (sentinelAvg <= 35.0) {
+            rank = 'B';
+            rankTitle = 'Bom / Estável';
+            rankColor = '#f59e0b';
+        } else if (sentinelAvg <= 70.0) {
+            rank = 'C';
+            rankTitle = 'Regular';
+            rankColor = '#f43f5e';
+        }
+
+        const pct = Math.max(5, Math.min(100, (1 - (sentinelAvg / 150)) * 100));
+        const strokeOffset = 345 - (345 * pct / 100);
+
+        // Inject Premium Insights Panel
+        if (insightsContainer) {
+            insightsContainer.style.display = 'block';
+            insightsContainer.innerHTML = `
+                <div class="insights-panel" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8)); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 2rem; display: flex; flex-direction: row; gap: 2.5rem; flex-wrap: wrap; box-shadow: 0 20px 50px rgba(0,0,0,0.4), inset 0 0 20px rgba(56, 189, 248, 0.05); position: relative; overflow: hidden; backdrop-filter: blur(12px);">
+                    <div style="position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(56, 189, 248, 0.15); filter: blur(50px); border-radius: 50%; pointer-events: none;"></div>
+                    <div style="position: absolute; bottom: -50px; right: -50px; width: 150px; height: 150px; background: rgba(16, 185, 129, 0.15); filter: blur(50px); border-radius: 50%; pointer-events: none;"></div>
+
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 180px; flex-shrink: 0; text-align: center; border-right: 1px solid rgba(255,255,255,0.08); padding-right: 2.5rem;">
+                        <div class="score-ring-wrapper" style="position: relative; width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                            <svg style="position: absolute; transform: rotate(-90deg); width: 130px; height: 130px;">
+                                <circle cx="65" cy="65" r="55" stroke="rgba(255,255,255,0.03)" stroke-width="8" fill="transparent" />
+                                <circle cx="65" cy="65" r="55" stroke="${rankColor}" stroke-dasharray="345" stroke-dashoffset="${strokeOffset}" stroke-width="8" fill="transparent" stroke-linecap="round" style="filter: drop-shadow(0 0 8px ${rankColor}80); transition: stroke-dashoffset 2s cubic-bezier(0.22, 1, 0.36, 1);" />
+                            </svg>
+                            <div style="font-size: 3.5rem; font-weight: 900; color: ${rankColor}; font-family: 'Inter', sans-serif; text-shadow: 0 0 20px ${rankColor}b0; animation: scalePulse 2s infinite ease-in-out;">
+                                ${rank}
+                            </div>
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px;">SENTINEL RANK</span>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${rankColor}; box-shadow: 0 0 10px ${rankColor}; animation: pulseGlow 1.5s infinite;"></span>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: #f8fafc;">${rankTitle}</span>
+                        </div>
+                    </div>
+
+                    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 250px;">
+                        <div>
+                            <h3 style="margin: 0 0 0.75rem 0; font-size: 1.3rem; font-weight: 800; background: linear-gradient(90deg, #f8fafc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Análise Dinâmica de Performance</h3>
+                            <p style="margin: 0 0 1.25rem 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                                O resolver local <strong>Sentinel (Local)</strong> respondeu em média em <strong style="color: ${rankColor}; font-family: 'JetBrains Mono'; font-size: 1rem;">${sentinelAvg.toFixed(2)} ms</strong>. 
+                                Isso representa um aumento de performance de <strong style="color: #10b981; font-family: 'JetBrains Mono'; font-size: 1rem;">${speedupPct}%</strong> comparado à média de latency dos provedores externos comuns (<strong style="color: #cbd5e1; font-family: 'JetBrains Mono';">${globalAvg.toFixed(1)} ms</strong>).
+                            </p>
+                            
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                                <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); padding: 0.75rem 1rem; border-radius: 12px; flex: 1; min-width: 120px;">
+                                    <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Média Local</div>
+                                    <div style="font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono'; color: #38bdf8; margin-top: 4px;">${sentinelAvg.toFixed(2)}<span style="font-size:0.75rem; font-weight:normal; opacity:0.6; margin-left:2px;">ms</span></div>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); padding: 0.75rem 1rem; border-radius: 12px; flex: 1; min-width: 120px;">
+                                    <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Média Global</div>
+                                    <div style="font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono'; color: #cbd5e1; margin-top: 4px;">${globalAvg.toFixed(1)}<span style="font-size:0.75rem; font-weight:normal; opacity:0.6; margin-left:2px;">ms</span></div>
+                                </div>
+                                <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); padding: 0.75rem 1rem; border-radius: 12px; flex: 1; min-width: 120px;">
+                                    <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Eficiência</div>
+                                    <div style="font-size: 1.25rem; font-weight: 800; font-family: 'JetBrains Mono'; color: #10b981; margin-top: 4px;">${speedupPct}%<span style="font-size:0.65rem; font-weight:700; color:#10b981; margin-left:4px; vertical-align:middle; text-transform:uppercase;">⚡</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="copyBenchmarkReport()" style="display: flex; align-items: center; gap: 8px; padding: 0.6rem 1.2rem; font-size: 0.8rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #f8fafc; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(56,189,248,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'; this.style.borderColor='rgba(255,255,255,0.08)'">
+                                <i data-lucide="copy" style="width: 16px; height: 16px;"></i> COPIAR RELATÓRIO MARKDOWN
+                            </button>
+                            <span id="copy-success-msg" style="font-size: 0.8rem; color: #10b981; font-weight: 600; display: none; align-items: center; gap: 4px;">
+                                <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Copiado para a área de transferência!
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // Render Premium Leaderboard
         if (resultsContainer) {
             resultsContainer.style.display = 'grid';
@@ -2671,17 +2817,17 @@ async function runBenchmark() {
             
             resultsContainer.innerHTML = sortedData.map(d => {
                 const isWinner = d.avg === winnerAvg;
-                let rank = 'D';
-                if (d.avg < 15) rank = 'A+';
-                else if (d.avg < 40) rank = 'A';
-                else if (d.avg < 80) rank = 'B';
-                else if (d.avg < 150) rank = 'C';
+                let rankVal = 'D';
+                if (d.avg < 15) rankVal = 'A+';
+                else if (d.avg < 40) rankVal = 'A';
+                else if (d.avg < 80) rankVal = 'B';
+                else if (d.avg < 150) rankVal = 'C';
 
                 const color = d.avg < 15 ? '#10b981' : (d.avg < 40 ? '#38bdf8' : '#f43f5e');
 
                 return `
                     <div class="benchmark-card ${isWinner ? 'winner' : ''}" style="border-left: 4px solid ${color}">
-                        <div class="rank-badge" style="color: ${color}">${rank}</div>
+                        <div class="rank-badge" style="color: ${color}">${rankVal}</div>
                         ${isWinner ? '<div class="winner-label"><i data-lucide="award" style="width:12px;height:12px;"></i> MELHOR PERFORMANCE</div>' : ''}
                         <div class="benchmark-header">
                             <span class="benchmark-name">${d.name}</span>
@@ -2703,15 +2849,62 @@ async function runBenchmark() {
                     </div>
                 `;
             }).join('');
-            if (window.lucide) lucide.createIcons();
         }
+        if (window.lucide) lucide.createIcons();
     } catch (err) {
         alert('Erro ao rodar benchmark: ' + err.message);
     } finally {
+        clearInterval(stepInterval);
         btn.disabled = false;
         loader.style.display = 'none';
     }
 }
+
+// Global copy function for Markdown Benchmark Report
+window.copyBenchmarkReport = function() {
+    if (!window.lastBenchmarkData) return;
+    const { data, category, target } = window.lastBenchmarkData;
+    const sentinelData = data.find(d => d.name.toLowerCase().includes('sentinel')) || { avg: 0.5 };
+    const sentinelAvg = sentinelData.avg || 0.5;
+    const globalServers = data.filter(d => !d.name.toLowerCase().includes('sentinel'));
+    const globalAvg = globalServers.reduce((acc, curr) => acc + curr.avg, 0) / (globalServers.length || 1);
+    const speedupPct = sentinelAvg < globalAvg ? Math.round(((globalAvg - sentinelAvg) / globalAvg) * 100) : 0;
+    
+    let markdown = `### 📊 RELATÓRIO COMPARATIVO DE LATÊNCIA DNS - SENTINEL SPEED TEST\n\n`;
+    markdown += `* **Data do Teste:** ${new Date().toLocaleString()}\n`;
+    markdown += `* **Categoria Testada:** ${category.toUpperCase()}\n`;
+    if (target) {
+        markdown += `* **Domínio Específico:** \`${target}\`\n`;
+    }
+    markdown += `\n#### ⚡ RESUMO DE PERFORMANCE\n`;
+    markdown += `* **Média Sentinel (Local):** **${sentinelAvg.toFixed(2)} ms**\n`;
+    markdown += `* **Média Provedores Globais:** **${globalAvg.toFixed(1)} ms**\n`;
+    markdown += `* **Ganho de Performance:** **+${speedupPct}% mais rápido** ⚡\n\n`;
+    
+    markdown += `#### 📋 RESULTADOS POR PROVEDOR\n`;
+    const sorted = [...data].sort((a,b) => a.avg - b.avg);
+    sorted.forEach((srv, idx) => {
+        markdown += `${idx + 1}. **${srv.name}** - Média: **${srv.avg.toFixed(2)} ms**\n`;
+        srv.details.forEach(d => {
+            markdown += `   - \`${d.domain}\`: ${d.time} ms\n`;
+        });
+    });
+    
+    markdown += `\n---\n*Gerado automaticamente pelo Unbound Sentinel Dashboard.*`;
+
+    navigator.clipboard.writeText(markdown).then(() => {
+        const msg = document.getElementById('copy-success-msg');
+        if (msg) {
+            msg.style.display = 'inline-flex';
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 3000);
+        }
+    }).catch(err => {
+        alert('Erro ao copiar relatório: ' + err.message);
+    });
+};
 
 function refreshAll() { 
     fetchStats(); 
