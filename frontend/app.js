@@ -145,8 +145,8 @@ async function updateSecurityThreats() {
         const response = await fetch('/api/security/threats');
         const data = await response.json();
         
-        // Obter referências seguras com fallbacks para evitar erros se a API retornar dados incompletos
-        const alerts = data.alerts || [];
+        // Obter referências seguras com fallbacks para evitar erros se a API retornar dados incompletos e filtrar endereços loopback
+        const alerts = (data.alerts || []).filter(a => a.ip !== '127.0.0.1' && a.ip !== '::1' && a.ip !== 'localhost');
         const suspects = data.topSuspects || [];
         
         window.latestThreats = alerts;
@@ -3993,8 +3993,10 @@ async function updateGlobeArcs() {
     const arcs = [];
     const listItems = [];
 
-    // Processar os alertas reais mais recentes
-    const recentAlerts = alerts.slice(0, 10);
+    // Processar os alertas reais mais recentes e garantir que nenhum loopback passe
+    const recentAlerts = alerts
+        .filter(a => a.ip !== '127.0.0.1' && a.ip !== '::1' && a.ip !== 'localhost')
+        .slice(0, 10);
     
     for (const alert of recentAlerts) {
         const originGeo = await geolocateForGlobe(alert.ip);

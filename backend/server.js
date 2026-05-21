@@ -1588,9 +1588,9 @@ const threatsFilePath = path.join(__dirname, 'threats_history.json');
 try {
     if (fs.existsSync(threatsFilePath)) {
         threatHistory = JSON.parse(fs.readFileSync(threatsFilePath, 'utf8'));
-        // Limpa registros mais antigos que 2 horas na inicialização para reter histórico otimizado
+        // Limpa registros mais antigos que 2 horas e filtra IPs de loopback na inicialização
         const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
-        threatHistory = threatHistory.filter(t => t.timestamp > twoHoursAgo);
+        threatHistory = threatHistory.filter(t => t.timestamp > twoHoursAgo && t.ip !== '127.0.0.1' && t.ip !== '::1' && t.ip !== 'localhost');
     }
 } catch (e) {
     console.error('Erro ao carregar threats_history.json:', e);
