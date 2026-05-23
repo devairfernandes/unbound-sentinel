@@ -896,7 +896,7 @@ function parseLogsForTop(stdout) {
     lines.forEach(line => {
         const match = line.match(/info: ([0-9a-fA-F.:]+) (\S+) (\S+) (\S+)/) || line.match(/info: ([0-9.]+) (\S+) (\S+) (\S+)/);
         if (match) {
-            const client = match[1], domain = match[2];
+            const client = match[1], domain = match[2].toLowerCase().replace(/\.$/, '').trim();
             const isLoopback = client === '127.0.0.1' || client === '::1' || client === 'localhost';
             if (!isLoopback) {
                 domains[domain] = (domains[domain] || 0) + 1;
@@ -925,9 +925,9 @@ app.get('/api/stats/client/:ip', auth, async (req, res) => {
         const lines = logData.stdout.split('\n');
         
         lines.forEach(line => {
-            const match = line.match(/info: ([0-9.]+) (\S+) (\S+) (\S+)/);
+            const match = line.match(/info: ([0-9a-fA-F.:]+) (\S+) (\S+) (\S+)/) || line.match(/info: ([0-9.]+) (\S+) (\S+) (\S+)/);
             if (match) {
-                const domain = match[2];
+                const domain = match[2].toLowerCase().replace(/\.$/, '').trim();
                 domains[domain] = (domains[domain] || 0) + 1;
                 total++;
             }
