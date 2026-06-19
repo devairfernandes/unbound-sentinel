@@ -1,0 +1,6 @@
+{
+    "name": "unbound-sentinel",
+    "version": "2.9.30",
+    "description": "Dashboard profissional de gerenciamento de DNS Unbound",
+    "license": "PROPRIETARY"
+}
