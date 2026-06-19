@@ -55,7 +55,7 @@ A ISO do Unbound Sentinel vem com Rocky Linux 9.7 pré-configurado e o painel j�
 
 **Entre em contato para adquirir sua licença e receber a ISO:**
 
-📧 **Email:** devair.fernandes@hotmail.com
+📧 **Email:** comercial@sentineldns.uk
 💬 **WhatsApp:** Solicite via e-mail
 
 ---
