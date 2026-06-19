@@ -1,0 +1,89 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==============================================
+# CÓDIGO FONTE — NUNCA DEVE IR AO GITHUB PÚBLICO
+# ==============================================
+backend/
+frontend/
+index.js
+master_landing.js
+install.sh
+remote-install.sh
+installer/
+build-sentinel.js
+upload-r2.js
+upload-maxmind.js
+update-maxmind.js
+update-prod-master.js
+update-landing.js
+make-iso.bat
+
+# Página local do master (servida pelo Express, não é pública)
+Sentinel_Landing/
+
+# Assets internos
+assets/
+
+# ==============================================
+# CONFIGURAÇÕES SENSÍVEIS
+# ==============================================
+.env
+servers.json
+license_cache.json
+active_sessions.json
+licenses.json
+users.json
+pricing.json
+backend/cti_sources.json
+backend/local_rules.json
+backend/pingmaster_db.json
+backend/threat_intel.json
+backend/threats_temp.conf
+
+# ==============================================
+# SCRIPTS DE MANUTENÇÃO E TESTES LOCAIS
+# ==============================================
+deploy-*.js
+deploy_*.js
+check_*.js
+check_*.py
+fix_*.js
+restart_*.js
+test_*.js
+test-*.js
+stash*.js
+temp-*.js
+patch.py
+remove_bg.py
+ssh_script.py
+upload_client.js
+clean_client_env.js
+extract_iso.js
+get_filters.js
+get_logs.js
+install_stripe_remote.js
+read-unbound.js
+*.jsonl
+*.txt
+*.bat
+!INSTALL.md
+
+# Build e artefatos
+scratch/
+build_temp/
+build-dist.ps1
+Iniciar-Gerenciador.bat
+license-manager/
+
+# ==============================================
+# SISTEMA
+# ==============================================
+.DS_Store
+Thumbs.db
+*.zip
+*.tar.gz
+Antigravity.md
