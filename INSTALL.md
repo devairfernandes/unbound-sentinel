@@ -10,7 +10,7 @@ A distribuição é feita exclusivamente através de uma **ISO customizada** bas
 
 Entre em contato para adquirir sua licença e receber o link da ISO oficial:
 
-📧 **Email:** devair.fernandes@hotmail.com
+📧 **Email:** comercial@sentineldns.uk
 
 ## Para clientes existentes
 
