@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS Firewall vs DNS comum: qual a diferença na prática | Blog Sentinel DNS</title>
+    <link rel="stylesheet" href="../style.css">
+    <meta name="description" content="Entenda como a evolução do DNS transformou a ferramenta básica de rede em um escudo avançado de Cyber Threat Intelligence.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://sentineldns.net/blog/dns-firewall-vs-dns-comum.html">
+    <script src="https://unpkg.com/lucide@latest"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DNS Firewall vs DNS comum: qual a diferença na prática",
+  "description": "Entenda como a evolução do DNS transformou a ferramenta básica de rede em um escudo avançado de Cyber Threat Intelligence.",
+  "author": {
+    "@type": "Organization",
+    "name": "Sentinel DNS",
+    "url": "https://sentineldns.net/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Sentinel DNS",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://sentineldns.net/Logo.png"
+    }
+  },
+  "datePublished": "2026-07-13",
+  "dateModified": "2026-07-13"
+}
+</script>
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+<style>
+        :root {
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.4);
+            --secondary: #818cf8;
+            --success: #10b981;
+            --bg-base: #020617;
+            --surface: rgba(15, 23, 42, 0.6);
+            --surface-hover: rgba(30, 41, 59, 0.8);
+            --surface-border: rgba(51, 65, 85, 0.5);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-highlight: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Background */
+        .ambient-glow {
+            position: fixed;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            top: -200px;
+            right: -200px;
+            opacity: 0.15;
+            z-index: 0;
+            animation: pulse-glow 8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(129, 140, 248, 0.3) 0%, transparent 60%);
+            bottom: -100px;
+            left: -100px;
+            opacity: 0.1;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1); opacity: 0.15; }
+            100% { transform: scale(1.2); opacity: 0.25; }
+        }
+
+        #particles-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Grid Background Pattern */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            z-index: 0;
+            pointer-events: none;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+.hero {
+            text-align: center;
+            margin-bottom: 5rem;
+            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            z-index: 50;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 9999px;
+            color: var(--success);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .hero-logo {
+            width: 220px;
+            height: auto;
+            margin: 0 auto 1.5rem auto;
+            display: block;
+            filter: drop-shadow(0 0 35px var(--primary-glow));
+            animation: float-logo 6s ease-in-out infinite;
+        }
+
+        @keyframes float-logo {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 4.5rem;
+            font-weight: 900;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            max-width: 750px;
+            margin: 0 auto 3rem auto;
+            line-height: 1.6;
+        }
+
+        .top-right-action {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-small {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-small:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3);
+            color: #fff;
+        }
+        
+        .btn-small i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 5rem;
+            animation: fade-in-up 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-highlight);
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            animation: fade-in-up 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feature-card {
+            background: linear-gradient(180deg, var(--surface) 0%, rgba(15, 23, 42, 0.2) 100%);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(129, 140, 248, 0.5);
+            background: linear-gradient(180deg, var(--surface-hover) 0%, rgba(15, 23, 42, 0.4) 100%);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--secondary), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Terminal Widget Simulation */
+        .terminal-widget {
+            margin-top: 5rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fade-in-up 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .terminal-header {
+            background: #1e293b;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .term-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .term-dot.r { background: #ef4444; }
+        .term-dot.y { background: #eab308; }
+        .term-dot.g { background: #22c55e; }
+
+        
+        .terminal-body {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.8;
+            height: 350px;
+            overflow-y: hidden;
+            position: relative;
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .terminal-body::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to top, rgba(15, 23, 42, 1), transparent);
+            pointer-events: none;
+        }
+
+        .term-line {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: term-type 0.3s forwards;
+            margin-bottom: 2px;
+        }
+
+        .term-prefix {
+            color: #38bdf8;
+            font-weight: bold;
+            margin-right: 8px;
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+
+        .term-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #22c55e;
+            margin-left: 5px;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes term-type {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        
+
+        @keyframes fade-in-up {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            text-align: center;
+            color: var(--text-muted);
+            border-top: 1px solid var(--surface-border);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            footer { flex-direction: column; gap: 1rem; }
+        }
+        
+        /* Architecture Section (SEO Rich Content) */
+        .architecture-section {
+            padding: 5rem 0;
+            text-align: left;
+            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .architecture-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(to right, var(--text-highlight), var(--primary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        @media (min-width: 768px) {
+            .arch-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .arch-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            transition: all 0.3s;
+        }
+        .arch-card:hover {
+            border-color: var(--primary-glow);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(56, 189, 248, 0.1);
+        }
+        .arch-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-highlight);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .arch-card h3 i {
+            color: #38bdf8;
+        }
+        .arch-card p {
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        .arch-card ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+            color: #cbd5e1;
+        }
+        .arch-card ul li {
+            margin-bottom: 0.75rem;
+            position: relative;
+            padding-left: 1.5rem;
+            line-height: 1.5;
+        }
+        .arch-card ul li::before {
+            content: "•";
+            color: var(--success);
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 5rem 0;
+            text-align: center;
+            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pricing-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--text-highlight), var(--primary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+            text-align: left;
+        }
+        .pricing-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-glow);
+            box-shadow: 0 10px 40px rgba(129, 140, 248, 0.2);
+        }
+        .pricing-card.popular {
+            border-color: rgba(56, 189, 248, 0.5);
+            background: linear-gradient(180deg, rgba(15,23,42,0.8) 0%, rgba(15,23,42,0.4) 100%);
+        }
+        .pricing-card.popular::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-glow), #38bdf8);
+        }
+        .pricing-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .price-title { font-size: 1.5rem; font-weight: 700; color: var(--text-highlight); margin-bottom: 0.5rem; }
+        .price-val { font-size: 2.8rem; font-weight: 900; color: #fff; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; }
+        .price-sub { font-size: 0.9rem; color: #94a3b8; font-family: 'Outfit', sans-serif; font-weight: 400; }
+        .pricing-features { list-style: none; padding: 0; margin: 2rem 0; }
+        .pricing-features li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: #cbd5e1; }
+        .pricing-features li i { color: var(--success); width: 18px; }
+        .pricing-btn { display: inline-block; width: 100%; text-align: center; padding: 1rem; border-radius: 0.75rem; font-weight: 700; text-decoration: none; transition: 0.2s; cursor: default; }
+        .btn-primary { background: var(--primary-glow); color: #fff; box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; }
+
+    
+        /* OVERRIDE TERMINAL CSS */
+        .terminal-body {
+            height: 320px !important;
+            font-family: 'Courier New', monospace;
+            background: #0b1121 !important;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .term-line {
+            text-shadow: 0 0 2px rgba(255,255,255,0.2);
+        }
+        .term-prefix {
+            color: #22c55e !important;
+            text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+        }
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #22c55e;
+            margin-left: 5px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            box-shadow: 0 0 8px #22c55e;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    
+    
+        /* Floating CTA */
+        .floating-cta {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #1e40af 100%);
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 100;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+        .floating-cta.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .floating-cta:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(56, 189, 248, 0.6);
+            color: #fff;
+        }
+    
+    /* Widescreen Decorations */
+    .side-decor {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 0;
+        display: none;
+        color: var(--primary);
+    }
+    @media (min-width: 1500px) {
+        .side-decor { display: block; }
+        .side-decor.left-decor { left: 40px; }
+        .side-decor.right-decor { right: 40px; }
+        .decor-node {
+            position: absolute;
+            width: 12px; height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--success);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse-node 3s infinite alternate;
+        }
+    }
+    @media (min-width: 1900px) {
+        .side-decor.left-decor { left: 8vw; }
+        .side-decor.right-decor { right: 8vw; }
+        .side-decor { opacity: 0.05; }
+    }
+    @keyframes pulse-node {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+    }
+    </style>
+<style>
+    body { background: var(--bg-color, #0f172a); color: var(--text-main, #e2e8f0); font-family: "Outfit", sans-serif; line-height: 1.6; }
+    .blog-container { max-width: 800px; margin: 120px auto 60px; padding: 0 20px; }
+    .blog-header { margin-bottom: 40px; text-align: center; }
+    .blog-header h1 { font-size: 2.5rem; color: #f8fafc; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
+    .blog-meta { color: #94a3b8; font-size: 0.9rem; }
+    .blog-content h2 { font-size: 1.8rem; color: #38bdf8; margin: 40px 0 20px; }
+    .blog-content h3 { font-size: 1.4rem; color: #e2e8f0; margin: 30px 0 15px; }
+    .blog-content p { margin-bottom: 20px; font-size: 1.1rem; color: #cbd5e1; }
+    .blog-content ul, .blog-content ol { margin-bottom: 20px; padding-left: 20px; color: #cbd5e1; font-size: 1.1rem; }
+    .blog-content li { margin-bottom: 10px; }
+    .blog-content table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: rgba(30,41,59,0.5); }
+    .blog-content th, .blog-content td { padding: 12px; text-align: left; border: 1px solid rgba(56,189,248,0.2); }
+    .blog-content th { background: rgba(56,189,248,0.1); color: #38bdf8; }
+    .blog-cta { background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(14,165,233,0.3); padding: 30px; border-radius: 12px; margin-top: 50px; text-align: center; }
+    .blog-cta h3 { color: #f8fafc; margin-top: 0; }
+    .blog-cta a { display: inline-block; background: #0ea5e9; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; margin-top: 15px; transition: 0.3s; }
+    .blog-cta a:hover { background: #0284c7; }
+    .related-articles { margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; }
+    .related-articles h3 { color: #38bdf8; margin-bottom: 15px; }
+    .related-articles ul { list-style: none; padding: 0; }
+    .related-articles li { margin-bottom: 10px; }
+    .related-articles a { color: #e2e8f0; text-decoration: none; border-bottom: 1px solid transparent; transition: 0.3s; }
+    .related-articles a:hover { color: #38bdf8; border-color: #38bdf8; }
+</style>
+</head>
+<body>
+
+    <main class="blog-container">
+        <header class="blog-header">
+            <h1>DNS Firewall vs DNS comum: qual a diferença na prática</h1>
+            <div class="blog-meta">Publicado em 13 de Julho de 2026 &bull; Sentinel DNS Education</div>
+        </header>
+        <article class="blog-content">
+<p>Historicamente, o DNS era visto apenas como a "lista telefônica" da internet. Sua única função era pegar um nome de domínio e convertê-lo no endereço IP correspondente. Hoje, com o aumento das ameaças cibernéticas, surgiu uma categoria superior: o <strong>DNS Firewall</strong> (também conhecido como DNS Security ou RPZ - Response Policy Zone).</p><h2>A Limitação do DNS Comum (Tradicional)</h2><p>Um servidor DNS recursivo padrão (seja um Bind9 antigo ou roteadores Mikrotik configurados como DNS) é uma máquina cega e obediente. Se um cliente dentro da sua rede clicar em um link de phishing que aponta para <code>login-banco-falso.com</code>, o DNS tradicional simplesmente resolve o IP do criminoso e entrega a conexão ao usuário, permitindo o ataque.</p><h2>A Inteligência do DNS Firewall</h2><p>O DNS Firewall, por outro lado, atua como um inspetor de segurança na camada mais básica (Camada 7, protocolo DNS). Antes de resolver e devolver um IP, ele consulta bases de dados globais de Cyber Threat Intelligence (CTI).</p><h3>Como funciona o bloqueio:</h3><ol><li>O cliente clica no link malicioso (ex: um vírus propagado via WhatsApp).</li><li>O dispositivo solicita o IP do domínio malicioso ao DNS Firewall.</li><li>O DNS Firewall checa o domínio contra milhares de regras (Blacklists de Malware, Botnets, DGA, Phishing).</li><li>Ao confirmar a ameaça, em vez de devolver o IP do criminoso, o servidor DNS devolve um IP inválido (como 0.0.0.0 ou NXDOMAIN), <strong>cortando a comunicação instantaneamente</strong>.</li></ol><h2>Vantagens Estratégicas para Redes Corporativas e ISPs</h2><table><tr><th>Característica</th><th>DNS Comum</th><th>DNS Firewall</th></tr><tr><td>Consumo de Banda</td><td>Vírus e malwares baixam payloads consumindo seu link livremente.</td><td>Ameaças são bloqueadas no DNS, poupando a banda de downloads inúteis.</td></tr><tr><td>Proteção Botnet</td><td>Dispositivos infectados na rede atacam outros servidores impunemente.</td><td>Conexões C&C (Comando e Controle) são bloqueadas, isolando o dispositivo.</td></tr><tr><td>Compliance e Auditoria</td><td>Sem controle sobre o tráfego acessado.</td><td>Logs detalhados de ameaças mitigadas na borda da rede.</td></tr></table><div class="blog-cta"><h3>Transforme seu DNS em um Firewall Ativo</h3><p>O Sentinel DNS possui integração nativa com bases de CTI, atualizando listas de bloqueio a cada hora sem intervenção humana, protegendo seus clientes silenciosamente.</p><a href="../index.html#planos">Veja os planos PRO Elite</a></div>
+        </article>
+<div class="related-articles"><h3>Você também pode gostar:</h3><ul><li><a href="oque-e-dns-recursivo.html">O que é DNS Recursivo e por que seu provedor precisa de um</a></li><li><a href="cgnat-e-dns.html">CGNAT e DNS: como reduzir latência e economizar link internacional</a></li></ul></div>
+    </main>
+<footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
+            Conexão criptografada (End-to-End Encryption)
+        </div>
+        <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
+        <div style="display: flex; gap: 1.2rem;">
+            <a href="../index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
+            <a href="../docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Docs</a>
+            <a href="../download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download</a>
+            <a href="../privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
+            <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Suporte</a>
+        </div>
+    </footer>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade e LGPD - Sentinel DNS</title>
+    <meta name="description" content="Política de Privacidade do Sentinel DNS em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).">
+    <link rel="canonical" href="https://sentineldns.net/privacidade.html">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sentineldns.net/privacidade.html">
+    <meta property="og:title" content="Política de Privacidade e LGPD - Sentinel DNS">
+    <meta property="og:description" content="Política de Privacidade do Sentinel DNS em conformidade com a LGPD.">
+    <meta property="og:image" content="https://sentineldns.net/banner-v2.webp">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@sentineldns">
+    <meta name="twitter:image" content="https://sentineldns.net/banner-v2.webp">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --bg: #020617;
+            --surface: rgba(15, 23, 42, 0.7);
+            --border: rgba(56, 189, 248, 0.15);
+            --text: #cbd5e1;
+            --text-bright: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: radial-gradient(circle at 50% -20%, #0f172a, var(--bg));
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem 4rem;
+        }
+
+        .page-wrapper {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        /* Back nav */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover { opacity: 0.75; transform: translateX(-3px); }
+
+        /* Header */
+        .policy-header {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .policy-header h1 {
+            color: var(--text-bright);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .policy-header .subtitle {
+            color: var(--primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .policy-header .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Alert box */
+        .lgpd-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            color: var(--success);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2rem 2.5rem;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.3s;
+        }
+
+        .section:hover { border-color: rgba(56, 189, 248, 0.35); }
+
+        .section h2 {
+            color: var(--primary);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section h2 i { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .section h3 {
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 1.25rem 0 0.5rem;
+        }
+
+        .section p {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        .section ul, .section ol {
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .section li {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            margin-bottom: 0.4rem;
+        }
+
+        /* Rights grid */
+        .rights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .right-card {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .right-card:hover {
+            border-color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .right-card strong {
+            color: var(--primary);
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+
+        .right-card p {
+            font-size: 0.85rem !important;
+            margin: 0 !important;
+            color: #94a3b8 !important;
+        }
+
+        /* DPO contact box */
+        .dpo-box {
+            background: rgba(56, 189, 248, 0.06);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .dpo-box strong { color: var(--text-bright); }
+
+        .dpo-box a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .dpo-box a:hover { text-decoration: underline; }
+
+        /* Cookie table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        /* Warning box */
+        .warn-box {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        @media (max-width: 600px) {
+            .section { padding: 1.5rem; }
+            .policy-header { padding: 1.5rem; }
+            .policy-header h1 { font-size: 1.5rem; }
+        }
+    
+        /* Nav responsivo */
+        .header { background: rgba(15, 23, 42, 0.85); }
+        .mobile-menu-btn { display: none; }
+        .mobile-logo-text { display: none; }
+        @media (max-width: 992px) {
+            .nav-links { display: none !important; flex-direction: column; width: 100%; background: rgba(15,23,42,0.97); padding: 1rem 0; margin-top: 1rem; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2); }
+            .nav-links.active { display: flex !important; }
+            .mobile-menu-btn { display: block !important; }
+            .mobile-logo-text { display: block !important; }
+            .header { padding: 1rem !important; }
+        }
+        footer { flex-wrap: wrap; }
+        @media (max-width: 768px) {
+            footer { flex-direction: column; text-align: center; }
+            footer div:last-child { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header" style="border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 1rem 1.5rem; backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Abrir menu de navegação" style="background: transparent; border: none; color: #38bdf8; cursor: pointer; display: none;">
+            <i data-lucide="menu" width="28" height="28"></i>
+        </button>
+        <div class="mobile-logo-text" style="display: none; color: #fff; font-weight: bold; font-family: 'Outfit', sans-serif; font-size: 1.2rem;">
+            Sentinel<span style="color:#38bdf8">DNS</span>
+        </div>
+        <div class="nav-links" style="display: flex; gap: 2rem; justify-content: center; align-items: center; flex: 1;">
+            <a href="index.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="home" width="16" height="16"></i> Início</a>
+            <a href="docs.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
+            <a href="download.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
+            <a href="privacidade.html" aria-current="page" style="color: #38bdf8; text-decoration: none; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
+            <a href="https://t.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+
+        <!-- Header -->
+        <div class="policy-header">
+            <p class="subtitle">Conformidade Legal</p>
+            <h1>Política de Privacidade</h1>
+            <p>Este documento descreve como o <strong>Sentinel DNS</strong> coleta, utiliza, armazena e protege os dados pessoais dos usuários, em plena conformidade com a <strong>Lei Geral de Proteção de Dados Pessoais (LGPD) — Lei nº 13.709, de 14 de agosto de 2018</strong>.</p>
+
+            <div class="lgpd-badge">
+                <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+                Em conformidade com a LGPD — Lei nº 13.709/2018
+            </div>
+
+            <div class="meta">
+                <span class="meta-item">
+                    <i data-lucide="calendar" style="width:14px;height:14px;"></i>
+                    Última atualização: 23 de junho de 2026
+                </span>
+                <span class="meta-item">
+                    <i data-lucide="globe" style="width:14px;height:14px;"></i>
+                    Aplicável a: sentineldns.net
+                </span>
+                <span class="meta-item">
+                    <i data-lucide="flag" style="width:14px;height:14px;"></i>
+                    Versão: 2.0
+                </span>
+            </div>
+        </div>
+
+        <!-- 1. Controlador dos Dados -->
+        <div class="section">
+            <h2><i data-lucide="building-2"></i> 1. Identificação do Controlador dos Dados</h2>
+            <p>O <strong>Controlador dos dados pessoais</strong>, conforme definido pelo Art. 5º, VI da LGPD, é:</p>
+            <div class="dpo-box">
+                <p><strong>Sentinel DNS</strong><br>
+                Site: <a href="https://sentineldns.net">https://sentineldns.net</a><br>
+                E-mail do Encarregado (DPO): <a href="mailto:privacidade@sentineldns.net">privacidade@sentineldns.net</a></p>
+            </div>
+        </div>
+
+        <!-- 2. Dados Coletados -->
+        <div class="section">
+            <h2><i data-lucide="database"></i> 2. Dados Pessoais Coletados</h2>
+            <p>O Sentinel DNS coleta a quantidade mínima de dados necessários para o funcionamento do serviço, conforme o princípio da <strong>minimização de dados</strong> (Art. 6º, III da LGPD):</p>
+
+            <h3>2.1 Site Institucional (sentineldns.net)</h3>
+            <ul>
+                <li><strong>Logs de acesso automáticos:</strong> endereço IP, navegador, sistema operacional, data e hora de acesso — coletados automaticamente pela infraestrutura Cloudflare para fins de segurança e diagnóstico.</li>
+                <li><strong>Preferência de idioma:</strong> armazenada localmente no navegador via <code>localStorage</code> (chave <code>landing_lang</code>), sem envio ao servidor.</li>
+            </ul>
+
+            <h3>2.2 Dashboard de Gerenciamento (app.indexplease.com)</h3>
+            <ul>
+                <li><strong>Dados de conta:</strong> e-mail e credenciais de acesso fornecidos pelo usuário durante o cadastro.</li>
+                <li><strong>Dados de pagamento:</strong> processados exclusivamente pelo <strong>Stripe</strong> (cartão de crédito) ou pela plataforma <strong>Mercado Pago</strong> (Pix). O Sentinel DNS <strong>não armazena</strong> dados de cartões de crédito em nenhum momento.</li>
+                <li><strong>Dados de telemetria do servidor:</strong> estatísticas de consultas DNS, domínios bloqueados e latência dos servidores cadastrados na conta, utilizados para exibição no painel e geração de relatórios.</li>
+            </ul>
+
+            <div class="warn-box">
+                <i data-lucide="alert-triangle" style="width:18px;height:18px;flex-shrink:0;"></i>
+                <span>O Sentinel DNS <strong>nunca coleta</strong> o conteúdo das consultas DNS dos seus clientes finais (usuários do provedor). Apenas metadados estatísticos e agregados são processados.</span>
+            </div>
+        </div>
+
+        <!-- 3. Finalidade e Base Legal -->
+        <div class="section">
+            <h2><i data-lucide="file-text"></i> 3. Finalidade do Tratamento e Base Legal (LGPD)</h2>
+            <p>Todo tratamento de dados realizado pelo Sentinel DNS possui uma base legal específica, conforme o Art. 7º da LGPD:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dado Coletado</th>
+                        <th>Finalidade</th>
+                        <th>Base Legal (Art. 7º LGPD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Logs de acesso (IP, navegador)</td>
+                        <td>Segurança, prevenção de ataques e diagnóstico técnico</td>
+                        <td>Legítimo Interesse (IX)</td>
+                    </tr>
+                    <tr>
+                        <td>E-mail e senha de conta</td>
+                        <td>Autenticação e entrega do serviço contratado</td>
+                        <td>Execução de Contrato (V)</td>
+                    </tr>
+                    <tr>
+                        <td>Dados de pagamento (via Stripe/Pix)</td>
+                        <td>Processamento de assinatura e faturamento</td>
+                        <td>Execução de Contrato (V)</td>
+                    </tr>
+                    <tr>
+                        <td>Telemetria do servidor (estatísticas)</td>
+                        <td>Exibição no painel NOC e geração de relatórios</td>
+                        <td>Execução de Contrato (V)</td>
+                    </tr>
+                    <tr>
+                        <td>Preferência de idioma</td>
+                        <td>Personalização da experiência no site</td>
+                        <td>Consentimento (I)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. Cookies -->
+        <div class="section">
+            <h2><i data-lucide="cookie"></i> 4. Política de Cookies</h2>
+            <p>Utilizamos apenas cookies estritamente necessários ao funcionamento do site. Não utilizamos cookies de rastreamento publicitário ou de terceiros para fins de marketing.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cookie / Storage</th>
+                        <th>Tipo</th>
+                        <th>Finalidade</th>
+                        <th>Duração</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>landing_lang</code></td>
+                        <td>localStorage</td>
+                        <td>Salvar preferência de idioma (pt/en/es)</td>
+                        <td>Permanente (local)</td>
+                    </tr>
+                    <tr>
+                        <td><code>cf_clearance</code></td>
+                        <td>Cookie (Cloudflare)</td>
+                        <td>Verificação de segurança anti-bot da Cloudflare</td>
+                        <td>30 minutos</td>
+                    </tr>
+                    <tr>
+                        <td><code>sentinel_lgpd_consent</code></td>
+                        <td>localStorage</td>
+                        <td>Registrar aceite desta política pelo usuário</td>
+                        <td>365 dias</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 5. Compartilhamento com Terceiros -->
+        <div class="section">
+            <h2><i data-lucide="share-2"></i> 5. Compartilhamento com Terceiros (Operadores)</h2>
+            <p>O Sentinel DNS compartilha dados com os seguintes <strong>operadores</strong> (Art. 5º, VII da LGPD), que processam dados em nosso nome com contratos de proteção adequados:</p>
+            <ul>
+                <li><strong>Cloudflare, Inc.</strong> — Infraestrutura de rede, CDN e proteção DDoS. Processa logs de acesso e endereços IP. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener" style="color: var(--primary);">Política de Privacidade da Cloudflare</a>.</li>
+                <li><strong>Stripe, Inc.</strong> — Processamento de pagamentos com cartão de crédito. Dados de cartão nunca passam pelos servidores do Sentinel DNS. <a href="https://stripe.com/br/privacy" target="_blank" rel="noopener" style="color: var(--primary);">Política de Privacidade do Stripe</a>.</li>
+                <li><strong>Mercado Pago (MercadoLibre)</strong> — Processamento de pagamentos via Pix. <a href="https://www.mercadopago.com.br/privacidade" target="_blank" rel="noopener" style="color: var(--primary);">Política de Privacidade do Mercado Pago</a>.</li>
+            </ul>
+            <p>Não vendemos, alugamos ou compartilhamos dados pessoais com terceiros para fins de marketing ou publicidade.</p>
+        </div>
+
+        <!-- 6. Direitos do Titular -->
+        <div class="section">
+            <h2><i data-lucide="user-check"></i> 6. Direitos do Titular dos Dados (Art. 18 da LGPD)</h2>
+            <p>Conforme a LGPD, você possui os seguintes direitos em relação aos seus dados pessoais:</p>
+            <div class="rights-grid">
+                <div class="right-card">
+                    <strong>Confirmação e Acesso</strong>
+                    <p>Saber se tratamos seus dados e ter acesso a eles.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Correção</strong>
+                    <p>Solicitar a atualização de dados incompletos ou incorretos.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Anonimização ou Exclusão</strong>
+                    <p>Solicitar o bloqueio ou eliminação de dados desnecessários.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Portabilidade</strong>
+                    <p>Receber seus dados em formato estruturado e interoperável.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Revogação do Consentimento</strong>
+                    <p>Retirar consentimento a qualquer momento, sem ônus.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Oposição</strong>
+                    <p>Opor-se a tratamento baseado em legítimo interesse.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Informação sobre Compartilhamento</strong>
+                    <p>Saber com quais terceiros seus dados são compartilhados.</p>
+                </div>
+                <div class="right-card">
+                    <strong>Revisão de Decisões Automatizadas</strong>
+                    <p>Solicitar revisão de decisões tomadas por algoritmos.</p>
+                </div>
+            </div>
+            <p style="margin-top: 1.25rem;">Para exercer qualquer um desses direitos, entre em contato com nosso Encarregado (DPO) pelo e-mail: <a href="mailto:privacidade@sentineldns.net" style="color: var(--primary); font-weight: 600;">privacidade@sentineldns.net</a>. Responderemos em até <strong>15 dias úteis</strong>, conforme previsto na lei.</p>
+        </div>
+
+        <!-- 7. Retenção de Dados -->
+        <div class="section">
+            <h2><i data-lucide="clock"></i> 7. Retenção e Exclusão de Dados</h2>
+            <p>Os dados pessoais são retidos apenas pelo tempo necessário para cumprir as finalidades descritas nesta política:</p>
+            <ul>
+                <li><strong>Logs de acesso (Cloudflare):</strong> até 30 dias, automaticamente descartados.</li>
+                <li><strong>Dados de conta:</strong> pelo período de vigência do contrato de serviço + 5 anos (prazo para obrigações fiscais e tributárias).</li>
+                <li><strong>Dados de pagamento:</strong> retidos pelos operadores de pagamento (Stripe/Mercado Pago) conforme suas políticas e obrigações legais.</li>
+                <li><strong>Preferência de idioma:</strong> armazenada localmente no navegador do usuário; pode ser apagada a qualquer momento limpando os dados do site no navegador.</li>
+            </ul>
+            <p>Ao encerrar sua conta, os dados de telemetria e de acesso ao painel serão excluídos em até <strong>30 dias</strong>, exceto aqueles com retenção legalmente exigida.</p>
+        </div>
+
+        <!-- 8. Segurança -->
+        <div class="section">
+            <h2><i data-lucide="lock"></i> 8. Segurança dos Dados</h2>
+            <p>Adotamos medidas técnicas e organizacionais adequadas para proteger os dados pessoais contra acesso não autorizado, perda acidental ou destruição, incluindo:</p>
+            <ul>
+                <li>Tráfego web protegido por <strong>HTTPS/TLS 1.3</strong> em todas as comunicações.</li>
+                <li>Proteção de rede via <strong>Cloudflare WAF</strong> e proteção contra DDoS.</li>
+                <li>Senhas de conta armazenadas com <strong>hashing bcrypt</strong> (nunca em texto plano).</li>
+                <li>Acesso restrito aos dados de produção, limitado a pessoal autorizado.</li>
+                <li>Dados de pagamento processados exclusivamente em ambiente PCI-DSS (Stripe).</li>
+            </ul>
+            <p>Em caso de incidente de segurança que possa afetar dados pessoais, notificaremos a <strong>ANPD (Autoridade Nacional de Proteção de Dados)</strong> e os titulares afetados conforme os prazos legais previstos no Art. 48 da LGPD.</p>
+        </div>
+
+        <!-- 9. Transferência Internacional -->
+        <div class="section">
+            <h2><i data-lucide="globe-2"></i> 9. Transferência Internacional de Dados</h2>
+            <p>Alguns dos nossos operadores (como Cloudflare e Stripe) possuem servidores localizados fora do Brasil. Essas transferências são realizadas com garantias adequadas de proteção, conforme o Art. 33 da LGPD, incluindo:</p>
+            <ul>
+                <li>Cláusulas contratuais padrão de proteção de dados.</li>
+                <li>Políticas corporativas globais dos operadores homologadas por autoridades regulatórias.</li>
+            </ul>
+        </div>
+
+        <!-- 10. Encarregado (DPO) -->
+        <div class="section">
+            <h2><i data-lucide="user-cog"></i> 10. Encarregado pelo Tratamento (DPO)</h2>
+            <p>Conforme o Art. 41 da LGPD, o Sentinel DNS designou um <strong>Encarregado pelo Tratamento de Dados (DPO)</strong> responsável por atender às solicitações dos titulares e comunicar-se com a ANPD:</p>
+            <div class="dpo-box">
+                <p><strong>Encarregado de Proteção de Dados (DPO)</strong><br>
+                E-mail: <a href="mailto:privacidade@sentineldns.net">privacidade@sentineldns.net</a><br>
+                Prazo de resposta: até 15 dias úteis.</p>
+            </div>
+        </div>
+
+        <!-- 11. Alterações -->
+        <div class="section">
+            <h2><i data-lucide="refresh-cw"></i> 11. Alterações nesta Política</h2>
+            <p>Esta Política de Privacidade pode ser atualizada periodicamente para refletir mudanças em nossas práticas ou na legislação aplicável. Sempre que houver alterações relevantes, a data de "Última atualização" será modificada e, quando aplicável, os usuários com conta ativa serão notificados por e-mail.</p>
+            <p>Recomendamos que esta página seja revisitada periodicamente.</p>
+        </div>
+
+        <!-- 12. Contato e ANPD -->
+        <div class="section">
+            <h2><i data-lucide="mail"></i> 12. Contato e Reclamações junto à ANPD</h2>
+            <p>Para dúvidas, solicitações ou exercício dos seus direitos como titular de dados, entre em contato:</p>
+            <div class="dpo-box">
+                <p>
+                    <strong>E-mail:</strong> <a href="mailto:privacidade@sentineldns.net">privacidade@sentineldns.net</a><br>
+                    <strong>Site:</strong> <a href="https://sentineldns.net">https://sentineldns.net</a>
+                </p>
+            </div>
+            <p style="margin-top: 1rem;">Se considerar que seus direitos não foram atendidos de forma satisfatória, você tem o direito de apresentar uma reclamação à <strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong>:</p>
+            <div class="dpo-box">
+                <p>
+                    <strong>ANPD — Autoridade Nacional de Proteção de Dados</strong><br>
+                    Site: <a href="https://www.gov.br/anpd" target="_blank" rel="noopener">https://www.gov.br/anpd</a>
+                </p>
+            </div>
+        </div>
+
+        <a href="index.html" class="back-link" style="margin-top: 1rem; display: inline-flex;">
+            <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+            Voltar para o site
+        </a>
+        <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
+            Conexão criptografada (End-to-End Encryption)
+        </div>
+        <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
+        <div style="display: flex; gap: 1.2rem;">
+            <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
+            <a href="docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Docs</a>
+            <a href="download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download</a>
+            <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
+            <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Suporte</a>
+        </div>
+    </footer>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
