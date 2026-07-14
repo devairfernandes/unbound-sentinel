@@ -1057,13 +1057,6 @@
             <h1>Sentinel DNS<br><span class="highlight">Open Source Appliance</span></h1>
             <p>O Sentinel DNS é um DNS Firewall e appliance recursivo open-source desenhado para Provedores de Internet (ISPs) e Redes Corporativas. Instalação automatizada (auto-deployable) que acelera a resolução DNS e protege redes em tempo real.</p>
         </section>
-<section class="preview-section" style="text-align: center; margin: 2rem 0 5rem 0; animation: fade-in-up 1s ease; z-index: 2; position: relative;">
-            <div style="position: relative; max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
-                <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.15) 0%, transparent 70%); filter: blur(40px); z-index: -1;"></div>
-                <img src="/screen1-real.webp" loading="lazy" alt="Sentinel Dashboard Preview" style="width: 100%; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.15);">
-            </div>
-        </section>
-
 <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon"><i data-lucide="shield-alert" style="width: 32px; height: 32px;"></i></div>
@@ -1093,47 +1086,55 @@
                     <p>Queries Processadas</p>
                 </div>
             </div>
-        </section>
-
-<section class="traffic-section" style="margin-bottom: 5rem; animation: fade-in-up 1.3s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div class="feature-card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border-color: rgba(16, 185, 129, 0.3);">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 style="color: var(--text-highlight); font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="activity" style="width:20px; color:var(--success);"></i> Tráfego DNS em Tempo Real</h3>
-                    <span style="color: var(--success); font-size: 1rem; font-weight: 700; display: inline-block; min-width: 60px;" id="stat-live-qps"><div class="skeleton" style="width: 60px; height: 1.2rem; border-radius: 4px;"></div></span>
+        </section>\n\n
+        <section class="zigzag-section">
+            <div class="zigzag-content">
+                <h2>Arquitetura e Recursos Técnicos</h2>
+                
+                <div class="feature-item">
+                    <div class="feature-item-header">
+                        <i data-lucide="globe"></i>
+                        <h3>Telemetria CTI Global</h3>
+                    </div>
+                    <p>Integração nativa com bases de Cyber Threat Intelligence para bloquear malwares antes que atinjam sua rede.</p>
                 </div>
-                <div style="height: 120px; width: 100%; position: relative;">
-                    <canvas id="trafficChart" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+                
+                <div class="feature-item">
+                    <div class="feature-item-header">
+                        <i data-lucide="cpu"></i>
+                        <h3>Motor Unbound Otimizado</h3>
+                    </div>
+                    <p>Performance de ISP com auto-tuning de buffers e persistência de cache para alta disponibilidade.</p>
+                </div>
+            </div>
+            <div class="zigzag-image">
+                <img src="/screen1-real.webp" alt="Sentinel Monitor Dashboard">
+            </div>
+        </section>
+
+        <section class="zigzag-section reversed">
+            <div class="zigzag-image">
+                <img src="/screen2-real.webp" alt="Sentinel Global Traffic">
+            </div>
+            <div class="zigzag-content">
+                <div class="feature-item">
+                    <div class="feature-item-header">
+                        <i data-lucide="network"></i>
+                        <h3>Deploy Autônomo</h3>
+                    </div>
+                    <p>Appliance baseado em Rocky Linux com configuração automática de rede e segurança avançada.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-item-header">
+                        <i data-lucide="activity"></i>
+                        <h3>Tráfego DNS em Tempo Real</h3>
+                    </div>
+                    <p>Visualização avançada e em tempo real do fluxo de queries e picos de acesso em toda a infraestrutura DNS.</p>
                 </div>
             </div>
         </section>
-
-<section class="features-grid">
-            <div class="feature-card">
-                <i data-lucide="globe-lock" class="feature-icon"></i>
-                <h3>Telemetria CTI Global</h3>
-                <p>Integração nativa com bases de Cyber Threat Intelligence para bloquear malwares antes que atinjam sua rede.</p>
-            </div>
-            <div class="feature-card">
-                <i data-lucide="cpu" class="feature-icon"></i>
-                <h3>Motor Unbound Otimizado</h3>
-                <p>Performance de ISP com auto-tuning de buffers e persistência de cache para alta disponibilidade.</p>
-            </div>
-            <div class="feature-card">
-                <i data-lucide="network" class="feature-icon"></i>
-                <h3>Deploy Autônomo</h3>
-                <p>Appliance baseado em Rocky Linux com configuração automática de rede e segurança.</p>
-            </div>
-        </section>
-
-        
-<section class="preview-section" style="text-align: center; margin: 5rem 0; animation: fade-in-up 1s ease; z-index: 2; position: relative;">
-            <div style="position: relative; max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
-                <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.15) 0%, transparent 70%); filter: blur(40px); z-index: -1;"></div>
-                <img src="/screen2-real.webp" loading="lazy" alt="Sentinel Global Traffic Preview" style="width: 100%; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.15);">
-            </div>
-        </section>
-
-<section class="usecases-section" id="casos-uso" style="margin-bottom: 5rem;">
+\n\n<section class="usecases-section" id="casos-uso" style="margin-bottom: 5rem;">
             <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2.2rem; color: #f8fafc;">Para quem é o Sentinel?</h2>
             <div class="arch-grid">
                 <div class="arch-card" style="border-top: 3px solid var(--accent-primary);">
@@ -1147,37 +1148,6 @@
                 <div class="arch-card" style="border-top: 3px solid var(--success);">
                     <h3 style="color: var(--text-highlight); display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="server"></i> Datacenters</h3>
                     <p>Ofereça um serviço de resolução DNS local de alta disponibilidade para seus clientes em nuvem, garantindo estabilidade mesmo sob fortes ataques DDoS.</p>
-                </div>
-            </div>
-        </section>
-
-<section class="architecture-section" id="arquitetura">
-            <h2>Arquitetura e Recursos Técnicos</h2>
-            
-            <div class="arch-grid">
-                <div class="arch-card">
-                    <h3><i data-lucide="cpu"></i> Dynamic Auto-Tuning</h3>
-                    <p>Configurar o <strong>Unbound DNS</strong> manualmente envolve editar arquivos complexos para ajustar buffers e slabs. O motor do Sentinel mede o número de threads da CPU e a memória RAM durante a inicialização, calculando e aplicando automaticamente os limites recomendados de cache de mensagens e buffers UDP do kernel Linux. Alta concorrência sem perda de pacotes.</p>
-                </div>
-                
-                <div class="arch-card">
-                    <h3><i data-lucide="hard-drive"></i> Cache Persistente (Zero-Impact Reboot)</h3>
-                    <p>Qualquer reinicialização do servidor limpa o cache quente da RAM, gerando uma enxurrada de requisições lentas. O Sentinel faz o dump ordenado do cache para o disco SSD antes de reiniciar e o recarrega instantaneamente no boot. Sua rede volta do reboot com resoluções em 0 milissegundos.</p>
-                </div>
-
-                <div class="arch-card">
-                    <h3><i data-lucide="shield-check"></i> Resiliência por Padrão</h3>
-                    <p>Utilizando as RFCs 8767 e 8198, nosso DNS Firewall renova domínios quentes antes que expirem (<strong>Prefetch</strong>) e continua servindo registros expirados do cache local por até 24 horas (<strong>Serve-Expired</strong>) caso os servidores de autoridade mundiais sofram instabilidades ou ataques DDoS.</p>
-                </div>
-
-                <div class="arch-card">
-                    <h3><i data-lucide="server"></i> Requisitos de Hardware</h3>
-                    <p>A distribuição via <strong>Appliance Rocky Linux</strong> otimiza o uso de recursos. Dimensionamento recomendado:</p>
-                    <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
-                        <li><strong style="color: var(--text-highlight)">Pequeno (Até 5.000 clientes):</strong> 2 a 4 vCPUs, 4GB RAM, 30GB SSD</li>
-                        <li><strong style="color: var(--text-highlight)">Médio (5k a 20k clientes):</strong> 4 a 8 Cores, 8GB a 16GB RAM, 60GB NVMe</li>
-                        <li><strong style="color: var(--text-highlight)">Grande (+20k clientes):</strong> Bare Metal, 16+ Cores, 32GB+ RAM, 120GB NVMe</li>
-                    </ul>
                 </div>
             </div>
         </section>
