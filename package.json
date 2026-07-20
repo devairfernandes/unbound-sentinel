@@ -2,5 +2,31 @@
     "name": "unbound-sentinel",
     "version": "2.9.30",
     "description": "Dashboard profissional de gerenciamento de DNS Unbound",
-    "license": "PROPRIETARY"
+    "license": "PROPRIETARY",
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "eslint": "^10.5.0"
+    },
+    "dependencies": {
+        "@aws-sdk/client-s3": "^3.1073.0",
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "express-rate-limit": "^8.6.0",
+        "helmet": "^8.2.0",
+        "jsdom": "^29.1.1",
+        "maxmind": "^5.0.6",
+        "ssh2": "^1.17.0",
+        "stripe": "^22.2.2"
+    },
+    "scripts": {
+        "start": "node index.js",
+        "build": "echo 'Build OK - no compile step needed' && exit 0"
+    },
+    "update_type": "bugfix",
+    "changelog": {
+        "en-US": "Fixed visual hang on Access Control screen (infinite 'Loading...' status).",
+        "pt-BR": "Corrigido travamento visual na tela de Controle de Acesso (status infinito de 'Carregando...')."
+    }
 }

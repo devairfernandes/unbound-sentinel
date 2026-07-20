@@ -862,7 +862,9 @@ app.use(cors({
             'http://localhost:3300',
             'http://127.0.0.1:3300',
             'http://localhost',
-            'http://127.0.0.1'
+            'http://127.0.0.1',
+            'https://sentineldns.net',
+            'https://www.sentineldns.net'
         ];
         if (process.env.DASH_HOST) allowedOrigins.push(process.env.DASH_HOST);
         if (allowedOrigins.includes(origin)) return callback(null, true);
