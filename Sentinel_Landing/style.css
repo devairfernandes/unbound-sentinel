@@ -619,7 +619,7 @@
 }
 
 @media (max-width: 992px) {
-    .nav-links {
+    .nav-menu {
         display: none !important;
         flex-direction: column;
         width: 100%;
@@ -629,7 +629,7 @@
         border-radius: 8px;
         border: 1px solid rgba(56, 189, 248, 0.2);
     }
-    .nav-links.active {
+    .nav-menu.active {
         display: flex !important;
     }
     .mobile-menu-btn {

@@ -281,8 +281,8 @@
         .mobile-menu-btn { display: none; }
         .mobile-logo-text { display: none; }
         @media (max-width: 992px) {
-            .nav-links { display: none !important; flex-direction: column; width: 100%; background: rgba(15,23,42,0.97); padding: 1rem 0; margin-top: 1rem; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2); }
-            .nav-links.active { display: flex !important; }
+            .nav-menu { display: none !important; flex-direction: column; width: 100%; background: rgba(15,23,42,0.97); padding: 1rem 0; margin-top: 1rem; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2); }
+            .nav-menu.active { display: flex !important; }
             .mobile-menu-btn { display: block !important; }
             .mobile-logo-text { display: block !important; }
             .header { padding: 1rem !important; }
@@ -297,10 +297,6 @@
 <body>
 
     <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; gap: 10px; align-items: center;">
-        <a data-i18n="nav.master" class="lang-master-btn" href="/master" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; text-decoration: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);">
-            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
-            Painel Master
-        </a>
         <select id="lang-selector" style="padding: 6px 10px; background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.9rem; backdrop-filter: blur(10px);">
             <option value="pt" style="background: #0f172a;">Português (BR)</option>
             <option value="en" style="background: #0f172a;">English (US)</option>
