@@ -1,7 +1,7 @@
 /* ===================================================
-   SENTINEL MASTER HQ ΓÇö JavaScript
-   L├│gica exclusiva do dashboard master.
-   N├úo mistura com app.js do DNS.
+   SENTINEL MASTER HQ — JavaScript
+   Lógica exclusiva do dashboard master.
+   Não mistura com app.js do DNS.
    =================================================== */
 
 'use strict';
@@ -15,11 +15,11 @@ let revenueChart = null;
 let pollInterval = null;
 let pricingData  = null;
 
-// Cache para dados dos bot├╡es (evita JSON em onclick)
+// Cache para dados dos botões (evita JSON em onclick)
 const sessionCache = {}; // hwid -> session data
 const licenseCache = {}; // key -> license data
 
-// ===== UTILIT├üRIOS =====
+// ===== UTILITÁRIOS =====
 function escH(str) {
     if (typeof str !== 'string') return String(str ?? '');
     return str.replace(/[&<>"']/g, t => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[t] || t));
@@ -35,7 +35,7 @@ function masterFetch(url, opts = {}) {
     opts.credentials = 'include';
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     
-    // Injeta Token CSRF para requisi├º├╡es de altera├º├úo de estado (POST/PUT/DELETE)
+    // Injeta Token CSRF para requisições de alteração de estado (POST/PUT/DELETE)
     if (['POST', 'PUT', 'DELETE'].includes(opts.method?.toUpperCase())) {
         const csrfToken = getCookie('sentinel_csrf');
         if (csrfToken) {
@@ -56,12 +56,12 @@ function formatUptime(seconds) {
 }
 
 function formatRelativeTime(isoDate) {
-    if (!isoDate) return 'ΓÇö';
+    if (!isoDate) return '—';
     const diff = Date.now() - new Date(isoDate).getTime();
     const s = Math.floor(diff / 1000);
-    if (s < 60)  return `${s}s atr├ís`;
-    if (s < 3600) return `${Math.floor(s/60)}min atr├ís`;
-    if (s < 86400) return `${Math.floor(s/3600)}h atr├ís`;
+    if (s < 60)  return `${s}s atrás`;
+    if (s < 3600) return `${Math.floor(s/60)}min atrás`;
+    if (s < 86400) return `${Math.floor(s/3600)}h atrás`;
     return new Date(isoDate).toLocaleDateString('pt-BR');
 }
 
@@ -93,7 +93,7 @@ function animateNum(el, to) {
     }, 25);
 }
 
-// ===== REL├ôGIO =====
+// ===== RELÓGIO =====
 function updateMasterClock() {
     const el = document.getElementById('master-clock');
     if (el) el.innerText = new Date().toLocaleTimeString('pt-BR');
@@ -101,7 +101,7 @@ function updateMasterClock() {
 setInterval(updateMasterClock, 1000);
 updateMasterClock();
 
-// ===== PART├ìCULAS (tema roxo) =====
+// ===== PARTÍCULAS (tema roxo) =====
 function initMasterParticles() {
     const canvas = document.getElementById('master-canvas');
     if (!canvas) return;
@@ -150,7 +150,7 @@ function initMasterParticles() {
     draw();
 }
 
-// ===== NAVEGA├ç├âO =====
+// ===== NAVEGAÇÃO =====
 function showMasterSection(name, btn) {
     document.querySelectorAll('.master-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.master-nav-item').forEach(b => b.classList.remove('active'));
@@ -160,14 +160,14 @@ function showMasterSection(name, btn) {
     if (btn) btn.classList.add('active');
 
     const titles = {
-        overview:  ['Vis├úo Geral', 'Painel central de gest├úo ΓÇö Sentinel Master HQ'],
+        overview:  ['Visão Geral', 'Painel central de gestão — Sentinel Master HQ'],
         clients:   ['Clientes', 'Todos os servidores Sentinel registrados'],
-        licenses:  ['Licen├ºas', 'Gest├úo de chaves de ativa├º├úo e planos'],
-        revenue:   ['Receita', 'Estimativa baseada em licen├ºas ativas'],
-        plans:     ['Planos & Promo├º├úo', 'Pre├ºos e promo├º├╡es exibidos para os clientes'],
-        users:     ['Usu├írios', 'Contas com acesso ao painel master'],
-        alerts:    ['Alertas', 'Notifica├º├╡es do sistema'],
-        config:    ['Configura├º├╡es', 'Token de hardware, credenciais e integra├º├╡es'],
+        licenses:  ['Licenças', 'Gestão de chaves de ativação e planos'],
+        revenue:   ['Receita', 'Estimativa baseada em licenças ativas'],
+        plans:     ['Planos & Promoção', 'Preços e promoções exibidos para os clientes'],
+        users:     ['Usuários', 'Contas com acesso ao painel master'],
+        alerts:    ['Alertas', 'Notificações do sistema'],
+        config:    ['Configurações', 'Token de hardware, credenciais e integrações'],
     };
     const [title, subtitle] = titles[name] || ['Master HQ', ''];
     const h1 = document.getElementById('section-title');
@@ -175,7 +175,7 @@ function showMasterSection(name, btn) {
     if (h1) h1.innerText = title;
     if (sub) sub.innerText = subtitle;
 
-    // A├º├╡es espec├¡ficas por se├º├úo
+    // Ações específicas por seção
     if (name === 'licenses') loadLicenses();
     if (name === 'users')    loadUsers();
     if (name === 'revenue')  renderRevenueSection();
@@ -186,7 +186,7 @@ function showMasterSection(name, btn) {
 
 // ===== TOAST =====
 function showToast(msg, type = 'info') {
-    const icons = { success: 'Γ£à', error: 'Γ¥î', info: 'Γä╣∩╕Å' };
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
@@ -196,14 +196,14 @@ function showToast(msg, type = 'info') {
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3500);
 }
 
-// ===== GERAR CHAVE DE LICEN├çA =====
+// ===== GERAR CHAVE DE LICENÇA =====
 function generateLicenseKey(type) {
-    // Pega o tipo do select se n├úo passado
+    // Pega o tipo do select se não passado
     if (!type) type = document.getElementById('lic-type')?.value || 'pro';
     const prefixMap = { 'pro': 'PRO', 'pro-lite': 'LITE', 'pro-trial': 'TRIAL', 'free': 'FREE' };
     const prefix = prefixMap[type] || 'PRO';
 
-    // Gera 3 blocos de 4 chars aleat├│rios (mai├║sculos, sem caracteres amb├¡guos)
+    // Gera 3 blocos de 4 chars aleatórios (maiúsculos, sem caracteres ambíguos)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const block = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     const key = `SEN-${prefix}-${block()}-${block()}-${block()}`;
@@ -224,7 +224,7 @@ const PLANOS_FUNCIONALIDADES = {
 
 let hasManualFeatureChanges = false;
 
-// Tracker de altera├º├úo manual nas checkboxes de features
+// Tracker de alteração manual nas checkboxes de features
 ['tv','globe','cti','benchmark','update','charts','config'].forEach(f => {
     const el = document.getElementById(`feat-${f}`);
     if (el) {
@@ -275,7 +275,7 @@ function applyLicenseBusinessRules(isUserTriggered = false) {
     }
     
     if (isTrial && modObj.value === 'vitalicio') {
-        warningEl.innerHTML = 'ΓÜá∩╕Å Incomum: Planos Trial/Free normalmente n├úo s├úo vital├¡cios.';
+        warningEl.innerHTML = '⚠️ Incomum: Planos Trial/Free normalmente não são vitalícios.';
         warningEl.style.display = 'block';
     } else {
         warningEl.style.display = 'none';
@@ -290,7 +290,7 @@ function applyLicenseBusinessRules(isUserTriggered = false) {
         if (isTrial) {
             addonsContainer.style.opacity = '0.4';
             addonsContainer.style.border = '1px dashed var(--amber-500)';
-            addonsContainer.title = 'Add-ons geralmente n├úo se aplicam a planos Trial.';
+            addonsContainer.title = 'Add-ons geralmente não se aplicam a planos Trial.';
         } else {
             addonsContainer.style.opacity = '1';
             addonsContainer.style.border = '1px solid rgba(255,255,255,0.05)';
@@ -307,7 +307,7 @@ function setFeatCheckboxes(features) {
 }
 
 function setFeaturePreset(type) {
-    // Caso venha dos bot├╡es antigos que passavam 'lite' em vez de 'pro-lite'
+    // Caso venha dos botões antigos que passavam 'lite' em vez de 'pro-lite'
     const planKey = (type === 'lite') ? 'pro-lite' : type;
     const preset = PLANOS_FUNCIONALIDADES[planKey] || PLANOS_FUNCIONALIDADES['free'];
     const features = { ...preset };
@@ -321,7 +321,7 @@ function setFeaturePreset(type) {
     }
     
     setFeatCheckboxes(features);
-    hasManualFeatureChanges = false; // Aplicar um preset reseta o status de edi├º├úo manual
+    hasManualFeatureChanges = false; // Aplicar um preset reseta o status de edição manual
 }
 
 function getFeatCheckboxes() {
@@ -359,8 +359,8 @@ function openAddLicenseModal(licKey = '', data = {}) {
         applyLicenseBusinessRules(false);
     }
 
-    // Preenche features ΓÇö usa as da licen├ºa ou o preset do plano
-    let currentPlan = type; // Guarda o plano atual para poss├¡vel revert
+    // Preenche features — usa as da licença ou o preset do plano
+    let currentPlan = type; // Guarda o plano atual para possível revert
 
     if (data.features) {
         setFeatCheckboxes(data.features);
@@ -380,7 +380,7 @@ function openAddLicenseModal(licKey = '', data = {}) {
     typeEl.onchange = (e) => {
         const newPlan = typeEl.value;
         if (hasManualFeatureChanges) {
-            const confirmChange = confirm("Trocar o plano vai resetar as funcionalidades marcadas para o padr├úo deste novo plano. Continuar?");
+            const confirmChange = confirm("Trocar o plano vai resetar as funcionalidades marcadas para o padrão deste novo plano. Continuar?");
             if (!confirmChange) {
                 typeEl.value = currentPlan; // Reverte o dropdown
                 return;
@@ -419,12 +419,12 @@ async function verifyMasterAndInit() {
     try {
         const res = await masterFetch(`${MASTER_API}/master/verify`);
         if (res.status === 401) {
-            // Sem auth ΓÇö mostra tela de login embutida
+            // Sem auth — mostra tela de login embutida
             showLoginScreen();
             return false;
         }
         if (res.status === 403) {
-            // Auth OK mas n├úo ├⌐ master (token inv├ílido ou IS_MASTER=false)
+            // Auth OK mas não é master (token inválido ou IS_MASTER=false)
             showNotMasterError();
             return false;
         }
@@ -434,30 +434,30 @@ async function verifyMasterAndInit() {
         }
         const data = await res.json();
 
-        // Esconde tela de login se estava vis├¡vel
+        // Esconde tela de login se estava visível
         const loginOverlay = document.getElementById('master-login-overlay');
         if (loginOverlay) loginOverlay.remove();
 
         // Preenche fingerprint e info
         const fpEl = document.getElementById('fp-display');
-        if (fpEl) fpEl.textContent = data.fingerprint || 'ΓÇö';
-        document.getElementById('info-hostname').innerText = data.hostname || 'ΓÇö';
-        document.getElementById('info-uptime').innerText = data.uptime ? formatUptime(data.uptime) : 'ΓÇö';
+        if (fpEl) fpEl.textContent = data.fingerprint || '—';
+        document.getElementById('info-hostname').innerText = data.hostname || '—';
+        document.getElementById('info-uptime').innerText = data.uptime ? formatUptime(data.uptime) : '—';
         document.getElementById('cfg-fingerprint').value = data.fingerprint || '';
         document.getElementById('cfg-hwid').value       = data.hwid || '';
-        document.getElementById('cfg-hostname').innerText = data.hostname || 'ΓÇö';
-        document.getElementById('cfg-platform').innerText = data.platform || 'ΓÇö';
-        document.getElementById('cfg-uptime').innerText   = data.uptime ? formatUptime(data.uptime) : 'ΓÇö';
+        document.getElementById('cfg-hostname').innerText = data.hostname || '—';
+        document.getElementById('cfg-platform').innerText = data.platform || '—';
+        document.getElementById('cfg-uptime').innerText   = data.uptime ? formatUptime(data.uptime) : '—';
 
         return true;
     } catch (e) {
         console.error('[Master] Erro ao verificar token master:', e);
-        showLoginScreen('Falha de conex├úo com o servidor.');
+        showLoginScreen('Falha de conexão com o servidor.');
         return false;
     }
 }
 
-// ===== VERS├âO =====
+// ===== VERSÃO =====
 async function loadVersion() {
     try {
         const res = await masterFetch(`${MASTER_API}/system/check-update`);
@@ -465,7 +465,7 @@ async function loadVersion() {
             const d = await res.json();
             window.masterVersion = d.currentVersion || '1.0.0';
             const el = document.getElementById('info-version');
-            if (el) el.innerText = d.currentVersion || 'ΓÇö';
+            if (el) el.innerText = d.currentVersion || '—';
         }
     } catch {}
 }
@@ -527,17 +527,17 @@ window.unbanClient = async function(hwid) {
     }
 }
 
-// ===== LICEN├çA (master pr├│pria) =====
+// ===== LICENÇA (master própria) =====
 async function loadMasterLicense() {
     try {
         const res = await masterFetch(`${MASTER_API}/system/license`);
         if (res.ok) {
             const d = await res.json();
             const el = document.getElementById('info-license');
-            if (el) el.innerText = d.status?.client || 'ΓÇö';
+            if (el) el.innerText = d.status?.client || '—';
             // Token no cfg
             const tk = document.getElementById('cfg-master-token');
-            if (tk && d.masterToken) tk.value = 'ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó' + d.masterToken.slice(-8);
+            if (tk && d.masterToken) tk.value = '••••••••••••' + d.masterToken.slice(-8);
         }
     } catch {}
 }
@@ -568,11 +568,11 @@ async function loadActiveSessions() {
         renderClientsTable('clients-tbody', allClients, true);
         renderClientsPage();
         updateDistribution();
-        // Item 5: timestamp de atualiza├º├úo
+        // Item 5: timestamp de atualização
         const tsEl = document.getElementById('clients-last-update');
         if (tsEl) tsEl.innerText = 'atualizado ' + new Date().toLocaleTimeString('pt-BR');
     } catch (e) {
-        console.error('[Master] Erro ao carregar sess├╡es:', e);
+        console.error('[Master] Erro ao carregar sessões:', e);
     }
 }
 
@@ -580,7 +580,7 @@ function updateMetrics() {
     const total  = allSessions.length;
     const online = allSessions.filter(s => Date.now() - new Date(s.lastSeen).getTime() < 5 * 60 * 1000).length;
 
-    // Receita e "Licen├ºas PRO" baseadas em allLicenses
+    // Receita e "Licenças PRO" baseadas em allLicenses
     const validLicenses = Object.values(allLicenses).filter(l => {
         const expiry = l.expiry || l.expires_at;
         const isExpired = expiry && expiry !== 'never' && new Date() > new Date(expiry);
@@ -622,10 +622,10 @@ function updateMetrics() {
     if (proSub) {
         proSub.classList.remove('loading');
         proSub.innerHTML = '';
-        proSub.innerText = 'licen├ºas ativas';
+        proSub.innerText = 'licenças ativas';
     }
 
-    // Receita ΓÇö baseada no total de licen├ºas no DB
+    // Receita — baseada no total de licenças no DB
     const proPrice  = pricingData?.pro?.stripe_price  ? pricingData.pro.stripe_price  / 100 : 50;
     const litePrice = pricingData?.pro_lite?.stripe_price ? pricingData.pro_lite.stripe_price / 100 : 49.90;
     
@@ -659,7 +659,7 @@ function updateMetrics() {
     if (revSub) {
         revSub.classList.remove('loading');
         revSub.innerHTML = '';
-        revSub.innerText = 'baseado em licen├ºas ativas';
+        revSub.innerText = 'baseado em licenças ativas';
     }
     const revBadge = document.getElementById('badge-revenue');
     if (revBadge) revBadge.innerText = `R$${mrr.toLocaleString('pt-BR')}`;
@@ -676,7 +676,7 @@ function updateMetrics() {
     if (lifetimeEl) lifetimeEl.innerText = `R$ ${lifetimeRev.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
     if (proEl)   proEl.innerText   = pro;
     if (trialEl) trialEl.innerText = trialCount;
-    // FREE = tudo que n├úo ├⌐ pagante nem trial
+    // FREE = tudo que não é pagante nem trial
     if (freeEl)  freeEl.innerText  = total - pro - trialCount;
 }
 
@@ -684,7 +684,7 @@ function updateMetrics() {
 let sparklineCharts = {};
 function renderSparklines(history) {
     if (!history || history.length === 0) return;
-    // Se tiver s├│ 1 dia, duplica pra formar uma reta
+    // Se tiver só 1 dia, duplica pra formar uma reta
     const data = history.length === 1 ? [history[0], history[0]] : history;
     
     const labels = data.map(d => d.date);
@@ -701,11 +701,11 @@ function renderSparklines(history) {
         const previous = values[values.length - 2];
         const diff = current - previous;
         if (diff === 0) {
-            deltaEl.innerHTML = `<span style="color:var(--text-muted);font-size:11px;">= Sem varia├º├úo hoje</span>`;
+            deltaEl.innerHTML = `<span style="color:var(--text-muted);font-size:11px;">= Sem variação hoje</span>`;
         } else if (diff > 0) {
-            deltaEl.innerHTML = `<span style="color:var(--green-400);font-size:11px;">Γåæ +${diff} hoje</span>`;
+            deltaEl.innerHTML = `<span style="color:var(--green-400);font-size:11px;">↑ +${diff} hoje</span>`;
         } else {
-            deltaEl.innerHTML = `<span style="color:var(--red-400);font-size:11px;">Γåô ${diff} hoje</span>`;
+            deltaEl.innerHTML = `<span style="color:var(--red-400);font-size:11px;">↓ ${diff} hoje</span>`;
         }
     };
 
@@ -815,7 +815,7 @@ function renderClientsTable(tbodyId, clients, compact = false) {
         const colorPair = avatarColors[(name.charCodeAt(0) || 0) % avatarColors.length];
         const avatarHtml = `<span class="client-avatar" style="background:${colorPair[0]};color:${colorPair[1]};">${escH(initials)}</span>`;
 
-        const hwidLabel = c.hwids && c.hwids.length > 1 ? `M├║ltiplos n├│s (${c.hwids.length})` : (mainNode ? mainNode.hwid.slice(0,16) : '');
+        const hwidLabel = c.hwids && c.hwids.length > 1 ? `Múltiplos nós (${c.hwids.length})` : (mainNode ? mainNode.hwid.slice(0,16) : '');
         
         const nameCell = `<div class="client-name-wrap">
                           ${avatarHtml}
@@ -853,9 +853,9 @@ function renderClientsTable(tbodyId, clients, compact = false) {
         return `<tr>
             ${statusCol}
             <td>${nameCell}</td>
-            <td><span class="client-ip">${escH(displayIp||'ΓÇö')}</span></td>
+            <td><span class="client-ip">${escH(displayIp||'—')}</span></td>
             <td>
-                <span style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${escH(displayVersion||'ΓÇö')}</span>
+                <span style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${escH(displayVersion||'—')}</span>
                 ${versionBadge}
             </td>
             <td>${licBadgeHtml(displayStatus)}</td>
@@ -866,11 +866,11 @@ function renderClientsTable(tbodyId, clients, compact = false) {
         setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 10);
 }
 
-// ===== HANDLERS DE BOT├òES (usam cache ΓÇö sem JSON em onclick) =====
+// ===== HANDLERS DE BOTÕES (usam cache — sem JSON em onclick) =====
 function handleManageClient(btn) {
     const cacheId = btn.getAttribute('data-cache-id');
     const c = sessionCache[cacheId];
-    if (!c) { showToast('Dados do cliente n├úo encontrados', 'error'); return; }
+    if (!c) { showToast('Dados do cliente não encontrados', 'error'); return; }
 
     openManageClientModal(c);
 }
@@ -878,7 +878,7 @@ function handleManageClient(btn) {
 function handleEditLicense(btn) {
     const key = btn.getAttribute('data-lic-key');
     const lic = licenseCache[key];
-    if (!lic) { showToast('Dados da licen├ºa n├úo encontrados', 'error'); return; }
+    if (!lic) { showToast('Dados da licença não encontrados', 'error'); return; }
     openAddLicenseModal(key, lic);
 }
 
@@ -912,8 +912,8 @@ function renderClientsPage() {
     renderClientsTable('clients-full-tbody', allClients, false);
 }
 
-// ===== NOVOS HANDLERS (Clientes Manuais / M├║ltiplas Licen├ºas) =====
-// ===== M├üSCARAS E VALIDA├ç├òES =====
+// ===== NOVOS HANDLERS (Clientes Manuais / Múltiplas Licenças) =====
+// ===== MÁSCARAS E VALIDAÇÕES =====
 function maskPhone(el) {
     let v = el.value.replace(/\D/g, '');
     if (v.length > 11) v = v.slice(0, 11);
@@ -1005,8 +1005,8 @@ async function saveNewClient() {
     const address = document.getElementById('new-client-address').value.trim();
     const notes = document.getElementById('new-client-notes').value.trim();
 
-    if (!name) return showToast('O nome do cliente ├⌐ obrigat├│rio', 'error');
-    if (documentStr && !validateDocument(documentStr)) return showToast('CPF ou CNPJ inv├ílido', 'error');
+    if (!name) return showToast('O nome do cliente é obrigatório', 'error');
+    if (documentStr && !validateDocument(documentStr)) return showToast('CPF ou CNPJ inválido', 'error');
 
     try {
         const res = await masterFetch(`${MASTER_API}/system/clients`, {
@@ -1072,7 +1072,7 @@ async function openDeleteClientConfirm() {
             const lics = await res.json();
             if (lics.length > 0) {
                 document.getElementById('delete-client-license-warning-text').textContent =
-                    `Este cliente tem ${lics.length} licen├ºa(s) vinculada(s). Elas tamb├⌐m ser├úo removidas.`;
+                    `Este cliente tem ${lics.length} licença(s) vinculada(s). Elas também serão removidas.`;
                 warning.style.display = 'block';
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             }
@@ -1098,15 +1098,15 @@ async function executeDeleteClient() {
             closeModal('modal-delete-client');
             closeModal('modal-manage-client');
             const msg = data.licenses_removed > 0
-                ? `Cliente exclu├¡do. ${data.licenses_removed} licen├ºa(s) removida(s).`
-                : 'Cliente exclu├¡do com sucesso.';
+                ? `Cliente excluído. ${data.licenses_removed} licença(s) removida(s).`
+                : 'Cliente excluído com sucesso.';
             showToast(msg, 'success');
             loadActiveSessions();
         } else {
             showToast(data.error || 'Erro ao excluir cliente', 'error');
         }
     } catch(e) {
-        showToast('Erro de conex├úo', 'error');
+        showToast('Erro de conexão', 'error');
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'Sim, excluir'; }
     }
@@ -1161,8 +1161,8 @@ async function updateClient() {
     const address = document.getElementById('manage-client-address').value.trim();
     const notes = document.getElementById('manage-client-notes').value.trim();
 
-    if (!name) return showToast('O nome do cliente ├⌐ obrigat├│rio', 'error');
-    if (documentStr && !validateDocument(documentStr)) return showToast('CPF ou CNPJ inv├ílido', 'error');
+    if (!name) return showToast('O nome do cliente é obrigatório', 'error');
+    if (documentStr && !validateDocument(documentStr)) return showToast('CPF ou CNPJ inválido', 'error');
 
     try {
         const res = await masterFetch(`${MASTER_API}/system/clients/${id}`, {
@@ -1178,7 +1178,7 @@ async function updateClient() {
             const d = await res.json();
             showToast(d.error || 'Erro ao atualizar', 'error');
         }
-    } catch(e) { showToast('Erro de conex├úo', 'error'); }
+    } catch(e) { showToast('Erro de conexão', 'error'); }
 }
 
 async function loadClientLicenses(clientId) {
@@ -1189,18 +1189,18 @@ async function loadClientLicenses(clientId) {
         if (!res.ok) throw new Error();
         const lics = await res.json();
         if (!lics.length) {
-            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Nenhuma licen├ºa vinculada.</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Nenhuma licença vinculada.</div></td></tr>';
             return;
         }
         tbody.innerHTML = lics.map(l => {
             const isVit = l.modelo_cobranca === 'vitalicio';
             const hasSupport = l.suporte_ativo !== undefined ? l.suporte_ativo : true;
             const suppBadge = hasSupport ? '<span style="font-size:10px; background:rgba(16,185,129,0.15); color:var(--success); padding:2px 6px; border-radius:4px; border:1px solid rgba(16,185,129,0.2);">CTI Ativo</span>' : '<span style="font-size:10px; background:rgba(239,68,68,0.15); color:var(--danger); padding:2px 6px; border-radius:4px; border:1px solid rgba(239,68,68,0.2);">Sem CTI</span>';
-            const nodesBadge = l.extra_nodes ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,0.1);">+${l.extra_nodes} N├│(s)</span>` : '';
+            const nodesBadge = l.extra_nodes ? `<span style="font-size:10px; background:rgba(255,255,255,0.05); color:var(--text-muted); padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,0.1);">+${l.extra_nodes} Nó(s)</span>` : '';
             const addOnsDisplay = `<div style="display:flex; gap: 6px; margin-top: 8px; flex-wrap:wrap;">${suppBadge} ${nodesBadge}</div>`;
             
             const statusDisplay = isVit 
-                ? `<span class="status-badge active" style="background:var(--amber-400);color:#000;">Vital├¡cia</span>${addOnsDisplay}` 
+                ? `<span class="status-badge active" style="background:var(--amber-400);color:#000;">Vitalícia</span>${addOnsDisplay}` 
                 : `<span class="status-badge ${l.status==='active'?'active':'inactive'}">${l.status === 'active' ? 'Recorrente (Ativa)' : 'Inativa'}</span>${addOnsDisplay}`;
             
             let actions;
@@ -1208,7 +1208,7 @@ async function loadClientLicenses(clientId) {
             if (isVit) {
                 actions = `<div style="display:flex;gap:4px;align-items:center;">
                     <button class="action-btn manage" title="Transferir HWID" style="padding:4px 8px;" data-action="openTransferHWIDModal" data-arg1="${l.key}" data-arg2="${l.hwid || ''}"><i data-lucide="arrow-right-left" style="width:14px;height:14px;"></i></button>
-                    <button class="action-btn manage" title="Hist├│rico" style="padding:4px 8px;" data-action="openLicenseHistoryModal" data-target="${l.key}"><i data-lucide="history" style="width:14px;height:14px;"></i></button>
+                    <button class="action-btn manage" title="Histórico" style="padding:4px 8px;" data-action="openLicenseHistoryModal" data-target="${l.key}"><i data-lucide="history" style="width:14px;height:14px;"></i></button>
                     <button class="action-btn remove" title="Remover" style="padding:4px 8px;" data-action="revokeClientLicense" data-lic="${l.key}" data-client="${clientId}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
                 </div>`;
             } else {
@@ -1224,7 +1224,7 @@ async function loadClientLicenses(clientId) {
         }).join('');
         setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 10);
     } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Erro ao carregar licen├ºas.</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">Erro ao carregar licenças.</div></td></tr>';
     }
 }
 
@@ -1238,7 +1238,7 @@ function openTransferHWIDModal(key, currentHwid) {
 async function confirmTransferHWID() {
     const key = document.getElementById('transfer-lic-key').value;
     const newHwid = document.getElementById('transfer-new-hwid').value.trim();
-    if (!newHwid) return showToast('Novo HWID ├⌐ obrigat├│rio', 'error');
+    if (!newHwid) return showToast('Novo HWID é obrigatório', 'error');
 
     try {
         const res = await masterFetch(`${MASTER_API}/system/licenses/${key}/transfer`, {
@@ -1247,23 +1247,23 @@ async function confirmTransferHWID() {
             body: JSON.stringify({ new_hwid: newHwid })
         });
         if (res.ok) {
-            showToast('Transfer├¬ncia realizada com sucesso!', 'success');
+            showToast('Transferência realizada com sucesso!', 'success');
             closeModal('modal-transfer-hwid');
             const clientId = document.getElementById('manage-client-id').value;
             if (clientId) loadClientLicenses(clientId);
             loadActiveSessions();
         } else {
             const d = await res.json();
-            showToast(d.error || 'Erro na transfer├¬ncia', 'error');
+            showToast(d.error || 'Erro na transferência', 'error');
         }
     } catch(e) {
-        showToast('Erro de conex├úo', 'error');
+        showToast('Erro de conexão', 'error');
     }
 }
 
 async function openLicenseHistoryModal(key) {
     const container = document.getElementById('license-history-container');
-    container.innerHTML = '<div class="empty-state">Carregando hist├│rico...</div>';
+    container.innerHTML = '<div class="empty-state">Carregando histórico...</div>';
     openModal('modal-license-history');
 
     try {
@@ -1273,7 +1273,7 @@ async function openLicenseHistoryModal(key) {
         const lic = db[key];
         
         if (!lic || !lic.history || lic.history.length === 0) {
-            container.innerHTML = '<div class="empty-state">Nenhum hist├│rico encontrado para esta licen├ºa.</div>';
+            container.innerHTML = '<div class="empty-state">Nenhum histórico encontrado para esta licença.</div>';
             return;
         }
 
@@ -1282,13 +1282,13 @@ async function openLicenseHistoryModal(key) {
             let text = '';
             let icon = '';
             if (h.action === 'created') {
-                text = `Licen├ºa vital├¡cia criada.`;
+                text = `Licença vitalícia criada.`;
                 icon = '<i data-lucide="plus-circle" style="width:14px;color:var(--emerald-400)"></i>';
             } else if (h.action === 'transfer_hwid') {
                 text = `HWID transferido de <b>${h.old_hwid || 'Nenhum'}</b> para <b>${h.new_hwid}</b>.`;
                 icon = '<i data-lucide="cpu" style="width:14px;color:var(--amber-400)"></i>';
             } else {
-                text = `A├º├úo: ${h.action}`;
+                text = `Ação: ${h.action}`;
                 icon = '<i data-lucide="info" style="width:14px;color:var(--sky-400)"></i>';
             }
 
@@ -1302,7 +1302,7 @@ async function openLicenseHistoryModal(key) {
         }).reverse().join('');
         lucide.createIcons();
     } catch(e) {
-        container.innerHTML = '<div class="empty-state">Erro ao carregar hist├│rico.</div>';
+        container.innerHTML = '<div class="empty-state">Erro ao carregar histórico.</div>';
     }
 }
 
@@ -1327,18 +1327,18 @@ function openAddLicenseToClientModal() {
     openModal('modal-license');
 }
 
-// ===== LICEN├çAS =====
+// ===== LICENÇAS =====
 async function loadLicenses() {
     const tbody = document.getElementById('licenses-tbody');
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>`;
     try {
         const res = await masterFetch(`${MASTER_API}/system/licenses-db`);
-        if (!res.ok) throw new Error('Erro ao buscar licen├ºas (status ' + res.status + ')');
+        if (!res.ok) throw new Error('Erro ao buscar licenças (status ' + res.status + ')');
         allLicenses = await res.json();
         const entries = Object.entries(allLicenses);
         if (!entries.length) {
-            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Nenhuma licen├ºa cadastrada.</p></div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Nenhuma licença cadastrada.</p></div></td></tr>`;
             return;
         }
         tbody.innerHTML = entries.map(([key, lic]) => {
@@ -1349,14 +1349,14 @@ async function loadLicenses() {
                     ? `<span class="lic-badge pro" style="color:var(--emerald-400);background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.25)">Ativa</span>`
                     : `<span class="lic-badge free">Inativa</span>`;
 
-            // Guarda no cache para os bot├╡es acessarem sem JSON no onclick
+            // Guarda no cache para os botões acessarem sem JSON no onclick
             licenseCache[key] = lic;
 
             return `<tr>
                 <td><code style="font-size:10px;color:var(--violet-300)">${escH(key)}</code></td>
-                <td><strong>${escH(lic.client||'ΓÇö')}</strong></td>
+                <td><strong>${escH(lic.client||'—')}</strong></td>
                 <td>${licBadgeHtml(lic.type)}</td>
-                <td><span style="font-family:monospace;font-size:10px;color:var(--text-muted)">${escH(lic.hwid ? lic.hwid.slice(0,16)+'...' : 'ΓÇö')}</span></td>
+                <td><span style="font-family:monospace;font-size:10px;color:var(--text-muted)">${escH(lic.hwid ? lic.hwid.slice(0,16)+'...' : '—')}</span></td>
                 <td><span style="font-size:11px;">${formatDate(lic.expiry || lic.expires_at)}</span></td>
                 <td>${statusBadge}</td>
                 <td>
@@ -1369,7 +1369,7 @@ async function loadLicenses() {
         }).join('');
         setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 10);
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Erro ao carregar licen├ºas: ${escH(e.message)}</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Erro ao carregar licenças: ${escH(e.message)}</p></div></td></tr>`;
     }
 }
 
@@ -1380,12 +1380,12 @@ async function saveLicense() {
     const expiry = document.getElementById('lic-expiry').value || 'never';
     const hwid   = document.getElementById('lic-hwid').value.trim();
 
-    if (!key || !client) { showToast('Chave e Nome s├úo obrigat├│rios', 'error'); return; }
+    if (!key || !client) { showToast('Chave e Nome são obrigatórios', 'error'); return; }
 
     try {
-        // L├¬ o DB atual, atualiza a entrada e salva tudo de volta
+        // Lê o DB atual, atualiza a entrada e salva tudo de volta
         const getRes = await masterFetch(`${MASTER_API}/system/licenses-db`);
-        if (!getRes.ok) throw new Error('Falha ao carregar DB de licen├ºas');
+        if (!getRes.ok) throw new Error('Falha ao carregar DB de licenças');
         const db = await getRes.json();
 
         const clientIdInput = document.getElementById('lic-client');
@@ -1424,7 +1424,7 @@ async function saveLicense() {
             valid: true,
             status: 'active',
             history: history,
-            features: getFeatCheckboxes()  // l├¬ os checkboxes do modal
+            features: getFeatCheckboxes()  // lê os checkboxes do modal
         };
         
         if (isVit) {
@@ -1440,7 +1440,7 @@ async function saveLicense() {
             body: JSON.stringify(db)
         });
         if (saveRes.ok) {
-            showToast('Licen├ºa salva com sucesso!', 'success');
+            showToast('Licença salva com sucesso!', 'success');
             closeModal('modal-license');
             loadLicenses();
             const currentClientId = document.getElementById('manage-client-id')?.value;
@@ -1450,12 +1450,12 @@ async function saveLicense() {
             showToast(d.error || 'Erro ao salvar', 'error');
         }
     } catch (e) {
-        showToast('Erro de conex├úo: ' + e.message, 'error');
+        showToast('Erro de conexão: ' + e.message, 'error');
     }
 }
 
 async function revokeLicense(key) {
-    if (!confirm(`Revogar licen├ºa "${key}"?`)) return;
+    if (!confirm(`Revogar licença "${key}"?`)) return;
     try {
         const getRes = await masterFetch(`${MASTER_API}/system/licenses-db`);
         if (!getRes.ok) throw new Error('Falha ao carregar DB');
@@ -1466,7 +1466,7 @@ async function revokeLicense(key) {
             body: JSON.stringify(db)
         });
         if (saveRes.ok) { 
-            showToast('Licen├ºa revogada!', 'success'); 
+            showToast('Licença revogada!', 'success'); 
             loadLicenses(); 
             const currentClientId = document.getElementById('manage-client-id')?.value;
             if (currentClientId) loadClientLicenses(currentClientId);
@@ -1478,25 +1478,25 @@ async function revokeLicense(key) {
     }
 }
 
-// ===== USU├üRIOS =====
+// ===== USUÁRIOS =====
 async function loadUsers() {
     const container = document.getElementById('users-list');
     if (!container) return;
     container.innerHTML = '<div class="empty-state"><div class="master-spinner"></div></div>';
     try {
         const res = await masterFetch(`${MASTER_API}/users`);
-        if (!res.ok) throw new Error('Sem permiss├úo');
+        if (!res.ok) throw new Error('Sem permissão');
         const users = await res.json();
         const entries = Object.entries(users);
         if (!entries.length) {
-            container.innerHTML = '<div class="empty-state"><p>Nenhum usu├írio cadastrado.</p></div>';
+            container.innerHTML = '<div class="empty-state"><p>Nenhum usuário cadastrado.</p></div>';
             return;
         }
         container.innerHTML = `<table class="clients-table">
-            <thead><tr><th>Usu├írio</th><th>Nome</th><th>Permiss├úo</th><th>A├º├╡es</th></tr></thead>
+            <thead><tr><th>Usuário</th><th>Nome</th><th>Permissão</th><th>Ações</th></tr></thead>
             <tbody>${entries.map(([uid, u]) => `<tr>
                 <td><strong>${escH(uid)}</strong></td>
-                <td>${escH(u.name||'ΓÇö')}</td>
+                <td>${escH(u.name||'—')}</td>
                 <td>${u.role === 'admin'
                     ? '<span class="lic-badge pro">Admin</span>'
                     : '<span class="lic-badge free">Operador</span>'}</td>
@@ -1518,21 +1518,21 @@ async function saveUser() {
             method: 'POST',
             body: JSON.stringify({ user: name, pass, role, name })
         });
-        if (res.ok) { showToast('Usu├írio criado!', 'success'); closeModal('modal-user'); loadUsers(); }
-        else { const d = await res.json(); showToast(d.error || 'Erro ao criar usu├írio', 'error'); }
+        if (res.ok) { showToast('Usuário criado!', 'success'); closeModal('modal-user'); loadUsers(); }
+        else { const d = await res.json(); showToast(d.error || 'Erro ao criar usuário', 'error'); }
     } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
 async function deleteUser(uid) {
-    if (!confirm(`Remover usu├írio "${uid}"?`)) return;
+    if (!confirm(`Remover usuário "${uid}"?`)) return;
     try {
         const res = await masterFetch(`${MASTER_API}/users/${encodeURIComponent(uid)}`, { method: 'DELETE' });
-        if (res.ok) { showToast('Usu├írio removido!', 'success'); loadUsers(); }
+        if (res.ok) { showToast('Usuário removido!', 'success'); loadUsers(); }
         else showToast('Erro ao remover', 'error');
     } catch (e) { showToast('Erro: ' + e.message, 'error'); }
 }
 
-// ===== GR├üFICO DE RECEITA =====
+// ===== GRÁFICO DE RECEITA =====
 function renderRevenueSection() {
     updateMetrics();
     const pro   = allSessions.filter(s => s.status === 'pro').length;
@@ -1588,7 +1588,7 @@ function renderRevenueSection() {
     });
 }
 
-// ===== PLANOS & PROMO├ç├âO =====
+// ===== PLANOS & PROMOÇÃO =====
 let promoCountdownInterval = null;
 
 async function loadPlans() {
@@ -1642,8 +1642,8 @@ async function savePlans() {
                 price:        document.getElementById('plan-lite-price').value.trim(),
                 stripe_price: parseInt(document.getElementById('plan-lite-stripe').value) || 0,
                 action_label: document.getElementById('plan-lite-btn').value.trim(),
-                badge:        'VIA DOA├ç├âO Γ¥ñ',
-                period:       'm├¬s',
+                badge:        'VIA DOAÇÃO ❤',
+                period:       'mês',
             },
             promo: {
                 badge_text:           document.getElementById('promo-badge').value.trim(),
@@ -1662,7 +1662,7 @@ async function savePlans() {
             body: JSON.stringify(db)
         });
         if (res.ok) {
-            showToast('Planos e promo├º├úo salvos!', 'success');
+            showToast('Planos e promoção salvos!', 'success');
             startPromoCountdown(db.promo.end_date);
         } else {
             const d = await res.json();
@@ -1686,7 +1686,7 @@ function startPromoCountdown(endDateStr) {
     function tick() {
         const diff = endDate - Date.now();
         if (diff <= 0) {
-            el.innerText = 'ΓÅ░ ENCERRADA';
+            el.innerText = '⏳ ENCERRADA';
             clearInterval(promoCountdownInterval);
             return;
         }
@@ -1694,7 +1694,7 @@ function startPromoCountdown(endDateStr) {
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
-        el.innerText = `ΓÅ▒ ${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        el.innerText = `⏱ ${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
     tick();
     promoCountdownInterval = setInterval(tick, 1000);
@@ -1702,7 +1702,7 @@ function startPromoCountdown(endDateStr) {
 
 // ===== TELA DE LOGIN EMBUTIDA =====
 function showLoginScreen(errorMsg = '') {
-    // Se o overlay j├í existe, apenas atualiza o estado para n├úo apagar a senha do usu├írio
+    // Se o overlay já existe, apenas atualiza o estado para não apagar a senha do usuário
     const existing = document.getElementById('master-login-overlay');
     if (existing) {
         const errorDiv = document.getElementById('login-error-msg');
@@ -1754,7 +1754,7 @@ function showLoginScreen(errorMsg = '') {
                     display: flex; align-items: center; justify-content: center;
                     font-size: 24px; margin: 0 auto 14px;
                     box-shadow: 0 0 30px rgba(124,58,237,0.4);
-                ">Γ¼í</div>
+                ">⬡</div>
                 <div style="font-size:18px;font-weight:800;color:var(--text-primary)">SENTINEL</div>
                 <div style="
                     display:inline-flex;align-items:center;gap:5px;
@@ -1763,7 +1763,7 @@ function showLoginScreen(errorMsg = '') {
                     border:1px solid var(--border-amber);
                     border-radius:20px;font-size:10px;font-weight:700;
                     color:var(--amber-400);letter-spacing:1px;
-                ">≡ƒöÉ MASTER HQ</div>
+                ">🔐 MASTER HQ</div>
             </div>
             <div style="padding: 24px 28px;">
                 <div id="login-error-msg" style="
@@ -1773,8 +1773,8 @@ function showLoginScreen(errorMsg = '') {
                     border-radius:8px;font-size:12px;color:#f87171;
                 ">${errorMsg ? escH(errorMsg) : ''}</div>
                 <div style="margin-bottom:14px;">
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Usu├írio</label>
-                    <input id="login-user" type="text" autocomplete="username" placeholder="Seu usu├írio" style="
+                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Usuário</label>
+                    <input id="login-user" type="text" autocomplete="username" placeholder="Seu usuário" style="
                         width:100%;background:var(--bg-surface);border:1px solid var(--border-subtle);
                         border-radius:8px;padding:10px 14px;color:var(--text-primary);
                         font-size:13px;font-family:inherit;outline:none;
@@ -1813,9 +1813,9 @@ function showNotMasterError() {
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg-void);';
     overlay.innerHTML = `
         <div style="text-align:center;padding:40px;">
-            <div style="font-size:48px;margin-bottom:16px;">≡ƒöÆ</div>
+            <div style="font-size:48px;margin-bottom:16px;">🔒</div>
             <div style="font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">Acesso Negado</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Este servidor n├úo ├⌐ um Master ou o token HMAC ├⌐ inv├ílido.</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Este servidor não é um Master ou o token HMAC é inválido.</div>
             <a href="/" style="padding:10px 24px;background:var(--violet-600);border-radius:8px;color:#fff;text-decoration:none;font-weight:600;">Voltar ao DNS</a>
         </div>`;
     document.body.appendChild(overlay);
@@ -1825,7 +1825,7 @@ async function doMasterLogin() {
     const user = document.getElementById('login-user')?.value.trim();
     const pass = document.getElementById('login-pass')?.value;
     const btn  = document.getElementById('login-btn');
-    if (!user || !pass) { showLoginScreen('Preencha usu├írio e senha.'); return; }
+    if (!user || !pass) { showLoginScreen('Preencha usuário e senha.'); return; }
 
     if (btn) { btn.innerText = 'Verificando...'; btn.disabled = true; }
 
@@ -1846,34 +1846,34 @@ async function doMasterLogin() {
         if (res.ok) {
             const ok = await verifyMasterAndInit();
             if (ok) {
-                // Login bem-sucedido ΓÇö carrega o dashboard
+                // Login bem-sucedido — carrega o dashboard
                 await loadPricingData();
                 await Promise.all([loadVersion(), loadMasterLicense(), loadActiveSessions(), loadBlacklist()]);
                 pollInterval = setInterval(loadActiveSessions, 15000);
             } else {
-                showLoginScreen('Voc├¬ n├úo tem permiss├╡es Master.');
+                showLoginScreen('Você não tem permissões Master.');
             }
         } else {
-            showLoginScreen('Usu├írio ou senha inv├ílidos.');
+            showLoginScreen('Usuário ou senha inválidos.');
         }
     } catch (e) {
-        showLoginScreen('Erro de conex├úo com o servidor.');
+        showLoginScreen('Erro de conexão com o servidor.');
     }
 }
 
-// ===== AUTENTICA├ç├âO =====
+// ===== AUTENTICAÇÃO =====
 // checkAuth was removed, verifyMasterAndInit verifies auth remotely
 
-// ===== INICIALIZA├ç├âO =====
+// ===== INICIALIZAÇÃO =====
 async function initMasterDashboard() {
-    // Inicia part├¡culas e ├¡cones sempre (aparecem no login tamb├⌐m)
+    // Inicia partículas e ícones sempre (aparecem no login também)
     initMasterParticles();
     if (window.lucide) lucide.createIcons();
 
     const ok = await verifyMasterAndInit();
-    if (!ok) return; // verifyMasterAndInit j├í trata erros
+    if (!ok) return; // verifyMasterAndInit já trata erros
 
-    // Carrega pre├ºos PRIMEIRO para que updateMetrics() use valores corretos
+    // Carrega preços PRIMEIRO para que updateMetrics() use valores corretos
     await loadPricingData();
 
     // Demais carregamentos em paralelo
@@ -1902,7 +1902,7 @@ async function loadAlerts() {
         const logs = await res.json();
         
         if (!logs || logs.length === 0) {
-            container.innerHTML = `<div class="empty-state"><i data-lucide="bell-off"></i><p>Nenhum alerta de seguran├ºa no momento.</p></div>`;
+            container.innerHTML = `<div class="empty-state"><i data-lucide="bell-off"></i><p>Nenhum alerta de segurança no momento.</p></div>`;
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -1911,8 +1911,8 @@ async function loadAlerts() {
             <thead>
                 <tr>
                     <th style="width: 150px">Data/Hora</th>
-                    <th style="width: 150px">Endere├ºo IP</th>
-                    <th>Tipo de Viola├º├úo</th>
+                    <th style="width: 150px">Endereço IP</th>
+                    <th>Tipo de Violação</th>
                 </tr>
             </thead>
             <tbody>`;
