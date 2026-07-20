@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unbound Sentinel | Login</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0b0f1a;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #e2e8f0;
+        }
+
+        .card {
+            background: #131929;
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .logo svg { width: 32px; height: 32px; color: #38bdf8; }
+        .logo span { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.05em; color: #f1f5f9; }
+
+        h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; text-align: center; }
+        .subtitle { font-size: 0.82rem; color: #94a3b8; text-align: center; margin-bottom: 1.75rem; }
+
+        label { display: block; font-size: 0.78rem; color: #94a3b8; margin-bottom: 0.4rem; }
+
+        input {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            background: #0d1220;
+            border: 1px solid rgba(56,189,248,0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        input:focus { border-color: #38bdf8; }
+
+        button {
+            width: 100%;
+            padding: 0.7rem;
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .error {
+            font-size: 0.8rem;
+            color: #f87171;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+            min-height: 1rem;
+        }
+
+        .forgot {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.78rem;
+        }
+        .forgot a { color: #38bdf8; text-decoration: none; }
+        .forgot a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span>SENTINEL DNS</span>
+        </div>
+        <h2>Área Restrita</h2>
+        <p class="subtitle">Insira suas credenciais para continuar</p>
+
+        <label for="user">Usuário</label>
+        <input type="text" id="user" placeholder="admin" autocomplete="username">
+
+        <label for="pass">Senha</label>
+        <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
+
+        <div class="error" id="error-msg"></div>
+
+        <button id="btn-login">ACESSAR</button>
+
+        <div class="forgot">
+            <a href="/login?recovery=1" id="link-recovery">Esqueci a Senha</a>
+        </div>
+    </div>
+
+    <script>
+        // Detecta URL base dinamicamente — funciona com Cloudflare Tunnel e IP direto
+        const API_BASE = '';
+
+        const userInput  = document.getElementById('user');
+        const passInput  = document.getElementById('pass');
+        const errorDiv   = document.getElementById('error-msg');
+        const btnLogin   = document.getElementById('btn-login');
+
+        // Permite login com Enter
+        [userInput, passInput].forEach(el => el.addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin();
+        }));
+
+        btnLogin.addEventListener('click', doLogin);
+
+        async function doLogin() {
+            const user = userInput.value.trim();
+            const pass = passInput.value;
+            errorDiv.textContent = '';
+
+            if (!user || !pass) {
+                errorDiv.textContent = 'Preencha usuário e senha.';
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Verificando...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, pass })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('sentinel_user', JSON.stringify(data.user));
+                    // Redireciona para o painel completo após login bem-sucedido
+                    const redirect = new URLSearchParams(location.search).get('redirect') || '/';
+                    location.href = redirect;
+                } else {
+                    errorDiv.textContent = 'Usuário ou senha inválidos.';
+                    passInput.value = '';
+                    passInput.focus();
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Erro de conexão com o servidor.';
+            } finally {
+                btnLogin.disabled = false;
+                btnLogin.textContent = 'ACESSAR';
+            }
+        }
+
+        // Foca no campo usuário ao carregar
+        userInput.focus();
+    </script>
+</body>
+</html>
