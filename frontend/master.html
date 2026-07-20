@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Master HQ</title>
+    <meta name="description" content="Sentinel DNS — Painel Central Master. Gestão de clientes, licenças e receita.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="/master.css?v=3">
+    <!-- Lucide Icons (pinned v0.460.0 + SRI) -->
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" integrity="sha384-ieG+IKD0d/ZPXyCBTMVAbqsQdns8QGJR/e26WMw7M4fkaI/rHcS/YIoi+ah9WGge" crossorigin="anonymous"></script>
+    <!-- Chart.js (pinned v4.4.0 + SRI) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
+    <!-- Anti-Inspect Shield -->
+    <script>
+        let violationLogged = false;
+        function logViolation(type) {
+            if (violationLogged) return;
+            violationLogged = true;
+            fetch('/api/system/log-violation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type })
+            }).catch(e => {});
+        }
+
+        document.addEventListener('contextmenu', e => { e.preventDefault(); logViolation('Botão Direito'); });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) || 
+               (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
+                e.preventDefault();
+                logViolation('Atalho Teclado (' + e.key + ')');
+                alert('Acesso negado. Ação registrada.');
+            }
+        });
+        setInterval(() => {
+            const before = new Date().getTime();
+            debugger;
+            const after = new Date().getTime();
+            if (after - before > 100) {
+                logViolation('Debugger Loop (DevTools Aberto)');
+                document.body.innerHTML = '<div style="background:#0f172a; height:100vh; display:flex; align-items:center; justify-content:center; color:#ef4444; font-family:sans-serif; font-size:24px; font-weight:bold;">Tentativa de violação detectada. Ação registrada.</div>';
+            }
+        }, 1000);
+    </script>
+</head>
+<body>
+
+<canvas id="master-canvas"></canvas>
+
+<!-- Exit NOC Mode Button -->
+<button class="exit-noc-btn" data-action="toggleNOCMode" title="Sair do Modo TV">
+    <i data-lucide="minimize"></i>
+</button>
+
+<div class="master-layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="master-sidebar">
+
+        <div class="master-logo">
+            <div class="master-logo-icon">⬡</div>
+            <div class="master-logo-text">
+                <span class="brand">SENTINEL</span>
+                <span class="role-badge">MASTER HQ</span>
+            </div>
+        </div>
+
+        <div class="master-fingerprint">
+            🔐 HWID: <span id="fp-display">carregando...</span>
+        </div>
+
+        <nav class="master-nav">
+            <div class="nav-section-label">Principal</div>
+
+            <button class="master-nav-item active" id="nav-overview" data-action="showMasterSection" data-target="overview">
+                <i data-lucide="layout-dashboard"></i>
+                Visão Geral
+                <span class="nav-badge green" id="badge-online">0</span>
+            </button>
+
+            <button class="master-nav-item" id="nav-clients" data-action="showMasterSection" data-target="clients">
+                <i data-lucide="monitor"></i>
+                Clientes
+                <span class="nav-badge violet" id="badge-clients">0</span>
+            </button>
+
+            <button class="master-nav-item" id="nav-licenses" data-action="showMasterSection" data-target="licenses">
+                <i data-lucide="key-round"></i>
+                Licenças
+            </button>
+
+            <button class="master-nav-item" id="nav-revenue" data-action="showMasterSection" data-target="revenue">
+                <i data-lucide="trending-up"></i>
+                Receita
+                <span class="nav-badge amber" id="badge-revenue">R$0</span>
+            </button>
+
+            <button class="master-nav-item" id="nav-plans" data-action="showMasterSection" data-target="plans">
+                <i data-lucide="tag"></i>
+                Planos &amp; Promoção
+            </button>
+            <div class="nav-section-label">Administração</div>
+
+            <button class="master-nav-item" id="nav-users" data-action="showMasterSection" data-target="users">
+                <i data-lucide="users"></i>
+                Usuários Dashboard
+            </button>
+
+            <button class="master-nav-item" id="nav-alerts" data-action="showMasterSection" data-target="alerts">
+                <i data-lucide="bell"></i>
+                Alertas
+                <span class="nav-badge amber" id="badge-alerts" style="display:none">!</span>
+            </button>
+
+            <div class="nav-section-label">Sistema</div>
+
+            <button class="master-nav-item" id="nav-config" data-action="showMasterSection" data-target="config">
+                <i data-lucide="settings-2"></i>
+                Configurações
+            </button>
+
+            <button class="master-nav-item" data-href="/audit.html">
+                <i data-lucide="shield-alert"></i>
+                Auditoria DNS
+            </button>
+
+            <button class="master-nav-item" data-href="/">
+                <i data-lucide="arrow-left"></i>
+                Voltar ao DNS
+            </button>
+        </nav>
+
+        <div class="master-sidebar-footer">
+            <div class="master-server-info">
+                <div class="server-info-row">
+                    <span>Hostname</span>
+                    <strong id="info-hostname">—</strong>
+                </div>
+                <div class="server-info-row">
+                    <span>Uptime</span>
+                    <strong id="info-uptime">—</strong>
+                </div>
+                <div class="server-info-row">
+                    <span>Versão</span>
+                    <strong id="info-version">—</strong>
+                </div>
+                <div class="server-info-row">
+                    <span>Licença</span>
+                    <strong id="info-license" style="color:var(--violet-400)">—</strong>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== ÁREA PRINCIPAL ===== -->
+    <div class="master-main">
+
+        <!-- Header -->
+        <header class="master-header">
+            <div class="header-title">
+                <h1 id="section-title">Visão Geral</h1>
+                <span class="subtitle" id="section-subtitle">Painel central de gestão — Sentinel Master HQ</span>
+            </div>
+
+            <div class="header-spacer"></div>
+
+            <div class="header-badge secure" id="secure-badge">
+                <i data-lucide="shield-check" style="width:13px;height:13px;"></i>
+                SECURE
+            </div>
+
+            <div class="header-badge live">
+                <div class="live-dot"></div>
+                AO VIVO
+            </div>
+
+            <div class="header-time" id="master-clock">00:00:00</div>
+
+            <!-- Botão NOC Mode -->
+            <button class="btn-master ghost" data-action="toggleNOCMode" title="Ativar Modo TV (Tela Cheia)" style="margin-left: 10px; padding: 6px; color: var(--text-secondary);">
+                <i data-lucide="maximize" style="width:18px;height:18px;"></i>
+            </button>
+        </header>
+
+        <!-- Content -->
+        <main class="master-content">
+
+            <!-- ========== SEÇÃO: VISÃO GERAL ========== -->
+            <section class="master-section active" id="section-overview">
+
+                <!-- Métricas principais -->
+                <div class="metrics-grid">
+                    <div class="metric-card violet-accent">
+                        <div class="metric-card-content">
+                            <div class="metric-header">
+                                <div class="metric-icon violet"><i data-lucide="monitor" style="width:16px;height:16px;"></i></div>
+                                <div id="delta-total"></div>
+                            </div>
+                            <div class="metric-label">Total Ativos</div>
+                            <div class="metric-value loading" id="m-total"><span class="metric-skeleton"></span></div>
+                            <div class="metric-sub loading" id="m-total-sub"><span class="metric-skeleton"></span></div>
+                            <div class="metric-zero-hint" id="m-total-hint" style="display:none;"></div>
+                        </div>
+                        <div class="metric-spark"><canvas id="spark-total"></canvas></div>
+                    </div>
+
+                    <div class="metric-card violet-accent" style="border-color: rgba(124,58,237,0.3);">
+                        <div class="metric-card-content">
+                            <div class="metric-header">
+                                <div class="metric-icon violet"><i data-lucide="crown" style="width:16px;height:16px;"></i></div>
+                                <div id="delta-pro"></div>
+                            </div>
+                            <div class="metric-label">Licenças PRO</div>
+                            <div class="metric-value loading" id="m-pro" style="color:var(--violet-400)"><span class="metric-skeleton"></span></div>
+                            <div class="metric-sub loading" id="m-pro-sub"><span class="metric-skeleton"></span></div>
+                            <div class="metric-zero-hint" id="m-pro-hint" style="display:none;">Converta trials ativos em pagantes</div>
+                        </div>
+                        <div class="metric-spark"><canvas id="spark-pro"></canvas></div>
+                    </div>
+
+                    <div class="metric-card green-accent">
+                        <div class="metric-card-content">
+                            <div class="metric-header">
+                                <div class="metric-icon green"><i data-lucide="wifi" style="width:16px;height:16px;"></i></div>
+                                <div id="delta-online"></div>
+                            </div>
+                            <div class="metric-label">Online Agora</div>
+                            <div class="metric-value loading" id="m-online"><span class="metric-skeleton"></span></div>
+                            <div class="metric-sub loading" id="m-online-sub"><span class="metric-skeleton"></span></div>
+                            <div class="metric-zero-hint" id="m-online-hint">↑ ao vivo</div>
+                        </div>
+                        <div class="metric-spark"><canvas id="spark-online"></canvas></div>
+                    </div>
+
+                    <div class="metric-card amber-accent">
+                        <div class="metric-card-content">
+                            <div class="metric-header">
+                                <div class="metric-icon amber"><i data-lucide="trending-up" style="width:16px;height:16px;"></i></div>
+                                <div id="delta-revenue"></div>
+                            </div>
+                            <div class="metric-label">Receita Estimada</div>
+                            <div class="metric-value loading" id="m-revenue"><span class="metric-skeleton"></span></div>
+                            <div class="metric-sub loading" id="m-revenue-sub"><span class="metric-skeleton"></span></div>
+                            <div class="metric-zero-hint" id="m-revenue-hint" style="display:none;"></div>
+                        </div>
+                        <div class="metric-spark"><canvas id="spark-revenue"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Painéis -->
+                <div class="panels-grid">
+
+                    <!-- Tabela de clientes ao vivo -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i data-lucide="activity"></i>
+                                Clientes Online — Tempo Real
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span class="panel-last-update" id="clients-last-update">aguardando...</span>
+                                <div class="master-search">
+                                    <i data-lucide="search"></i>
+                                    <input type="text" id="client-search" placeholder="Buscar cliente...">
+                                </div>
+                                <button class="btn-master ghost" data-action="loadActiveSessions">
+                                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="overflow-x:auto; max-height:340px; overflow-y:auto;">
+                            <table class="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente / Hostname</th>
+                                        <th>IP</th>
+                                        <th>Versão</th>
+                                        <th>Licença</th>
+                                        <th>Último Sinal</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-tbody">
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="empty-state">
+                                                <div class="master-spinner"></div>
+                                                <p>Carregando clientes...</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Painel lateral de distribuição -->
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+
+                        <!-- Distribuição de licenças -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <i data-lucide="pie-chart"></i>
+                                    Distribuição
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="stat-list" id="license-dist">
+                                    <div class="stat-item">
+                                        <div class="stat-item-header">
+                                            <span>PRO</span>
+                                            <span id="dist-pro-pct">0%</span>
+                                        </div>
+                                        <div class="stat-bar"><div class="stat-bar-fill violet" id="dist-pro-bar" style="width:0%"></div></div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-item-header">
+                                            <span>PRO Lite</span>
+                                            <span id="dist-lite-pct">0%</span>
+                                        </div>
+                                        <div class="stat-bar"><div class="stat-bar-fill amber" id="dist-lite-bar" style="width:0%"></div></div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-item-header">
+                                            <span>FREE</span>
+                                            <span id="dist-free-pct">0%</span>
+                                        </div>
+                                        <div class="stat-bar"><div class="stat-bar-fill green" id="dist-free-bar" style="width:0%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick actions -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <i data-lucide="zap"></i>
+                                    Ações Rápidas
+                                </div>
+                            </div>
+                            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;">
+                                <button class="btn-master primary" style="width:100%;justify-content:center;" data-action="openAddLicenseModal">
+                                    <i data-lucide="plus" style="width:13px;height:13px;"></i>
+                                    Nova Licença
+                                </button>
+                                <button class="btn-master amber" style="width:100%;justify-content:center;" data-action="showMasterSection" data-target="licenses">
+                                    <i data-lucide="key-round" style="width:13px;height:13px;"></i>
+                                    Gerir Licenças
+                                </button>
+                                <button class="btn-master ghost" style="width:100%;justify-content:center;" data-action="loadActiveSessions">
+                                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                                    Atualizar Dados
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: CLIENTES ========== -->
+            <section class="master-section" id="section-clients">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Clientes
+                        <small>Todos os servidores Sentinel registrados</small>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <div class="master-search">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="clients-search2" placeholder="Buscar...">
+                        </div>
+                        <button class="btn-master outline" data-action="openCreateClientModal">
+                            <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
+                            Novo Cliente
+                        </button>
+                        <button class="btn-master primary" data-action="loadActiveSessions">
+                            <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+                <div class="full-panel">
+                    <table class="clients-table" style="min-width:700px;">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Cliente / Hostname</th>
+                                <th>IP</th>
+                                <th>Versão</th>
+                                <th>Licença</th>
+                                <th>Último Sinal</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-full-tbody">
+                            <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: LICENÇAS ========== -->
+            <section class="master-section" id="section-licenses">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Licenças
+                        <small>Gestão de chaves de ativação e planos</small>
+                    </div>
+                    <button class="btn-master primary" data-action="openAddLicenseModal">
+                        <i data-lucide="plus" style="width:13px;height:13px;"></i>
+                        Criar Licença
+                    </button>
+                </div>
+                <div class="full-panel">
+                    <table class="clients-table" style="min-width:700px;">
+                        <thead>
+                            <tr>
+                                <th>Chave</th>
+                                <th>Cliente</th>
+                                <th>Plano</th>
+                                <th>HWID</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="licenses-tbody">
+                            <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: RECEITA ========== -->
+            <section class="master-section" id="section-revenue">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Receita
+                        <small>Estimativa baseada em licenças ativas</small>
+                    </div>
+                </div>
+                <div class="revenue-summary">
+                    <div class="rev-card">
+                        <div class="rev-card-label">MRR Estimado</div>
+                        <div class="rev-card-value" id="rev-mrr">R$ 0,00</div>
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Somente pagantes</div>
+                    </div>
+                    <div class="rev-card">
+                        <div class="rev-card-label">ARR Estimado</div>
+                        <div class="rev-card-value" id="rev-arr">R$ 0,00</div>
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Somente pagantes</div>
+                    </div>
+                    <div class="rev-card" style="border-left: 2px solid var(--amber-400);">
+                        <div class="rev-card-label">Receita Vitalícia Acumulada</div>
+                        <div class="rev-card-value" id="rev-lifetime" style="color:var(--amber-400)">R$ 0,00</div>
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Vendas únicas</div>
+                    </div>
+                    <div class="rev-card">
+                        <div class="rev-card-label">Clientes PRO</div>
+                        <div class="rev-card-value" id="rev-pro-count" style="color:var(--violet-400)">0</div>
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Pagantes ativos</div>
+                    </div>
+                    <div class="rev-card">
+                        <div class="rev-card-label">Em Trial</div>
+                        <div class="rev-card-value" id="rev-trial-count" style="color:var(--sky-400)">0</div>
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Não conta no MRR</div>
+                    </div>
+                    <div class="rev-card">
+                        <div class="rev-card-label">Clientes FREE</div>
+                        <div class="rev-card-value" id="rev-free-count" style="color:var(--text-secondary)">0</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i data-lucide="bar-chart-2"></i> Licenças por Plano</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="chart-wrap">
+                            <canvas id="revenue-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: USUÁRIOS ========== -->
+            <section class="master-section" id="section-users">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Usuários do Dashboard
+                        <small>Contas com acesso ao painel</small>
+                    </div>
+                    <button class="btn-master primary" data-action="openAddUserModal">
+                        <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
+                        Adicionar Usuário
+                    </button>
+                </div>
+                <div class="full-panel">
+                    <div class="panel-body">
+                        <div id="users-list"><div class="empty-state"><div class="master-spinner"></div></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: ALERTAS ========== -->
+            <section class="master-section" id="section-alerts">
+                <div class="section-topbar">
+                    <div class="section-heading">Alertas</div>
+                </div>
+                <div class="full-panel">
+                    <div class="panel-body" id="alerts-list">
+                        <div class="empty-state">
+                            <i data-lucide="bell-off"></i>
+                            <p>Nenhum alerta no momento.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: PLANOS & PROMOÇÃO ========== -->
+            <section class="master-section" id="section-plans">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Planos &amp; Promoção
+                        <small>Preços e promoções exibidos para os clientes</small>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-master ghost" data-action="loadPlans">
+                            <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                            Recarregar
+                        </button>
+                        <button class="btn-master primary" data-action="savePlans">
+                            <i data-lucide="save" style="width:13px;height:13px;"></i>
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </div>
+
+                <div class="plans-grid">
+                    <!-- PRO -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i data-lucide="crown" style="color:var(--violet-400)"></i>
+                                Plano PRO Elite
+                            </div>
+                            <span class="lic-badge pro">PRO</span>
+                        </div>
+                        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
+                            <div class="modal-field">
+                                <label>Preço exibido (ex: R$ 50,00)</label>
+                                <input type="text" id="plan-pro-price" placeholder="R$ 50,00">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço Stripe em centavos (5000 = R$50)</label>
+                                <input type="number" id="plan-pro-stripe" placeholder="5000" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PRO Lite -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i data-lucide="heart" style="color:var(--amber-400)"></i>
+                                Plano PRO Lite (Doação)
+                            </div>
+                            <span class="lic-badge pro-lite">PRO Lite</span>
+                        </div>
+                        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
+                            <div class="modal-field">
+                                <label>Preço exibido (ex: R$ 49,90)</label>
+                                <input type="text" id="plan-lite-price" placeholder="R$ 49,90">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço Stripe em centavos</label>
+                                <input type="number" id="plan-lite-stripe" placeholder="4990" min="0">
+                            </div>
+                            <div class="modal-field">
+                                <label>Texto do botão de doação</label>
+                                <input type="text" id="plan-lite-btn" placeholder="❤ FAZER DOAÇÃO (PIX)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promoção -->
+                <div class="panel" style="margin-top:16px;">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i data-lucide="zap" style="color:var(--amber-400)"></i>
+                            Promoção Ativa
+                        </div>
+                        <div id="promo-countdown" style="font-size:12px;color:var(--amber-400);font-weight:700;font-family:monospace;"></div>
+                    </div>
+                    <div class="panel-body">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+                            <div class="modal-field">
+                                <label>Badge da Promoção</label>
+                                <input type="text" id="promo-badge" placeholder="-40% OFF">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço antigo (texto)</label>
+                                <input type="text" id="promo-old-price" placeholder="De R$ 50,00">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço novo (texto)</label>
+                                <input type="text" id="promo-new-price" placeholder="Por apenas R$ 29,90">
+                            </div>
+                            <div class="modal-field">
+                                <label>Texto botão mensal</label>
+                                <input type="text" id="promo-monthly-btn" placeholder="MENSAL (R$ 29,90)">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço mensal Stripe (centavos)</label>
+                                <input type="number" id="promo-monthly-stripe" placeholder="2990" min="0">
+                            </div>
+                            <div class="modal-field">
+                                <label>Texto botão anual</label>
+                                <input type="text" id="promo-annual-btn" placeholder="ANUAL (R$ 349,90)">
+                            </div>
+                            <div class="modal-field">
+                                <label>Preço anual Stripe (centavos)</label>
+                                <input type="number" id="promo-annual-stripe" placeholder="34990" min="0">
+                            </div>
+                            <div class="modal-field">
+                                <label>Encerramento da promo</label>
+                                <input type="datetime-local" id="promo-end-date">
+                                <small style="color:var(--text-muted);font-size:10px;">Deixe vazio = sem contador</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+                    <button class="btn-master primary" data-action="savePlans" style="padding:12px 32px;">
+                        <i data-lucide="save" style="width:13px;height:13px;"></i>
+                        Salvar Todas as Alterações
+                    </button>
+                </div>
+            </section>
+
+            <!-- ========== SEÇÃO: CONFIGURAÇÕES ========== -->
+            <section class="master-section" id="section-config">
+                <div class="section-topbar">
+                    <div class="section-heading">
+                        Configurações Master
+                        <small>Token de hardware, credenciais e integrações</small>
+                    </div>
+                </div>
+                <div class="panels-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i data-lucide="shield"></i> Segurança &amp; Token</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="modal-field">
+                                <label>MASTER TOKEN (HMAC-HWID)</label>
+                                <input type="text" id="cfg-master-token" readonly style="font-family:monospace;font-size:11px;">
+                            </div>
+                            <div class="modal-field">
+                                <label>Fingerprint (últimos 8 chars)</label>
+                                <input type="text" id="cfg-fingerprint" readonly>
+                            </div>
+                            <div class="modal-field">
+                                <label>Hardware ID (parcial)</label>
+                                <input type="text" id="cfg-hwid" readonly>
+                            </div>
+                            <div style="margin-top:4px;">
+                                <small style="color:var(--text-muted);font-size:11px;">
+                                    ⚠️ O MASTER_TOKEN é gerado automaticamente pelo HWID desta máquina. 
+                                    Copiar o .env para outro servidor invalidará o acesso master.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i data-lucide="server"></i> Info do Servidor</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="stat-list">
+                                <div class="server-info-row">
+                                    <span>Hostname</span>
+                                    <strong id="cfg-hostname">—</strong>
+                                </div>
+                                <div class="server-info-row">
+                                    <span>Platform</span>
+                                    <strong id="cfg-platform">—</strong>
+                                </div>
+                                <div class="server-info-row">
+                                    <span>Uptime</span>
+                                    <strong id="cfg-uptime">—</strong>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel" style="grid-column: 1 / -1;">
+                        <div class="panel-header">
+                            <div class="panel-title"><i data-lucide="ban"></i> Clientes Bloqueados (Banlist)</div>
+                        </div>
+                        <div class="panel-body">
+                            <table class="data-table" id="blacklist-table">
+                                <thead>
+                                    <tr>
+                                        <th>HWID</th>
+                                        <th>Nome do Cliente</th>
+                                        <th>Data do Bloqueio</th>
+                                        <th style="width:120px;text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Nenhum HWID bloqueado.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<!-- ===== MODAL: NOVA LICENÇA ===== -->
+<div class="master-modal-overlay" id="modal-license" style="display:none;" data-modal-overlay="modal-license">
+    <div class="master-modal">
+        <div class="modal-header">
+            <div class="modal-title"><i data-lucide="key-round" style="width:15px;height:15px;color:var(--violet-400)"></i> Criar / Editar Licença</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-license">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-field">
+                <label>Chave de Licença</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="lic-key" placeholder="Gerada automaticamente" style="flex:1;font-family:monospace;">
+                    <button type="button" data-action="generateLicenseKey" style="
+                        padding:0 14px;height:38px;flex-shrink:0;
+                        background:rgba(124,58,237,0.15);
+                        border:1px solid var(--border-active);
+                        border-radius:8px;color:var(--violet-300);
+                        font-size:12px;font-weight:600;
+                        cursor:pointer;white-space:nowrap;
+                        transition:all 0.2s;font-family:inherit;
+                    " data-hover-bg="rgba(124,58,237,0.3)"
+                       data-out-bg="rgba(124,58,237,0.15)">
+                        ⟳ Gerar
+                    </button>
+                </div>
+            </div>
+            <div class="modal-field">
+                <label>Nome do Cliente</label>
+                <input type="text" id="lic-client" placeholder="Ex: OliveiraTelecom">
+            </div>
+            <div class="modal-field">
+                <label>Plano</label>
+                <select id="lic-type">
+                    <option value="pro">PRO (Elite)</option>
+                    <option value="pro-lite">PRO Lite</option>
+                    <option value="pro-trial">Trial PRO</option>
+                    <option value="free">FREE</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Modelo de Cobrança</label>
+                <select id="lic-modelo" id="lic-modelo">
+                    <option value="recorrente">Recorrente (Assinatura)</option>
+                    <option value="vitalicio">Vitalício (Sem expiração)</option>
+                </select>
+            </div>
+            <div id="lic-addons-container" style="display: none; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--secondary); margin-bottom: 0.8rem;">Add-ons (Opcionais)</div>
+                <div class="modal-field checkbox-group" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="lic-suporte-ativo" checked style="width: 16px; height: 16px;">
+                    <label for="lic-suporte-ativo" style="margin: 0;">Suporte Ativo & CTI (+ R$ 29,90/mês)</label>
+                </div>
+                <div class="modal-field" style="margin-bottom: 0;">
+                    <label>Nós Satélites Extras (+ R$ 15,00/nó/mês)</label>
+                    <input type="number" id="lic-extra-nodes" value="0" min="0" placeholder="Ex: 2">
+                </div>
+            </div>
+            <div class="modal-field" id="lic-expiry-container">
+                <label>Vencimento (deixe em branco = 1 ano padrão)</label>
+                <input type="date" id="lic-expiry">
+            </div>
+            <div class="modal-field">
+                <label>HWID (opcional)</label>
+                <input type="text" id="lic-hwid" placeholder="Vínculo a hardware específico">
+            </div>
+            <!-- FEATURES -->
+            <div class="modal-field">
+                <label style="display:flex;align-items:center;justify-content:space-between;">
+                    <span>Funcionalidades Incluídas</span>
+                    <div style="display:flex;gap:6px;">
+                        <button type="button" data-action="setFeaturePreset" data-target="pro" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border-active);background:rgba(124,58,237,0.2);color:var(--violet-300);cursor:pointer;">PRO</button>
+                        <button type="button" data-action="setFeaturePreset" data-target="lite" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.15);color:var(--amber-400);cursor:pointer;">Lite</button>
+                        <button type="button" data-action="setFeaturePreset" data-target="free" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text-muted);cursor:pointer;">FREE</button>
+                    </div>
+                </label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:8px;">
+                    <label class="feat-check"><input type="checkbox" id="feat-tv"><span>📺 TV ao Vivo</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-globe"><span>🌍 Mapa Global</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-cti"><span>🔍 CTI / Threat Intel</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-benchmark"><span>⚡ Benchmark</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-update"><span>🔄 Atualizações Auto</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-charts"><span>📊 Gráficos e Stats</span></label>
+                    <label class="feat-check"><input type="checkbox" id="feat-config"><span>⚙️ Configurações DNS</span></label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-master ghost" data-action="closeModal" data-target="modal-license">Cancelar</button>
+            <button class="btn-master primary" data-action="saveLicense">
+                <i data-lucide="save" style="width:13px;height:13px;"></i>
+                Salvar Licença
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL: NOVO USUÁRIO ===== -->
+<div class="master-modal-overlay" id="modal-user" style="display:none;" data-modal-overlay="modal-user">
+    <div class="master-modal">
+        <div class="modal-header">
+            <div class="modal-title"><i data-lucide="user-plus" style="width:15px;height:15px;color:var(--violet-400)"></i> Adicionar Usuário</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-user">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-field">
+                <label>Nome de Usuário</label>
+                <input type="text" id="new-user-name" placeholder="Ex: operador1">
+            </div>
+            <div class="modal-field">
+                <label>Senha</label>
+                <input type="password" id="new-user-pass" placeholder="Senha forte">
+            </div>
+            <div class="modal-field">
+                <label>Permissão</label>
+                <select id="new-user-role">
+                    <option value="operator">Operador (leitura)</option>
+                    <option value="admin">Admin (total)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-master ghost" data-action="closeModal" data-target="modal-user">Cancelar</button>
+            <button class="btn-master primary" data-action="saveUser">
+                <i data-lucide="save" style="width:13px;height:13px;"></i>
+                Criar Usuário
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div class="master-toast-container" id="toast-container"></div>
+
+<!-- Modal Transferir HWID -->
+<div class="master-modal-overlay" id="modal-transfer-hwid" style="display:none;" data-modal-overlay="modal-transfer-hwid">
+    <div class="master-modal">
+        <div class="modal-header">
+            <div class="modal-title"><i data-lucide="cpu" style="width:15px;height:15px;color:var(--amber-400)"></i> Transferir HWID</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-transfer-hwid">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px; font-size: 13px; color: var(--text-secondary);">Esta ação transferirá a licença vitalícia selecionada para um novo HWID. O dispositivo antigo perderá o acesso premium instantaneamente. Esta ação ficará registrada no log de auditoria.</p>
+            <input type="hidden" id="transfer-lic-key">
+            <div class="modal-field">
+                <label>HWID Antigo</label>
+                <input type="text" id="transfer-old-hwid" readonly style="background:var(--bg-secondary);">
+            </div>
+            <div class="modal-field">
+                <label>Novo HWID *</label>
+                <input type="text" id="transfer-new-hwid" placeholder="Digite o novo HWID da máquina">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-master ghost" data-action="closeModal" data-target="modal-transfer-hwid">Cancelar</button>
+            <button class="btn-master primary" data-action="confirmTransferHWID">Confirmar Transferência</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Histórico da Licença -->
+<div class="master-modal-overlay" id="modal-license-history" style="display:none;" data-modal-overlay="modal-license-history">
+    <div class="master-modal" style="max-width:550px;">
+        <div class="modal-header">
+            <div class="modal-title"><i data-lucide="history" style="width:15px;height:15px;color:var(--violet-400)"></i> Histórico da Licença Vitalícia</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-license-history">✕</button>
+        </div>
+        <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+            <div id="license-history-container" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Logs will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== NOC Mode Toggle =====
+    function toggleNOCMode() {
+        document.body.classList.toggle('noc-mode');
+        
+        // Se ativou o modo NOC, tenta colocar em Fullscreen
+        if (document.body.classList.contains('noc-mode')) {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Erro ao tentar fullscreen: ${err.message}`);
+                });
+            }
+        } else {
+            // Se desativou, tenta sair do Fullscreen
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(err => {});
+            }
+        }
+        
+        // Força a atualização dos ícones Lucide recém renderizados
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+</script>
+
+<!-- Modal Novo Cliente -->
+<div class="master-modal-overlay" id="modal-client" style="display:none;" data-modal-overlay="modal-client">
+    <div class="master-modal" style="max-width:600px;">
+        <div class="modal-header">
+            <div class="modal-title"><i data-lucide="user-plus" style="width:15px;height:15px;color:var(--violet-400)"></i> Cadastrar Novo Cliente</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-client">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="modal-field" style="grid-column: 1 / -1;">
+                    <label>Nome da Empresa / Cliente *</label>
+                    <input type="text" id="new-client-name" placeholder="Ex: OliveiraTelecom">
+                </div>
+                <div class="modal-field">
+                    <label>CPF ou CNPJ (opcional)</label>
+                    <input type="text" id="new-client-document" placeholder="Ex: 00.000.000/0000-00">
+                </div>
+                <div class="modal-field">
+                    <label>Telefone (opcional)</label>
+                    <input type="text" id="new-client-phone" placeholder="Ex: (11) 99999-9999">
+                </div>
+                <div class="modal-field">
+                    <label>E-mail (opcional)</label>
+                    <input type="email" id="new-client-email" placeholder="Ex: contato@empresa.com">
+                </div>
+                <div class="modal-field">
+                    <label>Endereço (opcional)</label>
+                    <input type="text" id="new-client-address" placeholder="Ex: Rua A, 123 - Centro">
+                </div>
+                <div class="modal-field">
+                    <label>IP Autorizado (opcional)</label>
+                    <input type="text" id="new-client-ip" placeholder="Ex: 192.168.1.1">
+                </div>
+                <div class="modal-field">
+                    <label>Hostname Esperado (opcional)</label>
+                    <input type="text" id="new-client-hostname" placeholder="Ex: srv01.oliveira.com">
+                </div>
+                <div class="modal-field" style="grid-column: 1 / -1;">
+                    <label>Observações</label>
+                    <textarea id="new-client-notes" placeholder="Anotações internas..." rows="2" style="width:100%; padding:0.5rem; background:var(--bg-secondary); border:1px solid var(--surface-border); border-radius:4px; color:var(--text-main); font-family:inherit; resize:vertical;"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-master outline" data-action="closeModal" data-target="modal-client">Cancelar</button>
+            <button class="btn-master primary" data-action="saveNewClient">Salvar Cliente</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gerir Cliente e Licenças -->
+<style>
+.client-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--surface-border); }
+.client-tab { padding: 0.5rem 1rem; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+.client-tab:hover { color: var(--text-primary); }
+.client-tab.active { color: var(--text-primary); border-bottom-color: var(--primary); }
+.client-tab-content { display: none; }
+.client-tab-content.active { display: block; }
+</style>
+<div class="master-modal-overlay" id="modal-manage-client" style="display:none;" data-modal-overlay="modal-manage-client">
+    <div class="master-modal" style="max-width:650px;">
+        <div class="modal-header" style="gap:8px;">
+            <div class="modal-title" style="flex:1;"><i data-lucide="briefcase" style="width:15px;height:15px;color:var(--violet-400)"></i> Gerenciar Cliente</div>
+            <button data-action="executeBanClientStandalone" title="Banir e Bloquear HWIDs" style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); color:var(--amber-400); padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; transition:all 0.2s; display:flex; align-items:center; gap:5px;"><i data-lucide="shield-off" style="width:12px;height:12px;"></i> Bloquear</button>
+            <button data-action="openDeleteClientConfirm" title="Excluir Cliente" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; transition:all 0.2s; display:flex; align-items:center; gap:5px;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir</button>
+            <button class="modal-close" data-action="closeModal" data-target="modal-manage-client">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="manage-client-id">
+            
+            <div class="client-tabs">
+                <div class="client-tab active" data-action="switchClientTab" data-target="data" id="tab-btn-data">Dados Cadastrais</div>
+                <div class="client-tab" data-action="switchClientTab" data-target="licenses" id="tab-btn-licenses">Licenças</div>
+            </div>
+            
+            <div id="tab-content-data" class="client-tab-content active">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="modal-field" style="grid-column: 1 / -1;">
+                        <label>Nome do Cliente *</label>
+                        <input type="text" id="manage-client-name">
+                    </div>
+                    <div class="modal-field">
+                        <label>CPF ou CNPJ</label>
+                        <input type="text" id="manage-client-document" placeholder="Ex: 00.000.000/0000-00">
+                    </div>
+                    <div class="modal-field">
+                        <label>Telefone</label>
+                        <input type="text" id="manage-client-phone" placeholder="Ex: (11) 99999-9999">
+                    </div>
+                    <div class="modal-field">
+                        <label>E-mail</label>
+                        <input type="email" id="manage-client-email">
+                    </div>
+                    <div class="modal-field">
+                        <label>Endereço</label>
+                        <input type="text" id="manage-client-address">
+                    </div>
+                    <div class="modal-field">
+                        <label>IP Autorizado</label>
+                        <input type="text" id="manage-client-ip">
+                    </div>
+                    <div class="modal-field">
+                        <label>Hostname Esperado</label>
+                        <input type="text" id="manage-client-hostname">
+                    </div>
+                    <div class="modal-field" style="grid-column: 1 / -1;">
+                        <label>Observações</label>
+                        <textarea id="manage-client-notes" rows="2" style="width:100%; padding:0.5rem; background:var(--bg-secondary); border:1px solid var(--surface-border); border-radius:4px; color:var(--text-main); font-family:inherit; resize:vertical;"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn-master primary" data-action="updateClient">Salvar Alterações</button>
+                </div>
+            </div>
+            
+            <div id="tab-content-licenses" class="client-tab-content">
+                <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin:0; font-size:14px; color:var(--text-primary);">Licenças Vinculadas</h4>
+                    <button class="btn-master primary" data-action="openAddLicenseToClientModal">
+                        <i data-lucide="plus" style="width:12px;height:12px;"></i> Adicionar Licença
+                    </button>
+                </div>
+                
+                <div style="overflow-x:auto;">
+                    <table class="clients-table">
+                        <thead>
+                            <tr>
+                                <th>Chave</th>
+                                <th>Plano</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-licenses-tbody">
+                            <tr><td colspan="4"><div class="empty-state">Carregando...</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+<script src="master.js?v=2.9.31"></script>
+<!-- Modal: Confirmação de Exclusão de Cliente -->
+<div class="master-modal-overlay" id="modal-delete-client" style="display:none;" data-modal-overlay="modal-delete-client">
+    <div class="master-modal" style="max-width:480px;">
+        <div class="modal-header">
+            <div class="modal-title" style="color:var(--rose-400);"><i data-lucide="alert-triangle" style="width:15px;height:15px;"></i> Excluir Cliente</div>
+            <button class="modal-close" data-action="closeModal" data-target="modal-delete-client">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="delete-client-id">
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">Tem certeza que deseja excluir o cliente:</p>
+            <p style="font-size:1rem; font-weight:700; color:var(--text-primary); background:var(--bg-surface); border:1px solid var(--surface-border); border-radius:6px; padding:10px 14px; margin-bottom:1rem;" id="delete-client-name-display"></p>
+            <div id="delete-client-license-warning" style="display:none; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:10px 14px; font-size:0.82rem; color:var(--amber-400); margin-bottom:1rem;">
+                <i data-lucide="alert-triangle" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;"></i>
+                <span id="delete-client-license-warning-text"></span>
+            </div>
+            <p style="color:var(--rose-400); font-size:0.8rem; margin-bottom:1.5rem;">⚠️ Esta ação não pode ser desfeita.</p>
+            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="delete-client-ban" style="width:16px;height:16px;cursor:pointer;">
+                <label for="delete-client-ban" style="font-size:0.9rem;color:var(--text-primary);cursor:pointer;">Também bloquear este HWID de se reconectar</label>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-master" data-action="closeModal" data-target="modal-delete-client">Cancelar</button>
+                <button class="btn-master" data-action="executeDeleteClient" style="background:var(--danger); border-color:var(--danger); color:#fff;">Sim, excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
