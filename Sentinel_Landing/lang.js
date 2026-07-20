@@ -1,679 +1,159 @@
-const i18n = {
-    pt: {
-        "nav.dashboard": "Painel Geral",
-        "nav.monitoring": "Monitoramento",
-        "nav.clients": "Gestão de Clientes",
-        "nav.licenses": "Gestão de Licenças",
-        "nav.config": "Configurações",
-        "nav.users": "Gestão de Usuários",
-        "nav.system": "Sistema",
-        "nav.security": "Segurança CTI",
-        "nav.pingmaster": "Ping Master",
-        "nav.benchmark": "Benchmark",
-        "nav.about": "Sobre o Sistema",
-        "nav.docs": "Documentação",
-
-        "ping.avg": "Média Geral de Ping",
-        "ping.active": "Serviços Ativos",
-        "ping.high": "Latência Alta",
-        "ping.offline": "Serviços Offline",
-        "ping.title": "Latências de Conectividade",
-        "ping.new_target": "+ Novo Alvo",
-
-        "dash.cpu": "CARGA DE CPU",
-        "dash.mem": "USO DE MEMÓRIA",
-        "dash.disk": "DISCO E LIMPEZA",
-        "dash.used_of": "usados de",
-        "dash.auto_cleanup": "Limpeza Automática (>90%)",
-        "dash.force_cleanup": "FORÇAR LIMPEZA DE LOGS",
-        "dash.dnssec": "SEGURANÇA DNSSEC",
-        "dash.safe": "SEGURO",
-        "dash.valid_sigs": "Assinaturas Válidas",
-        "dash.bogus": "Falsificações (Bogus)",
-        "dash.val_active": "VALIDAÇÃO ATIVA",
-        "dash.log_term": "TERMINAL DE LOGS (REAL-TIME)",
-        "dash.active": "ATIVO",
-
-        "sec.cti_title": "Segurança CTI",
-        "sec.cti_sub": "(Central de Inteligência de Ameaças)",
-        "sec.cti_desc": "Monitoramento ativo contra domínios maliciosos, tracking e ameaças cibernéticas.",
-        "sec.live_monitor": "MONITOR AO VIVO",
-        "sec.tab_logs": "LOG DE CONSULTAS",
-        "sec.tab_osint": "OSINT E AMEAÇAS",
-        "sec.tab_gravity": "GRAVITY (ADLISTS)",
-        "sec.tab_lists": "LISTA BRANCA & NEGRA",
-        "sec.filter_placeholder": "Filtrar por Domínio ou IP do Cliente...",
-        "sec.queries_count": "consultas",
-        "sec.th_time": "HORÁRIO",
-        "sec.th_client": "CLIENTE",
-        "sec.th_domain": "DOMÍNIO",
-        "sec.th_type": "TIPO",
-        "sec.th_status": "STATUS",
-        "sec.th_actions": "AÇÕES RÁPIDAS",
-        "sec.no_queries": "Nenhuma consulta recente encontrada no log.",
-
-        "bench.title": "Sentinel Speed Test | Benchmark DNS",
-        "bench.subtitle": "Compara o tempo de resposta do seu servidor local contra os gigantes globais.",
-        "bench.domain": "DOMÍNIO ALVO OPCIONAL",
-        "bench.category": "CATEGORIA DE TESTE",
-        "bench.blocked": "BENCHMARK BLOQUEADO",
-
-        "plans.title": "Planes Disponibles",
-        "plans.free": "Gratis",
-        "plans.supporter": "Patrocinador",
-        "plans.premium": "Premium",
-        "plans.donation": "VÍA DONACIÓN ❤",
-        "plans.forever": "/siempre",
-        "plans.month": "/mes",
-        "plans.feat_dash": "Panel de Monitoreo",
-        "plans.feat_conf_basic": "Configuración Básica (unbound.conf)",
-        "plans.feat_logs": "Logs en Tiempo Real",
-        "plans.feat_ping": "Ping Master Elite",
-        "plans.feat_tv": "Modo TV / NOC",
-        "plans.feat_bench": "Benchmark DNS",
-        "plans.feat_ota": "Actualizaciones Remotas",
-        "plans.feat_conf_adv": "Configuraciones Avanzadas",
-        "plans.feat_free_all": "Todo del Plan Free",
-        "plans.feat_hist": "Gráficos Históricos",
-        "plans.feat_globe": "Visión Global (Globe)",
-        "plans.feat_pro_all": "Todo del PRO Lite",
-        "plans.feat_tv_full": "Modo TV / NOC Fullscreen",
-        "plans.feat_bench_adv": "Benchmark DNS Avanzado",
-        "plans.feat_support": "Soporte Prioritario",
-        "plans.feat_multi": "Multi-Servidor",
-        "plans.feat_beta": "Acceso a Nuevas Funciones Beta",
-        "plans.btn_pix": "❤ HACER DONACIÓN (PIX)",
-        "plans.btn_support": "✉ CONTACTAR SOPORTE",
-        "plans.support_project": "Apoya el Proyecto",
-        "plans.support_desc": "Tu donación mantiene a Sentinel gratis y en constante evolución.",
-        "plans.support_pix_info": "¡Cualquier cantidad es bienvenida! Después de donar, envía el comprobante por WhatsApp y recibe tu activación PRO Lite en minutos.",
-        "plans.pix_key": "Clave PIX",
-        "plans.pix_copy": "Copiar",
-        "plans.pix_copied": "✓ ¡Copiado!",
-        "plans.pix_type": "Tipo: Teléfono",
-        "plans.btn_whatsapp": "Enviar comprobante por WhatsApp",
-        "plans.scan_pay": "ESCANEAR PARA PAGAR",
-        "plans.dev_role": "Especialista en Redes y Sistemas Linux",
-
-
-        "plans.title": "Planos Disponíveis",
-        "plans.free": "Gratuito",
-        "plans.supporter": "Apoiador",
-        "plans.premium": "Premium",
-        "plans.donation": "VIA DOAÇÃO ❤",
-        "plans.forever": "/sempre",
-        "plans.month": "/mês",
-        "plans.feat_dash": "Dashboard de Monitoramento",
-        "plans.feat_conf_basic": "Configuração Básica (unbound.conf)",
-        "plans.feat_logs": "Logs em Tempo Real",
-        "plans.feat_ping": "Ping Master Elite",
-        "plans.feat_tv": "Modo TV / NOC",
-        "plans.feat_bench": "Benchmark DNS",
-        "plans.feat_ota": "Atualizações Remotas",
-        "plans.feat_conf_adv": "Configurações Avançadas",
-        "plans.feat_free_all": "Tudo do Plano Free",
-        "plans.feat_hist": "Gráficos Históricos",
-        "plans.feat_globe": "Visão Global (Globe)",
-        "plans.feat_pro_all": "Tudo do PRO Lite",
-        "plans.feat_tv_full": "Modo TV / NOC Fullscreen",
-        "plans.feat_bench_adv": "Benchmark DNS Avançado",
-        "plans.feat_support": "Suporte Prioritário",
-        "plans.feat_multi": "Multi-Servidor",
-        "plans.feat_beta": "Acesso a Novas Features Beta",
-        "plans.btn_pix": "❤ FAZER DOAÇÃO (PIX)",
-        "plans.btn_support": "✉ FALAR COM SUPORTE",
-        "plans.support_project": "Apoie o Projeto",
-        "plans.support_desc": "Sua doação mantém o Sentinel gratuito e em constante evolução.",
-        "plans.support_pix_info": "Qualquer valor é bem-vindo! Após a doação, envie o comprovante via WhatsApp e receba sua ativação PRO Lite em minutos.",
-        "plans.pix_key": "Chave PIX",
-        "plans.pix_copy": "Copiar",
-        "plans.pix_copied": "✓ Copiado!",
-        "plans.pix_type": "Tipo: Telefone",
-        "plans.btn_whatsapp": "Enviar comprovante via WhatsApp",
-        "plans.scan_pay": "ESCANEIE PARA PAGAR",
-        "plans.dev_role": "Especialista em Redes e Sistemas Linux",
-
-
-        "sys.current_usage": "Uso atual:",
-
-        "sidebar.tvmode": "Modo TV",
-        "sidebar.reload": "Recarregar",
-        "sidebar.restart": "Reiniciar",
-        "sidebar.logout": "SAIR",
-        "sidebar.developed_by": "Desenvolvido por:",
-        "sidebar.server_noc": "Servidor NOC",
-
-        "header.title": "MONITOR NOC DNS",
-        "header.live": "AO VIVO",
-        "header.update_available": "Atualização Disponível",
-
-        "noc.queries": "Consultas",
-        "noc.cache_hit": "Cache Hit",
-        "noc.misses": "Misses",
-        "noc.servfail": "ServFail",
-        "noc.cpu": "Uso CPU",
-        "noc.mem": "Uso Mem",
-        "noc.traffic": "Tráfego",
-
-        "sec.title": "Monitoramento de Segurança CTI",
-        "sec.critical": "Críticos (Zero-Day)",
-        "sec.suspicious": "Suspeitos/Spam",
-        "sec.monitored": "Monitorados",
-        
-        "sec.tabs.alerts": "Alertas Recentes",
-        "sec.tabs.manual": "Bloqueios Manuais",
-        "sec.tabs.investigation": "Em Investigação",
-
-        "sec.table.threats": "Tráfego Suspeito Detectado",
-
-        "charts.qps": "Taxa de Consultas por Segundo (QPS)",
-        "charts.network": "Taxa de Transferência (Banda)",
-
-        "panel.top_domains": "TOP 10 DOMÍNIOS",
-        "panel.top_clients": "TOP CLIENTES",
-        "panel.types": "TIPOS DE CONSULTA",
-        "panel.latency": "LATÊNCIA (HISTOGRAMA)",
-        "panel.tps": "HISTÓRICO DE REQUISIÇÕES (TPS)",
-        "panel.cache_efficiency": "EFICIÊNCIA DE CACHE",
-        "panel.network": "TRÁFEGO DE REDE (Mbps)",
-        "panel.rcode": "DISTRIBUIÇÃO RCODE",
-        "panel.system": "RECURSOS DO SISTEMA",
-
-        "table.live_queries": "Monitoramento de Consultas ao Vivo",
-        "table.col.time": "Hora",
-        "table.col.client": "Cliente",
-        "table.col.domain": "Domínio",
-        "table.col.type": "Tipo",
-        "table.col.status": "Status",
-
-        "sys.uptime": "Uptime",
-        
-        "config.title": "Configurações e Otimização",
-        "config.btn.save": "Salvar Configurações",
-
-        "config.title_main": "DNS Sentinel | Central de Configurações",
-        "config.subtitle_main": "Selecione o módulo que deseja administrar",
-        "config.cards.unbound.title": "Unbound DNS (Avançado)",
-        "config.cards.unbound.desc": "Gerenciar arquivos .conf e parâmetros gerais.",
-        "config.cards.access.title": "Controle de Acesso (IPs)",
-        "config.cards.access.desc": "Bloquear ou permitir faixas de IP no servidor.",
-        "config.cards.firewall.title": "Firewall (Security)",
-        "config.cards.firewall.desc": "Regras de filtragem e proteção de portas.",
-        "config.cards.network.title": "Rede (Interfaces)",
-        "config.cards.network.desc": "Configurar IPs, IPv6 e rotas do servidor.",
-        "config.cards.layout.title": "Layout do Painel",
-        "config.cards.layout.desc": "Escolher quais gráficos e cards exibir na tela.",
-        "config.cards.static.title": "Sistemas Internos (Static)",
-        "config.cards.static.desc": "Domínios locais que funcionam sem internet.",
-        "config.cards.blacklist.title": "Blacklist (Domínios)",
-        "config.cards.blacklist.desc": "Gerenciar bloqueios manuais e CTI (local-zone).",
-        "config.cards.credentials.title": "Credenciais & SSH",
-        "config.cards.credentials.desc": "Alterar usuário, senha e conexão SSH do servidor.",
-        "config.cards.ddns.title": "Acesso Externo (DDNS)",
-        "config.cards.ddns.desc": "Configurar acesso via domínio (DuckDNS, No-IP).",
-        "config.cards.geoip.title": "GeoIP / MaxMind",
-        "config.cards.geoip.desc": "Configurar geolocalização de IPs para o Globo 3D e CTI.",
-        "config.cards.time.title": "Data, Hora & Timezone",
-        "config.cards.time.desc": "Ajustar fuso horário e sincronizar com servidores NTP.",
-
-        "docs.title": "DOCUMENTAÇÃO OFICIAL",
-        "docs.download": "BAIXAR ISO BOOTÁVEL REMASTERIZADA",
-
-        "docs.title_main": "DOCUMENTAÇÃO OFICIAL",
-        "docs.appliance": "💿 Appliance Unbound Sentinel (Rocky Linux 9.7)",
-        "docs.new": "NOVIDADE (v2.6.0):",
-        "docs.new_desc": "Agora disponível como um",
-        "docs.new_desc2": "Appliance de Instalação Automática 100% Offline",
-        "docs.new_desc3": "baseado no estável Rocky Linux 9.7 Minimal. A instalação é totalmente autônoma, pré-otimizada para provedores (ISPs) e pronta para produção em 5 minutos!",
-        "docs.download_iso": "BAIXAR ISO BOOTÁVEL REMASTERIZADA (2.68 GB - Google Drive)",
-        "docs.features_title": "🌟 Recursos Nativos do Appliance:",
-        "docs.feat_1_title": "Instalação 100% Offline (Unattended):",
-        "docs.feat_1_desc": "O instalador automatizado configura tudo (Unbound, Redis, Node.js) sem precisar de internet.",
-        "docs.feat_2_title": "Dynamic ISP Auto-Tuning:",
-        "docs.feat_2_desc": "Motor inteligente que mede os núcleos de CPU e RAM no boot, ajustando limites do sistema de acordo com o hardware.",
-        "docs.feat_3_title": "Hardening de Segurança:",
-        "docs.feat_3_desc": "Serviço SSH padrão desativado e porta 22 bloqueada.",
-        "docs.support_title": "📞 Suporte e Contato",
-        "docs.dev": "Desenvolvedor:",
-        "docs.whatsapp": "WhatsApp:",
-
-
-        "common.loading": "Carregando...",
-        "common.error": "Erro ao processar",
-        "common.success": "Sucesso",
-        "common.save": "Salvar",
-        "common.cancel": "Cancelar"
+const translations = {
+    "pt": {
+        "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Voltar para o Início",
+        "nav.master": "<i data-lucide=\"lock\" width=\"14\" height=\"14\"></i> Painel Master",
+        "index.title": "Sentinel <span>DNS</span> Segurança",
+        "index.desc": "Central de Distribuição e Controle. A inteligência cibernética, validação de licenças corporativas e os pacotes de atualização (OTA) operam em fluxo constante para todos os servidores da rede.",
+        "index.badge_master": "<div class=\"dot\"></div> Nó Mestre Online",
+        "status.license": "Servidor de Licenças",
+        "status.active": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Ativo",
+        "status.cti": "Inteligência (CTI)",
+        "status.sync": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Sincronizado",
+        "status.ota": "Atualizações OTA",
+        "status.op": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Operante",
+        "feat.title": "Capacidades do Ecossistema",
+        "feat.1_title": "Filtro Anti-Malware",
+        "feat.1_desc": "Bloqueio em tempo real na camada DNS contra ameaças, phishing e botnets antes que cheguem aos usuários.",
+        "feat.2_title": "Baixíssima Latência",
+        "feat.2_desc": "Nós locais descentralizados processam requisições em milissegundos utilizando o motor Unbound otimizado.",
+        "feat.3_title": "Blacklists Dinâmicas",
+        "feat.3_desc": "Sincronização automática de listas de inteligência de ameaças com o Nó Mestre a cada poucos minutos.",
+        "feat.4_title": "Gestão Centralizada",
+        "feat.4_desc": "Controle de todos os nós de provedores e clientes corporativos a partir deste painel de comando central.",
+        "link.download": "<i data-lucide=\"download-cloud\" width=\"18\" height=\"18\"></i> Baixar ISO do Sentinel",
+        "link.docs": "<i data-lucide=\"book-open\" width=\"18\" height=\"18\"></i> Ver Documentação Completa",
+        "link.contact": "<i data-lucide=\"message-circle\" width=\"18\" height=\"18\"></i> Contato via WhatsApp",
+        "news.badge": "NOVIDADE",
+        "news.text": "Appliance 100% Offline (Rocky Linux 9.7) v2.6.0 Lançado!",
+        "dl.title": "Instalação <span>Sentinel DNS</span>",
+        "dl.desc": "Faça o download da imagem ISO oficial para instalar o nó Edge do Sentinel na sua infraestrutura corporativa.",
+        "dl.btn": "<i data-lucide=\"download\"></i> Baixar Imagem ISO (v2.6.0)",
+        "req.title": "Requisitos Mínimos da Máquina",
+        "req.cpu_title": "Processador (CPU)",
+        "req.cpu_desc": "2 vCores / Threads ou superior. Arquitetura x86_64.",
+        "req.ram_title": "Memória RAM",
+        "req.ram_desc": "4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.",
+        "req.disk_title": "Armazenamento (Disco)",
+        "req.disk_desc": "40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.",
+        "req.net_title": "Rede / Conectividade",
+        "req.net_desc": "Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.",
+        "doc.title": "Documentação Oficial",
+        "doc.desc": "Guias, tutoriais e manuais de implementação do ecossistema Sentinel."
     },
-    en: {
-        "nav.dashboard": "Dashboard",
-        "nav.monitoring": "Monitoring",
-        "nav.clients": "Client Management",
-        "nav.licenses": "License Management",
-        "nav.config": "Settings",
-        "nav.users": "User Management",
-        "nav.system": "System",
-        "nav.security": "CTI Security",
-        "nav.pingmaster": "Ping Master",
-        "nav.benchmark": "Benchmark",
-        "nav.about": "About System",
-        "nav.docs": "Documentation",
-
-        "ping.avg": "Overall Ping Avg",
-        "ping.active": "Active Services",
-        "ping.high": "High Latency",
-        "ping.offline": "Offline Services",
-        "ping.title": "Connectivity Latency",
-        "ping.new_target": "+ New Target",
-
-        "dash.cpu": "CPU LOAD",
-        "dash.mem": "MEMORY USAGE",
-        "dash.disk": "DISK & CLEANUP",
-        "dash.used_of": "used of",
-        "dash.auto_cleanup": "Auto Cleanup (>90%)",
-        "dash.force_cleanup": "FORCE LOG CLEANUP",
-        "dash.dnssec": "DNSSEC SECURITY",
-        "dash.safe": "SECURE",
-        "dash.valid_sigs": "Valid Signatures",
-        "dash.bogus": "Forgeries (Bogus)",
-        "dash.val_active": "VALIDATION ACTIVE",
-        "dash.log_term": "LOG TERMINAL (REAL-TIME)",
-        "dash.active": "ACTIVE",
-
-        "sec.cti_title": "CTI Security",
-        "sec.cti_sub": "(Cyber Threat Intelligence)",
-        "sec.cti_desc": "Active monitoring against malicious domains, tracking and cyber threats.",
-        "sec.live_monitor": "LIVE MONITOR",
-        "sec.tab_logs": "QUERY LOGS",
-        "sec.tab_osint": "OSINT & THREATS",
-        "sec.tab_gravity": "GRAVITY (ADLISTS)",
-        "sec.tab_lists": "WHITE & BLACK LISTS",
-        "sec.filter_placeholder": "Filter by Domain or Client IP...",
-        "sec.queries_count": "queries",
-        "sec.th_time": "TIME",
-        "sec.th_client": "CLIENT",
-        "sec.th_domain": "DOMAIN",
-        "sec.th_type": "TYPE",
-        "sec.th_status": "STATUS",
-        "sec.th_actions": "QUICK ACTIONS",
-        "sec.no_queries": "No recent queries found in the log.",
-
-        "bench.title": "Sentinel Speed Test | DNS Benchmark",
-        "bench.subtitle": "Compares your local server's response time against global giants.",
-        "bench.domain": "OPTIONAL TARGET DOMAIN",
-        "bench.category": "TEST CATEGORY",
-        "bench.blocked": "BENCHMARK LOCKED",
-
-        "plans.title": "Available Plans",
-        "plans.free": "Free",
-        "plans.supporter": "Supporter",
-        "plans.premium": "Premium",
-        "plans.donation": "VIA DONATION ❤",
-        "plans.forever": "/forever",
-        "plans.month": "/month",
-        "plans.feat_dash": "Monitoring Dashboard",
-        "plans.feat_conf_basic": "Basic Configuration (unbound.conf)",
-        "plans.feat_logs": "Real-Time Logs",
-        "plans.feat_ping": "Ping Master Elite",
-        "plans.feat_tv": "TV Mode / NOC",
-        "plans.feat_bench": "DNS Benchmark",
-        "plans.feat_ota": "Remote Updates",
-        "plans.feat_conf_adv": "Advanced Configurations",
-        "plans.feat_free_all": "Everything in Free Plan",
-        "plans.feat_hist": "Historical Charts",
-        "plans.feat_globe": "Global Vision (Globe)",
-        "plans.feat_pro_all": "Everything in PRO Lite",
-        "plans.feat_tv_full": "TV Mode / NOC Fullscreen",
-        "plans.feat_bench_adv": "Advanced DNS Benchmark",
-        "plans.feat_support": "Priority Support",
-        "plans.feat_multi": "Multi-Server",
-        "plans.feat_beta": "Access to New Beta Features",
-        "plans.btn_pix": "❤ MAKE A DONATION (PIX)",
-        "plans.btn_support": "✉ CONTACT SUPPORT",
-        "plans.support_project": "Support the Project",
-        "plans.support_desc": "Your donation keeps Sentinel free and constantly evolving.",
-        "plans.support_pix_info": "Any amount is welcome! After donation, send the receipt via WhatsApp and get your PRO Lite activation in minutes.",
-        "plans.pix_key": "PIX Key",
-        "plans.pix_copy": "Copy",
-        "plans.pix_copied": "✓ Copied!",
-        "plans.pix_type": "Type: Phone",
-        "plans.btn_whatsapp": "Send receipt via WhatsApp",
-        "plans.scan_pay": "SCAN TO PAY",
-        "plans.dev_role": "Network and Linux Systems Specialist",
-
-
-        "sys.current_usage": "Current usage:",
-
-        "sidebar.tvmode": "TV Mode",
-        "sidebar.reload": "Reload",
-        "sidebar.restart": "Restart",
-        "sidebar.logout": "LOGOUT",
-        "sidebar.developed_by": "Developed by:",
-        "sidebar.server_noc": "NOC Server",
-
-        "header.title": "NOC DNS MONITOR",
-        "header.live": "LIVE",
-        "header.update_available": "Update Available",
-
-        "noc.queries": "Queries",
-        "noc.cache_hit": "Cache Hit",
-        "noc.misses": "Misses",
-        "noc.servfail": "ServFail",
-        "noc.cpu": "CPU Usage",
-        "noc.mem": "Mem Usage",
-        "noc.traffic": "Traffic",
-
-        "sec.title": "CTI Security Monitoring",
-        "sec.critical": "Critical (Zero-Day)",
-        "sec.suspicious": "Suspicious/Spam",
-        "sec.monitored": "Monitored",
-
-        "sec.tabs.alerts": "Recent Alerts",
-        "sec.tabs.manual": "Manual Blocks",
-        "sec.tabs.investigation": "Under Investigation",
-
-        "sec.table.threats": "Suspicious Traffic Detected",
-
-        "charts.qps": "Queries per Second (QPS)",
-        "charts.network": "Transfer Rate (Bandwidth)",
-
-        "panel.top_domains": "TOP 10 DOMAINS",
-        "panel.top_clients": "TOP CLIENTS",
-        "panel.types": "QUERY TYPES",
-        "panel.latency": "LATENCY (HISTOGRAM)",
-        "panel.tps": "REQUEST HISTORY (TPS)",
-        "panel.cache_efficiency": "CACHE EFFICIENCY",
-        "panel.network": "NETWORK TRAFFIC (Mbps)",
-        "panel.rcode": "RCODE DISTRIBUTION",
-        "panel.system": "SYSTEM RESOURCES",
-
-        "table.live_queries": "Live Query Monitoring",
-        "table.col.time": "Time",
-        "table.col.client": "Client",
-        "table.col.domain": "Domain",
-        "table.col.type": "Type",
-        "table.col.status": "Status",
-
-        "sys.uptime": "Uptime",
-        
-        "config.title": "Settings & Tuning",
-        "config.btn.save": "Save Settings",
-
-        "config.title_main": "DNS Sentinel | Configuration Center",
-        "config.subtitle_main": "Select the module you want to administer",
-        "config.cards.unbound.title": "Unbound DNS (Advanced)",
-        "config.cards.unbound.desc": "Manage .conf files and general parameters.",
-        "config.cards.access.title": "Access Control (IPs)",
-        "config.cards.access.desc": "Block or allow IP ranges on the server.",
-        "config.cards.firewall.title": "Firewall (Security)",
-        "config.cards.firewall.desc": "Filtering rules and port protection.",
-        "config.cards.network.title": "Network (Interfaces)",
-        "config.cards.network.desc": "Configure IPs, IPv6 and server routes.",
-        "config.cards.layout.title": "Dashboard Layout",
-        "config.cards.layout.desc": "Choose which charts and cards to display on screen.",
-        "config.cards.static.title": "Internal Systems (Static)",
-        "config.cards.static.desc": "Local domains that work without internet.",
-        "config.cards.blacklist.title": "Blacklist (Domains)",
-        "config.cards.blacklist.desc": "Manage manual blocks and CTI (local-zone).",
-        "config.cards.credentials.title": "Credentials & SSH",
-        "config.cards.credentials.desc": "Change server user, password and SSH connection.",
-        "config.cards.ddns.title": "External Access (DDNS)",
-        "config.cards.ddns.desc": "Configure access via domain (DuckDNS, No-IP).",
-        "config.cards.geoip.title": "GeoIP / MaxMind",
-        "config.cards.geoip.desc": "Configure IP geolocation for 3D Globe and CTI.",
-        "config.cards.time.title": "Date, Time & Timezone",
-        "config.cards.time.desc": "Adjust time zone and synchronize with NTP servers.",
-
-        "docs.title": "OFFICIAL DOCUMENTATION",
-        "docs.download": "DOWNLOAD REMASTERED BOOTABLE ISO",
-
-        "docs.title_main": "OFFICIAL DOCUMENTATION",
-        "docs.appliance": "💿 Unbound Sentinel Appliance (Rocky Linux 9.7)",
-        "docs.new": "NEW (v2.6.0):",
-        "docs.new_desc": "Now available as a",
-        "docs.new_desc2": "100% Offline Auto-Installation Appliance",
-        "docs.new_desc3": "based on the stable Rocky Linux 9.7 Minimal. The installation is fully autonomous, pre-optimized for ISPs, and ready for production in 5 minutes!",
-        "docs.download_iso": "DOWNLOAD REMASTERED BOOTABLE ISO (2.68 GB - Google Drive)",
-        "docs.features_title": "🌟 Native Appliance Features:",
-        "docs.feat_1_title": "100% Offline Installation (Unattended):",
-        "docs.feat_1_desc": "The automated installer configures everything (Unbound, Redis, Node.js) without needing internet.",
-        "docs.feat_2_title": "Dynamic ISP Auto-Tuning:",
-        "docs.feat_2_desc": "Smart engine that measures CPU cores and RAM at boot, adjusting system limits according to hardware.",
-        "docs.feat_3_title": "Security Hardening:",
-        "docs.feat_3_desc": "Default SSH service disabled and port 22 blocked.",
-        "docs.support_title": "📞 Support and Contact",
-        "docs.dev": "Developer:",
-        "docs.whatsapp": "WhatsApp:",
-
-
-        "common.loading": "Loading...",
-        "common.error": "Error processing",
-        "common.success": "Success",
-        "common.save": "Save",
-        "common.cancel": "Cancel"
+    "en": {
+        "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Back to Home",
+        "nav.master": "<i data-lucide=\"lock\" width=\"14\" height=\"14\"></i> Master Panel",
+        "index.title": "Sentinel <span>DNS</span> Security",
+        "index.desc": "Distribution and Control Center. Cyber intelligence, corporate license validation, and update packages (OTA) operate in a constant flow to all network servers.",
+        "index.badge_master": "<div class=\"dot\"></div> Master Node Online",
+        "status.license": "License Server",
+        "status.active": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Active",
+        "status.cti": "Intelligence (CTI)",
+        "status.sync": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Synchronized",
+        "status.ota": "OTA Updates",
+        "status.op": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Operational",
+        "feat.title": "Ecosystem Capabilities",
+        "feat.1_title": "Anti-Malware Filter",
+        "feat.1_desc": "Real-time DNS layer blocking against threats, phishing, and botnets before they reach users.",
+        "feat.2_title": "Ultra-Low Latency",
+        "feat.2_desc": "Decentralized local nodes process requests in milliseconds using the optimized Unbound engine.",
+        "feat.3_title": "Dynamic Blacklists",
+        "feat.3_desc": "Automatic synchronization of threat intelligence lists with the Master Node every few minutes.",
+        "feat.4_title": "Centralized Management",
+        "feat.4_desc": "Control all ISP nodes and corporate clients from this central command panel.",
+        "link.download": "<i data-lucide=\"download-cloud\" width=\"18\" height=\"18\"></i> Download Sentinel ISO",
+        "link.docs": "<i data-lucide=\"book-open\" width=\"18\" height=\"18\"></i> View Full Documentation",
+        "link.contact": "<i data-lucide=\"message-circle\" width=\"18\" height=\"18\"></i> Contact via WhatsApp",
+        "news.badge": "NEW",
+        "news.text": "100% Offline Appliance (Rocky Linux 9.7) v2.6.0 Released!",
+        "dl.title": "Sentinel DNS <span>Installation</span>",
+        "dl.desc": "Download the official ISO image to install the Sentinel Edge node in your corporate infrastructure.",
+        "dl.btn": "<i data-lucide=\"download\"></i> Download ISO Image (v2.6.0)",
+        "req.title": "Minimum Machine Requirements",
+        "req.cpu_title": "Processor (CPU)",
+        "req.cpu_desc": "2 vCores / Threads or higher. x86_64 Architecture.",
+        "req.ram_title": "RAM Memory",
+        "req.ram_desc": "4 GB Minimum. 8 GB recommended for networks with over 5,000 clients.",
+        "req.disk_title": "Storage (Disk)",
+        "req.disk_desc": "40 GB SSD. Required for high-speed caching and local database.",
+        "req.net_title": "Network / Connectivity",
+        "req.net_desc": "Gigabit network card. Port 53 (UDP/TCP) and port 443 (TCP) opened.",
+        "doc.title": "Official Documentation",
+        "doc.desc": "Guides, tutorials, and implementation manuals for the Sentinel ecosystem."
     },
-    es: {
-        "nav.dashboard": "Panel General",
-        "nav.monitoring": "Monitoreo",
-        "nav.clients": "Gestión de Clientes",
-        "nav.licenses": "Gestión de Licencias",
-        "nav.config": "Configuración",
-        "nav.users": "Gestión de Usuarios",
-        "nav.system": "Sistema",
-        "nav.security": "Seguridad CTI",
-        "nav.pingmaster": "Ping Master",
-        "nav.benchmark": "Benchmark",
-        "nav.about": "Acerca del Sistema",
-        "nav.docs": "Documentación",
-
-        "ping.avg": "Promedio de Ping",
-        "ping.active": "Servicios Activos",
-        "ping.high": "Latencia Alta",
-        "ping.offline": "Servicios Offline",
-        "ping.title": "Latencias de Conectividad",
-        "ping.new_target": "+ Nuevo Objetivo",
-
-        "dash.cpu": "CARGA DE CPU",
-        "dash.mem": "USO DE MEMORIA",
-        "dash.disk": "DISCO Y LIMPIEZA",
-        "dash.used_of": "usados de",
-        "dash.auto_cleanup": "Limpieza Automática (>90%)",
-        "dash.force_cleanup": "FORZAR LIMPIEZA",
-        "dash.dnssec": "SEGURIDAD DNSSEC",
-        "dash.safe": "SEGURO",
-        "dash.valid_sigs": "Firmas Válidas",
-        "dash.bogus": "Falsificaciones (Bogus)",
-        "dash.val_active": "VALIDACIÓN ACTIVA",
-        "dash.log_term": "TERMINAL DE LOGS (TIEMPO REAL)",
-        "dash.active": "ACTIVO",
-
-        "sec.cti_title": "Seguridad CTI",
-        "sec.cti_sub": "(Inteligencia de Amenazas)",
-        "sec.cti_desc": "Monitoreo activo contra dominios maliciosos, tracking y ciberamenazas.",
-        "sec.live_monitor": "MONITOR EN VIVO",
-        "sec.tab_logs": "REGISTRO DE CONSULTAS",
-        "sec.tab_osint": "OSINT Y AMENAZAS",
-        "sec.tab_gravity": "GRAVITY (ADLISTS)",
-        "sec.tab_lists": "LISTA BLANCA Y NEGRA",
-        "sec.filter_placeholder": "Filtrar por Dominio o IP del Cliente...",
-        "sec.queries_count": "consultas",
-        "sec.th_time": "HORA",
-        "sec.th_client": "CLIENTE",
-        "sec.th_domain": "DOMINIO",
-        "sec.th_type": "TIPO",
-        "sec.th_status": "ESTADO",
-        "sec.th_actions": "ACCIONES RÁPIDAS",
-        "sec.no_queries": "No se encontraron consultas recientes en el registro.",
-
-        "bench.title": "Sentinel Speed Test | Benchmark DNS",
-        "bench.subtitle": "Compara el tiempo de respuesta de tu servidor local con los gigantes globales.",
-        "bench.domain": "DOMINIO OBJETIVO OPCIONAL",
-        "bench.category": "CATEGORÍA DE PRUEBA",
-        "bench.blocked": "BENCHMARK BLOQUEADO",
-
-        "sys.current_usage": "Uso actual:",
-
-        "sidebar.tvmode": "Modo TV",
-        "sidebar.reload": "Recargar",
-        "sidebar.restart": "Reiniciar",
-        "sidebar.logout": "SALIR",
-        "sidebar.developed_by": "Desarrollado por:",
-        "sidebar.server_noc": "Servidor NOC",
-
-        "header.title": "MONITOR NOC DNS",
-        "header.live": "EN VIVO",
-        "header.update_available": "Actualización Disponible",
-
-        "noc.queries": "Consultas",
-        "noc.cache_hit": "Cache Hit",
-        "noc.misses": "Misses",
-        "noc.servfail": "ServFail",
-        "noc.cpu": "Uso CPU",
-        "noc.mem": "Uso Mem",
-        "noc.traffic": "Tráfico",
-
-        "sec.title": "Monitoreo de Seguridad CTI",
-        "sec.critical": "Críticos (Zero-Day)",
-        "sec.suspicious": "Sospechosos/Spam",
-        "sec.monitored": "Monitoreados",
-
-        "sec.tabs.alerts": "Alertas Recientes",
-        "sec.tabs.manual": "Bloqueos Manuales",
-        "sec.tabs.investigation": "En Investigación",
-
-        "sec.table.threats": "Tráfico Sospechoso Detectado",
-
-        "charts.qps": "Consultas por Segundo (QPS)",
-        "charts.network": "Tasa de Transferencia (Ancho de banda)",
-
-        "panel.top_domains": "TOP 10 DOMINIOS",
-        "panel.top_clients": "TOP CLIENTES",
-        "panel.types": "TIPOS DE CONSULTA",
-        "panel.latency": "LATENCIA (HISTOGRAMA)",
-        "panel.tps": "HISTORIAL DE PETICIONES (TPS)",
-        "panel.cache_efficiency": "EFICIENCIA DE CACHÉ",
-        "panel.network": "TRÁFICO DE RED (Mbps)",
-        "panel.rcode": "DISTRIBUCIÓN RCODE",
-        "panel.system": "RECURSOS DEL SISTEMA",
-
-        "table.live_queries": "Monitoreo de Consultas en Vivo",
-        "table.col.time": "Hora",
-        "table.col.client": "Cliente",
-        "table.col.domain": "Dominio",
-        "table.col.type": "Tipo",
-        "table.col.status": "Estado",
-
-        "sys.uptime": "Uptime",
-        
-        "config.title": "Configuración y Optimización",
-        "config.btn.save": "Guardar Configuración",
-
-        "config.title_main": "DNS Sentinel | Centro de Configuración",
-        "config.subtitle_main": "Seleccione el módulo que desea administrar",
-        "config.cards.unbound.title": "Unbound DNS (Avanzado)",
-        "config.cards.unbound.desc": "Administrar archivos .conf y parámetros generales.",
-        "config.cards.access.title": "Control de Acceso (IPs)",
-        "config.cards.access.desc": "Bloquear o permitir rangos de IP en el servidor.",
-        "config.cards.firewall.title": "Firewall (Seguridad)",
-        "config.cards.firewall.desc": "Reglas de filtrado y protección de puertos.",
-        "config.cards.network.title": "Red (Interfaces)",
-        "config.cards.network.desc": "Configurar IPs, IPv6 y rutas del servidor.",
-        "config.cards.layout.title": "Diseño del Panel",
-        "config.cards.layout.desc": "Elija qué gráficos y tarjetas mostrar en pantalla.",
-        "config.cards.static.title": "Sistemas Internos (Estático)",
-        "config.cards.static.desc": "Dominios locales que funcionan sin internet.",
-        "config.cards.blacklist.title": "Lista Negra (Dominios)",
-        "config.cards.blacklist.desc": "Administrar bloqueos manuales y CTI (zona local).",
-        "config.cards.credentials.title": "Credenciales y SSH",
-        "config.cards.credentials.desc": "Cambiar usuario del servidor, contraseña y SSH.",
-        "config.cards.ddns.title": "Acceso Externo (DDNS)",
-        "config.cards.ddns.desc": "Configurar el acceso por dominio (DuckDNS, No-IP).",
-        "config.cards.geoip.title": "GeoIP / MaxMind",
-        "config.cards.geoip.desc": "Configurar la geolocalización de IPs para el Globo 3D y CTI.",
-        "config.cards.time.title": "Fecha, Hora y Zona Horaria",
-        "config.cards.time.desc": "Ajustar zona horaria y sincronizar con NTP.",
-
-        "docs.title": "DOCUMENTACIÓN OFICIAL",
-        "docs.download": "DESCARGAR ISO BOOTEABLE REMASTERIZADA",
-
-        "docs.title_main": "DOCUMENTACIÓN OFICIAL",
-        "docs.appliance": "💿 Appliance Unbound Sentinel (Rocky Linux 9.7)",
-        "docs.new": "NOVEDAD (v2.6.0):",
-        "docs.new_desc": "Ahora disponible como un",
-        "docs.new_desc2": "Appliance de Instalación Automática 100% Offline",
-        "docs.new_desc3": "basado en el estable Rocky Linux 9.7 Minimal. ¡La instalación es totalmente autónoma, pre-optimizada para proveedores (ISP) y lista para producción en 5 minutos!",
-        "docs.download_iso": "DESCARGAR ISO BOOTEABLE REMASTERIZADA (2.68 GB - Google Drive)",
-        "docs.features_title": "🌟 Funciones Nativas del Appliance:",
-        "docs.feat_1_title": "Instalación 100% Offline (Desatendida):",
-        "docs.feat_1_desc": "El instalador automatizado configura todo (Unbound, Redis, Node.js) sin necesidad de internet.",
-        "docs.feat_2_title": "Dynamic ISP Auto-Tuning:",
-        "docs.feat_2_desc": "Motor inteligente que mide los núcleos de CPU y RAM en el arranque, ajustando los límites del sistema según el hardware.",
-        "docs.feat_3_title": "Hardening de Seguridad:",
-        "docs.feat_3_desc": "Servicio SSH por defecto desactivado y puerto 22 bloqueado.",
-        "docs.support_title": "📞 Soporte y Contacto",
-        "docs.dev": "Desarrollador:",
-        "docs.whatsapp": "WhatsApp:",
-
-
-        "common.loading": "Cargando...",
-        "common.error": "Error al procesar",
-        "common.success": "Éxito",
-        "common.save": "Guardar",
-        "common.cancel": "Cancelar"
+    "es": {
+        "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Volver al Inicio",
+        "nav.master": "<i data-lucide=\"lock\" width=\"14\" height=\"14\"></i> Panel Master",
+        "index.title": "Sentinel <span>DNS</span> Seguridad",
+        "index.desc": "Centro de Distribución y Control. La inteligencia cibernética, validación de licencias corporativas y los paquetes de actualización (OTA) operan en flujo constante para todos los servidores de la red.",
+        "index.badge_master": "<div class=\"dot\"></div> Nodo Maestro Online",
+        "status.license": "Servidor de Licencias",
+        "status.active": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Activo",
+        "status.cti": "Inteligencia (CTI)",
+        "status.sync": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Sincronizado",
+        "status.ota": "Actualizaciones OTA",
+        "status.op": "<i data-lucide=\"check-circle-2\" width=\"14\" height=\"14\"></i> Operativo",
+        "feat.title": "Capacidades del Ecosistema",
+        "feat.1_title": "Filtro Anti-Malware",
+        "feat.1_desc": "Bloqueo en tiempo real en la capa DNS contra amenazas, phishing y botnets antes de que lleguen a los usuarios.",
+        "feat.2_title": "Bajísima Latencia",
+        "feat.2_desc": "Nodos locales descentralizados procesan peticiones en milisegundos usando el motor Unbound optimizado.",
+        "feat.3_title": "Listas Negras Dinámicas",
+        "feat.3_desc": "Sincronización automática de listas de inteligencia de amenazas con el Nodo Maestro cada pocos minutos.",
+        "feat.4_title": "Gestión Centralizada",
+        "feat.4_desc": "Control de todos los nodos de proveedores y clientes corporativos desde este panel de mando central.",
+        "link.download": "<i data-lucide=\"download-cloud\" width=\"18\" height=\"18\"></i> Descargar ISO de Sentinel",
+        "link.docs": "<i data-lucide=\"book-open\" width=\"18\" height=\"18\"></i> Ver Documentación Completa",
+        "link.contact": "<i data-lucide=\"message-circle\" width=\"18\" height=\"18\"></i> Contacto vía WhatsApp",
+        "news.badge": "NUEVO",
+        "news.text": "¡Appliance 100% Offline (Rocky Linux 9.7) v2.6.0 Lanzado!",
+        "dl.title": "Instalación <span>Sentinel DNS</span>",
+        "dl.desc": "Descarga la imagen ISO oficial para instalar el nodo Edge de Sentinel en tu infraestructura corporativa.",
+        "dl.btn": "<i data-lucide=\"download\"></i> Descargar Imagen ISO (v2.6.0)",
+        "req.title": "Requisitos Mínimos de la Máquina",
+        "req.cpu_title": "Procesador (CPU)",
+        "req.cpu_desc": "2 vCores / Hilos o superior. Arquitectura x86_64.",
+        "req.ram_title": "Memoria RAM",
+        "req.ram_desc": "4 GB Mínimo. Recomendado 8 GB para redes con más de 5.000 clientes.",
+        "req.disk_title": "Almacenamiento (Disco)",
+        "req.disk_desc": "40 GB SSD. Necesario para caché de alta velocidad y base de datos local.",
+        "req.net_title": "Red / Conectividad",
+        "req.net_desc": "Tarjeta de red Gigabit. Puerto 53 (UDP/TCP) y puerto 443 (TCP) abiertos.",
+        "doc.title": "Documentación Oficial",
+        "doc.desc": "Guías, tutoriales y manuales de implementación del ecosistema Sentinel."
     }
 };
 
-// Gerenciador de Idiomas
-let currentLang = localStorage.getItem('sentinel_lang');
-
-if (!currentLang) {
-    currentLang = 'pt';
-    fetch('/api/system/lang')
-        .then(res => res.json())
-        .then(data => {
-            if (data && data.lang && !localStorage.getItem('sentinel_lang')) {
-                currentLang = data.lang;
-                const langSelect = document.getElementById('lang-selector');
-                if (langSelect) {
-                    langSelect.value = currentLang;
-                }
-                applyTranslations();
-            }
-        })
-        .catch(err => console.error('Error fetching default language:', err));
-}
-
-
-function t(key) {
-    if (i18n[currentLang] && i18n[currentLang][key]) {
-        return i18n[currentLang][key];
-    }
-    // Fallback para português ou própria chave se não existir
-    if (i18n['pt'] && i18n['pt'][key]) {
-        return i18n['pt'][key];
-    }
-    return key;
-}
-
 function setLanguage(lang) {
-    if (!i18n[lang]) return;
-    currentLang = lang;
-    localStorage.setItem('sentinel_lang', lang);
-    applyTranslations();
+    localStorage.setItem('landing_lang', lang);
+    applyTranslations(lang);
 }
 
-function applyTranslations() {
-    const elements = document.querySelectorAll('[data-i18n]');
-    elements.forEach(el => {
+function applyTranslations(lang) {
+    const t = translations[lang] || translations['pt'];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        el.innerText = t(key);
-    });
-
-    const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
-    placeholders.forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        el.setAttribute('placeholder', t(key));
+        if (t[key]) {
+            el.innerHTML = t[key];
+        }
     });
     
-    // Dispara evento para atualizar as partes dinâmicas que renderizam fora do HTML estático
-    document.dispatchEvent(new Event('languageChanged'));
+    const select = document.getElementById('lang-selector');
+    if (select) select.value = lang;
+    
+    // Re-render lucide icons inside translated strings
+    if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+    }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('landing_lang') || 'pt';
+    applyTranslations(savedLang);
+    const selector = document.getElementById('lang-selector');
+    if (selector) {
+        selector.addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+        });
+    }
+});

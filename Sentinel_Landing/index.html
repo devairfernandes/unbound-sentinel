@@ -801,6 +801,19 @@
     </style>
 </head>
 <body>
+
+    <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; gap: 10px; align-items: center;">
+        <a data-i18n="nav.master" class="lang-master-btn" href="/master" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; text-decoration: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);">
+            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+            Painel Master
+        </a>
+        <select id="lang-selector" style="padding: 6px 10px; background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.9rem; backdrop-filter: blur(10px);">
+            <option value="pt" style="background: #0f172a;">Português (BR)</option>
+            <option value="en" style="background: #0f172a;">English (US)</option>
+            <option value="es" style="background: #0f172a;">Español</option>
+        </select>
+    </div>
+
     <!-- =============================================
          BANNER DE CONSENTIMENTO LGPD
          ============================================= -->
@@ -941,9 +954,9 @@
             <!-- Links de Navegação ao Centro/Direita -->
             <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
                 <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="home" width="14" height="14"></i> Início</a>
-                <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="book" width="14" height="14"></i> Documentação</a>
+                <a data-i18n="link.docs" href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="book" width="14" height="14"></i> Documentação</a>
                 <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
-                <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
+                <a data-i18n="link.download" href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
                 <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
                 <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="send" width="14" height="14"></i> Telegram</a>
             </nav>
@@ -1651,5 +1664,6 @@
         });
     </script>
     <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
+    <script src="lang.js"></script>
 </body>
 </html>

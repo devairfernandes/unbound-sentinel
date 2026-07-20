@@ -313,6 +313,19 @@
     </style>
 </head>
 <body>
+
+    <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; gap: 10px; align-items: center;">
+        <a data-i18n="nav.master" class="lang-master-btn" href="/master" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; text-decoration: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);">
+            <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+            Painel Master
+        </a>
+        <select id="lang-selector" style="padding: 6px 10px; background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.9rem; backdrop-filter: blur(10px);">
+            <option value="pt" style="background: #0f172a;">Português (BR)</option>
+            <option value="en" style="background: #0f172a;">English (US)</option>
+            <option value="es" style="background: #0f172a;">Español</option>
+        </select>
+    </div>
+
     <!-- Menu Superior de Navegação -->
     <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
         <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -375,24 +388,24 @@
         
         <i data-lucide="hard-drive-download" class="header-icon"></i>
         
-        <h1>Instalação <span>Sentinel DNS</span></h1>
-        <p>Faça o download da imagem ISO oficial para instalar o nó Edge do Sentinel na sua infraestrutura corporativa.</p>
+        <h1 data-i18n="dl.title">Instalação <span>Sentinel DNS</span></h1>
+        <p data-i18n="dl.desc">Faça o download da imagem ISO oficial para instalar o nó Edge do Sentinel na sua infraestrutura corporativa.</p>
         <p style="margin-top: -1.5rem;">O instalador é um appliance completo baseado em Rocky Linux 9, com configuração de rede assistida (kickstart) e motor Unbound pré-otimizado. Não é necessário conhecimento prévio em Linux para concluir a instalação: o assistente de primeiro boot detecta automaticamente os adaptadores de rede disponíveis e guia a configuração de IP, gateway e DNS em poucos passos.</p>
         
-        <a href="https://drive.google.com/file/d/1R_7dqcFS1kef_SWxAF3nLnnRm21Sjo3i/view?usp=sharing" target="_blank" class="download-btn">
+        <a data-i18n="dl.btn" href="https://drive.google.com/file/d/1R_7dqcFS1kef_SWxAF3nLnnRm21Sjo3i/view?usp=sharing" target="_blank" class="download-btn">
             <i data-lucide="download"></i> Baixar Imagem ISO (v2.9.31)
         </a>
 
         <div class="requirements-section">
-            <span class="section-title">Requisitos Mínimos da Máquina</span>
+            <span class="section-title" data-i18n="req.title">Requisitos Mínimos da Máquina</span>
             <div class="requirements-grid">
                 <div class="req-card">
                     <div class="req-icon">
                         <i data-lucide="cpu"></i>
                     </div>
                     <div class="req-text">
-                        <h3>Processador (CPU)</h3>
-                        <p>2 vCores / Threads ou superior. Arquitetura x86_64.</p>
+                        <h3 data-i18n="req.cpu_title">Processador (CPU)</h3>
+                        <p data-i18n="req.cpu_desc">2 vCores / Threads ou superior. Arquitetura x86_64.</p>
                     </div>
                 </div>
                 <div class="req-card">
@@ -400,8 +413,8 @@
                         <i data-lucide="memory-stick"></i>
                     </div>
                     <div class="req-text">
-                        <h3>Memória RAM</h3>
-                        <p>4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.</p>
+                        <h3 data-i18n="req.ram_title">Memória RAM</h3>
+                        <p data-i18n="req.ram_desc">4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.</p>
                     </div>
                 </div>
                 <div class="req-card">
@@ -409,8 +422,8 @@
                         <i data-lucide="hard-drive"></i>
                     </div>
                     <div class="req-text">
-                        <h3>Armazenamento (Disco)</h3>
-                        <p>40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.</p>
+                        <h3 data-i18n="req.disk_title">Armazenamento (Disco)</h3>
+                        <p data-i18n="req.disk_desc">40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.</p>
                     </div>
                 </div>
                 <div class="req-card">
@@ -418,8 +431,8 @@
                         <i data-lucide="network"></i>
                     </div>
                     <div class="req-text">
-                        <h3>Rede / Conectividade</h3>
-                        <p>Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.</p>
+                        <h3 data-i18n="req.net_title">Rede / Conectividade</h3>
+                        <p data-i18n="req.net_desc">Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.</p>
                     </div>
                 </div>
             </div>
@@ -616,5 +629,6 @@
         }
     </script>
     <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
+    <script src="lang.js"></script>
 </body>
 </html>
