@@ -872,4 +872,51 @@ footer a:hover {
     color: #38bdf8 !important;
 }
 
+/* Responsividade Mobile e Estabilização de Layout */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    /* Evitar transbordamento da seção de preços */
+    .pricing-section {
+        padding: 3rem 1rem !important;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        padding: 0 0.5rem !important;
+    }
+    
+    .pricing-card {
+        padding: 1.5rem !important;
+        border-radius: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Tabela comparativa responsiva e rolável sem quebrar */
+    .comparison-container {
+        width: 100% !important;
+        margin: 2rem auto 0 auto !important;
+        padding: 0 0.5rem !important;
+        box-sizing: border-box !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .comparison-container table {
+        min-width: 500px !important; /* Força scroll lateral suave em vez de esmagar texto */
+        font-size: 0.85rem !important;
+    }
+
+    .comparison-container th, .comparison-container td {
+        padding: 0.75rem 0.5rem !important;
+    }
+}
+
+
 
