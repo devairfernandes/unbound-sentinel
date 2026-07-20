@@ -923,6 +923,35 @@
                     localStorage.setItem('sentinel_lgpd_consent', JSON.stringify({ accepted: true, date: new Date().toISOString() }));
                     hideLgpdBanner();
                 });
+        </style>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+            <span style="font-size:1.5rem;flex-shrink:0;">🍪</span>
+            <p>
+                <strong>Este site utiliza cookies essenciais</strong> para funcionamento e preferências de idioma. Em conformidade com a <strong>LGPD (Lei nº 13.709/2018)</strong>, solicitamos seu consentimento.
+                <a href="privacidade.html">Saiba mais na Política de Privacidade.</a>
+            </p>
+        </div>
+        <div class="lgpd-actions">
+            <button id="btn-lgpd-reject" class="btn-lgpd-reject">Apenas Essenciais</button>
+            <button id="btn-lgpd-accept" class="btn-lgpd-accept">Aceitar e Continuar</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const consent = localStorage.getItem('sentinel_lgpd_consent');
+            if (!consent) {
+                setTimeout(function() {
+                    const banner = document.getElementById('lgpd-banner');
+                    if (banner) banner.style.display = 'flex';
+                }, 800);
+            }
+            
+            const btnAccept = document.getElementById('btn-lgpd-accept');
+            if (btnAccept) {
+                btnAccept.addEventListener('click', function() {
+                    localStorage.setItem('sentinel_lgpd_consent', JSON.stringify({ accepted: true, date: new Date().toISOString() }));
+                    hideLgpdBanner();
+                });
             }
             
             const btnReject = document.getElementById('btn-lgpd-reject');
@@ -933,11 +962,13 @@
                 });
             }
 
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    const nav = document.querySelector('.nav-menu');
-                    if (nav) nav.classList.toggle('active');
+            const toggleBtn = document.querySelector('.mobile-menu-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    const mobileNav = document.getElementById('mobile-nav');
+                    if (mobileNav) {
+                        mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
+                    }
                 });
             }
         });
@@ -981,11 +1012,10 @@
                 </a>
                 
                 <!-- Botão de Menu Hambúrguer (Mobile) -->
-                <button class="mobile-menu-toggle" aria-label="Menu" onclick="toggleMobileMenu()" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
+                <button class="mobile-menu-toggle" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
                     <i data-lucide="menu" width="24" height="24"></i>
                 </button>
             </div>
-
         </div>
 
         <!-- Menu Mobile Retrátil -->
@@ -999,15 +1029,6 @@
             <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
         </div>
     </header>
-
-    <script>
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobile-nav');
-            if (mobileNav) {
-                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
-            }
-        }
-    </script>
 
     <canvas id="particles-bg"></canvas>
     
