@@ -854,3 +854,22 @@
     }
 }
 
+/* Hover effects for CSP compliance */
+.logo-link:hover {
+    opacity: 0.85;
+}
+.nav-menu a:hover, #mobile-nav a:hover {
+    color: #38bdf8 !important;
+}
+.header-cta {
+    transition: all 0.3s ease;
+}
+.header-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4) !important;
+}
+footer a:hover {
+    color: #38bdf8 !important;
+}
+
+
