@@ -877,6 +877,23 @@
                 #lgpd-banner { flex-direction: column; text-align: center; }
                 .lgpd-actions { width: 100%; justify-content: center; }
             }
+        @media (max-width: 992px) {
+            .nav-menu { display: none !important; }
+            .mobile-menu-toggle { display: block !important; }
+            .hero { padding: 4rem 1.5rem 3rem 1.5rem; overflow-x: hidden; }
+            .hero h1 {
+                font-size: clamp(2.2rem, 8vw, 3rem) !important;
+                white-space: normal;
+                line-height: 1.2;
+            }
+            .hero h1 .highlight {
+                font-size: clamp(2.5rem, 9vw, 3.5rem) !important;
+                white-space: normal;
+            }
+        }
+        @media (max-width: 480px) {
+            .header-cta { display: none !important; }
+        }
         </style>
         <div style="display:flex;align-items:flex-start;gap:0.75rem;">
             <span style="font-size:1.5rem;flex-shrink:0;">🍪</span>
@@ -964,7 +981,7 @@
                 </a>
                 
                 <!-- Botão de Menu Hambúrguer (Mobile) -->
-                <button class="mobile-menu-toggle" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
+                <button class="mobile-menu-toggle" aria-label="Menu" onclick="toggleMobileMenu()" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
                     <i data-lucide="menu" width="24" height="24"></i>
                 </button>
             </div>
