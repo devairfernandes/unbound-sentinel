@@ -56,7 +56,7 @@
           "name": "FREE",
           "price": "0",
           "priceCurrency": "BRL",
-          "description": "DNS Security básico com proteção anti-phishing padrão."
+          "description": "DNS Security básico com proteção anti-phishing e até 1 Nó Satélite."
         },
         {
           "@type": "Offer",
@@ -106,23 +106,47 @@
           "name": "O que é o Sentinel DNS?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "O Sentinel DNS é um appliance open-source de DNS recursivo e firewall, baseado no motor Unbound, voltado para Provedores de Internet (ISPs) e redes corporativas que precisam bloquear ameaças na camada DNS antes que elas atinjam os usuários finais."
+            "text": "O Sentinel DNS é um appliance de DNS Firewall open-source baseado em Rocky Linux, projetado para Provedores de Internet (ISPs) e redes corporativas. Ele utiliza o motor Unbound com auto-tuning automático de CPU e RAM para máxima performance, bloqueio de ameaças em tempo real via feeds de Cyber Threat Intelligence (CTI) e cache persistente que garante resolução instantânea mesmo após reinicializações."
           }
         },
         {
           "@type": "Question",
-          "name": "Como funciona o bloqueio de ameaças?",
+          "name": "O Sentinel DNS é gratuito?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "O Sentinel sincroniza listas de domínios, URLs e IPs maliciosos a partir de fontes de Cyber Threat Intelligence (CTI) e bloqueia a resolução desses endereços diretamente no DNS, impedindo que dispositivos da rede acessem servidores de phishing, malware ou botnets."
+            "text": "Sim. O Sentinel DNS possui um plano FREE com DNS Security básico e proteção anti-phishing sem nenhum custo. Existe também um plano PRO Elite por R$ 80/mês com proteção CTI avançada, bloqueio de DGA Zero-Day, Dashboard NOC Master e suporte a cluster de nós satélite ilimitado."
           }
         },
         {
           "@type": "Question",
-          "name": "Preciso de conhecimento avançado em Linux para instalar?",
+          "name": "Qual hardware é necessário para rodar o Sentinel DNS?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Não. A instalação é guiada por um assistente de primeiro boot que detecta automaticamente hardware e interfaces de rede, dispensando edição manual de arquivos de configuração do Unbound ou do sistema operacional."
+            "text": "Para pequenos provedores (até 5.000 clientes): 2 a 4 vCPUs, 4GB RAM e 30GB SSD. Para médio porte (5k a 20k clientes): 4 a 8 Cores, 8GB a 16GB RAM e 60GB NVMe. Para grandes provedores (mais de 20k clientes): Bare Metal com 16+ Cores, 32GB+ RAM e 120GB NVMe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O Sentinel DNS bloqueia sites por ordem judicial (ANATEL)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. O Sentinel DNS inclui o módulo AnaBlock, que automatiza o bloqueio de domínios exigidos por ordens judiciais e regulatórias da ANATEL. O módulo sincroniza listas automaticamente via API, aplicando as regras diretamente no Unbound com validação de sintaxe para garantir zero downtime."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como instalar o Sentinel DNS?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A instalação é realizada via ISO de appliance baseado em Rocky Linux, com configuração automática de rede e segurança. Basta fazer o download da ISO na página de instalação, gravar em uma mídia bootável e seguir o assistente automático. Toda a configuração do Unbound, auto-tuning e ativação do firewall DNS são realizados automaticamente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O Sentinel DNS suporta DNSSEC?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. O Sentinel DNS valida DNSSEC por padrão utilizando a âncora de confiança raiz (root anchor) e implementa as RFCs 8767 e 8198, que incluem Prefetch e Serve-Expired."
           }
         },
         {
@@ -130,7 +154,7 @@
           "name": "Qual a diferença entre os planos FREE, PRO Elite e PRO Lite?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "O plano FREE oferece proteção DNS básica, sem painel corporativo ou nós satélites. O PRO Elite inclui proteção CTI avançada, bloqueio de malware Zero-Day e cluster de satélites ilimitado, com cobrança mensal. O PRO Lite é uma licença vitalícia de pagamento único, com recursos base do PRO e dashboard básico incluído."
+            "text": "O plano FREE oferece proteção básica para 1 satélite. O PRO Elite inclui CTI, bloqueio Zero-Day e satélites ilimitados (mensal). O PRO Lite é vitalício e oferece recursos base do PRO."
           }
         },
         {
@@ -138,15 +162,7 @@
           "name": "O Sentinel funciona com IPv6?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Sim. O Sentinel DNS e o motor Unbound subjacente têm suporte nativo a IPv6, tanto para escuta de requisições de clientes quanto para recursão em servidores raiz e autoritativos globais."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Como funciona o AnaBlock?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "O AnaBlock é um módulo do Sentinel DNS focado no bloqueio automatizado de sites listados por ordem judicial da ANATEL. Ele consulta listas oficiais periodicamente e injeta regras locais (RPZ) sem exigir intervenção humana."
+            "text": "Sim. O Sentinel DNS e o motor Unbound têm suporte nativo a IPv6 para comunicação com clientes e servidores raiz."
           }
         },
         {
@@ -154,7 +170,7 @@
           "name": "O que é Cyber Threat Intelligence (CTI)?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "CTI é o processo de coleta e análise de dados sobre ameaças cibernéticas globais. O Sentinel usa feeds OSINT de CTI para bloquear acesso a botnets, phishings e ransomware em tempo real via DNS Firewall."
+            "text": "CTI é o processo de coleta de dados sobre ameaças cibernéticas. O Sentinel usa feeds OSINT para bloquear acesso a botnets e malwares via DNS."
           }
         },
         {
@@ -162,23 +178,7 @@
           "name": "Posso integrar o Sentinel ao meu Mikrotik ou BNG?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Sim. Basta configurar o IP do Sentinel como o DNS primário e secundário entregue via DHCP, PPPoE ou estático no seu BNG (Mikrotik, Huawei, Cisco). O tráfego DNS passará a ser protegido imediatamente."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Qual o sistema operacional recomendado?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "O Sentinel DNS é otimizado e empacotado nativamente como um appliance em Rocky Linux (compatível com RHEL). Oferecemos uma ISO completa para facilitar o deploy Bare Metal ou em Hypervisors (Proxmox, VMware)."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Existe limite de consultas por segundo (QPS)?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "O único limite é o seu hardware. Em um servidor moderno com processador adequado e interfaces 10GbE, o motor Unbound do Sentinel atinge confortavelmente mais de 100.000 QPS (Queries per Second)."
+            "text": "Sim. Basta configurar o IP do Sentinel como DNS primário e secundário no seu BNG via DHCP ou PPPoE."
           }
         }
       ]
@@ -530,10 +530,97 @@
             line-height: 1.6;
         }
 
+        /* Terminal Widget Simulation */
+        .terminal-widget {
+            margin-top: 5rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fade-in-up 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-        /* OVERRIDE TERMINAL CSS */
-        /* Terminal removido por redundância */
+        .terminal-header {
+            background: #1e293b;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
 
+        .term-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .term-dot.r { background: #ef4444; }
+        .term-dot.y { background: #eab308; }
+        .term-dot.g { background: #22c55e; }
+
+        
+        .terminal-body {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.8;
+            height: 350px;
+            overflow-y: hidden;
+            position: relative;
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .terminal-body::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to top, rgba(15, 23, 42, 1), transparent);
+            pointer-events: none;
+        }
+
+        .term-line {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: term-type 0.3s forwards;
+            margin-bottom: 2px;
+        }
+
+        .term-prefix {
+            color: #38bdf8;
+            font-weight: bold;
+            margin-right: 8px;
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+
+        .term-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #22c55e;
+            margin-left: 5px;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes term-type {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        
+
+        @keyframes fade-in-up {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
         footer {
             margin-top: 5rem;
             text-align: center;
@@ -925,64 +1012,24 @@
         }
     </script>
 
-
+        <div class="header" style="border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 1rem 1.5rem; backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Abrir menu de navegação" style="background: transparent; border: none; color: #38bdf8; cursor: pointer; display: none;">
+            <i data-lucide="menu" width="28" height="28"></i>
+        </button>
+        <div class="mobile-logo-text" style="display: none; color: #fff; font-weight: bold; font-family: 'Outfit', sans-serif; font-size: 1.2rem;">
+            Sentinel<span style="color:#38bdf8">DNS</span>
+        </div>
+        <div class="nav-links" style="display: flex; gap: 2rem; justify-content: center; align-items: center; flex: 1;">
+            <a href="index.html" style="color: #38bdf8; text-decoration: none; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;" aria-current="page"><i data-lucide="home" width="16" height="16"></i> Início</a>
+            <a href="docs.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
+            <a href="blog/oque-e-dns-recursivo.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
+            <a href="download.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
+            <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
+            <a href="https://t.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
+        </div>
+    </div>
 </div>
     </div>
-
-    <!-- Menu Superior de Navegação -->
-    <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            
-            <!-- Logo + Nome à Esquerda -->
-            <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <img src="Logo.webp" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));" alt="Sentinel DNS Logo">
-                <span style="color: #fff; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Sentinel<span style="color: #38bdf8;">DNS</span></span>
-            </a>
-
-            <!-- Links de Navegação ao Centro/Direita -->
-            <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
-                <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="home" width="14" height="14"></i> Início</a>
-                <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="book" width="14" height="14"></i> Documentação</a>
-                <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
-                <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
-                <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
-                <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="send" width="14" height="14"></i> Telegram</a>
-            </nav>
-
-            <!-- Botão CTA na Extrema Direita -->
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(56, 189, 248, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(56, 189, 248, 0.25)'">
-                    Instalar Sentinel
-                </a>
-                
-                <!-- Botão de Menu Hambúrguer (Mobile) -->
-                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
-                    <i data-lucide="menu" width="24" height="24"></i>
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Menu Mobile Retrátil -->
-        <div id="mobile-nav" style="display: none; flex-direction: column; gap: 1rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid rgba(56, 189, 248, 0.1); margin-top: 0.75rem; transition: all 0.3s ease;">
-            <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="home" width="16" height="16"></i> Início</a>
-            <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
-            <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
-            <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
-            <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
-            <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
-        </div>
-    </header>
-
-    <script>
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobile-nav');
-            if (mobileNav) {
-                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
-            }
-        }
-    </script>
 
     <canvas id="particles-bg"></canvas>
     
@@ -1003,9 +1050,18 @@
             Nó Master Online e Sincronizado
         </div>
 
-<section class="hero" style="padding: 6rem 0 3rem 0; text-align: center;">
-            <h1 style="font-size: 3.5rem; line-height: 1.2; margin-bottom: 1.5rem;"><span class="highlight">Open Source Appliance</span></h1>
-            <p style="max-width: 800px; margin: 0 auto; font-size: 1.2rem; line-height: 1.6; color: var(--text-muted);">O Sentinel DNS é um DNS Firewall e appliance recursivo open-source desenhado para Provedores de Internet (ISPs) e Redes Corporativas. Instalação automatizada (auto-deployable) que acelera a resolução DNS e protege redes em tempo real.</p>
+<section class="hero">
+
+            <img src="/Logo.webp" loading="eager" fetchpriority="high" alt="Sentinel DNS Shield" class="hero-logo" width="220" height="220" decoding="async">
+            
+            <h1>Sentinel DNS<br><span class="highlight">Open Source Appliance</span></h1>
+            <p>O Sentinel DNS é um DNS Firewall e appliance recursivo open-source desenhado para Provedores de Internet (ISPs) e Redes Corporativas. Instalação automatizada (auto-deployable) que acelera a resolução DNS e protege redes em tempo real.</p>
+        </section>
+<section class="preview-section" style="text-align: center; margin: 2rem 0 5rem 0; animation: fade-in-up 1s ease; z-index: 2; position: relative;">
+            <div style="position: relative; max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
+                <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.15) 0%, transparent 70%); filter: blur(40px); z-index: -1;"></div>
+                <img src="/screen1-real.webp" loading="lazy" alt="Sentinel Dashboard Preview" style="width: 100%; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.15);">
+            </div>
         </section>
 
 <section class="stats-grid">
@@ -1039,9 +1095,44 @@
             </div>
         </section>
 
+<section class="traffic-section" style="margin-bottom: 5rem; animation: fade-in-up 1.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div class="feature-card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border-color: rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="color: var(--text-highlight); font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="activity" style="width:20px; color:var(--success);"></i> Tráfego DNS em Tempo Real</h3>
+                    <span style="color: var(--success); font-size: 1rem; font-weight: 700; display: inline-block; min-width: 60px;" id="stat-live-qps"><div class="skeleton" style="width: 60px; height: 1.2rem; border-radius: 4px;"></div></span>
+                </div>
+                <div style="height: 120px; width: 100%; position: relative;">
+                    <canvas id="trafficChart" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+                </div>
+            </div>
+        </section>
 
+<section class="features-grid">
+            <div class="feature-card">
+                <i data-lucide="globe-lock" class="feature-icon"></i>
+                <h3>Telemetria CTI Global</h3>
+                <p>Integração nativa com bases de Cyber Threat Intelligence para bloquear malwares antes que atinjam sua rede.</p>
+            </div>
+            <div class="feature-card">
+                <i data-lucide="cpu" class="feature-icon"></i>
+                <h3>Motor Unbound Otimizado</h3>
+                <p>Performance de ISP com auto-tuning de buffers e persistência de cache para alta disponibilidade.</p>
+            </div>
+            <div class="feature-card">
+                <i data-lucide="network" class="feature-icon"></i>
+                <h3>Deploy Autônomo</h3>
+                <p>Appliance baseado em Rocky Linux com configuração automática de rede e segurança.</p>
+            </div>
+        </section>
 
         
+<section class="preview-section" style="text-align: center; margin: 5rem 0; animation: fade-in-up 1s ease; z-index: 2; position: relative;">
+            <div style="position: relative; max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
+                <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.15) 0%, transparent 70%); filter: blur(40px); z-index: -1;"></div>
+                <img src="/screen2-real.webp" loading="lazy" alt="Sentinel Global Traffic Preview" style="width: 100%; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 60px rgba(56,189,248,0.15);">
+            </div>
+        </section>
+
 <section class="usecases-section" id="casos-uso" style="margin-bottom: 5rem;">
             <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2.2rem; color: #f8fafc;">Para quem é o Sentinel?</h2>
             <div class="arch-grid">
@@ -1058,113 +1149,35 @@
                     <p>Ofereça um serviço de resolução DNS local de alta disponibilidade para seus clientes em nuvem, garantindo estabilidade mesmo sob fortes ataques DDoS.</p>
                 </div>
             </div>
-            <div style="text-align: center; margin-top: 4rem;">
-                <a href="download.html" class="pricing-btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: auto; padding: 1rem 2.5rem; font-size: 1.1rem;">
-                    <i data-lucide="download" style="width: 20px; height: 20px;"></i> Baixar ISO Grátis
-                </a>
-            </div>
         </section>
 
-<section class="architecture-section" id="arquitetura" style="padding: 5rem 0; border-top: 1px solid var(--surface-border); display: flex; flex-direction: column; gap: 6rem;">
-            <!-- Bloco 1 (CTI + Unbound / Imagem 1) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4rem; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; width: 100%; box-sizing: border-box;">
-                <div style="flex: 1.2; min-width: 320px;">
-                    <h2 style="font-size: 2.2rem; color: var(--text-highlight); margin-bottom: 2.5rem; text-align: left;">Arquitetura e Recursos Técnicos</h2>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 2.5rem;">
-                        <div>
-                            <h3 style="color: var(--primary); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;">
-                                <i data-lucide="globe" style="width: 24px; height: 24px; color: var(--primary);"></i> Telemetria CTI Global
-                            </h3>
-                            <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">Integração nativa com bases de Cyber Threat Intelligence para bloquear malwares antes que atinjam sua rede.</p>
-                        </div>
-                        <div>
-                            <h3 style="color: var(--primary); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;">
-                                <i data-lucide="cpu" style="width: 24px; height: 24px; color: var(--primary);"></i> Motor Unbound Otimizado
-                            </h3>
-                            <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">Performance de ISP com auto-tuning de buffers e persistência de cache para alta disponibilidade.</p>
-                        </div>
-                    </div>
+<section class="architecture-section" id="arquitetura">
+            <h2>Arquitetura e Recursos Técnicos</h2>
+            
+            <div class="arch-grid">
+                <div class="arch-card">
+                    <h3><i data-lucide="cpu"></i> Dynamic Auto-Tuning</h3>
+                    <p>Configurar o <strong>Unbound DNS</strong> manualmente envolve editar arquivos complexos para ajustar buffers e slabs. O motor do Sentinel mede o número de threads da CPU e a memória RAM durante a inicialização, calculando e aplicando automaticamente os limites recomendados de cache de mensagens e buffers UDP do kernel Linux. Alta concorrência sem perda de pacotes.</p>
                 </div>
-                <div style="flex: 1.5; min-width: 320px; display: flex; justify-content: center; align-items: center; position: relative;">
-                    <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.1) 0%, transparent 70%); filter: blur(30px); z-index: -1;"></div>
-                    <img src="/screen1-real.webp" alt="Sentinel Dashboard View" style="width: 100%; max-width: 600px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: 0 20px 45px rgba(0,0,0,0.6), 0 0 40px rgba(56, 189, 248, 0.1);">
+                
+                <div class="arch-card">
+                    <h3><i data-lucide="hard-drive"></i> Cache Persistente (Zero-Impact Reboot)</h3>
+                    <p>Qualquer reinicialização do servidor limpa o cache quente da RAM, gerando uma enxurrada de requisições lentas. O Sentinel faz o dump ordenado do cache para o disco SSD antes de reiniciar e o recarrega instantaneamente no boot. Sua rede volta do reboot com resoluções em 0 milissegundos.</p>
                 </div>
-            </div>
 
-            <!-- Bloco 2 (Imagem 2 / Deploy + QPS / Alternado) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap-reverse; gap: 4rem; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; width: 100%; box-sizing: border-box;">
-                <div style="flex: 1.5; min-width: 320px; display: flex; justify-content: center; align-items: center; position: relative;">
-                    <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.1) 0%, transparent 70%); filter: blur(30px); z-index: -1;"></div>
-                    <img src="/screen2-real.webp" alt="Sentinel Global Traffic View" style="width: 100%; max-width: 600px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: 0 20px 45px rgba(0,0,0,0.6), 0 0 40px rgba(56, 189, 248, 0.1);">
+                <div class="arch-card">
+                    <h3><i data-lucide="shield-check"></i> Resiliência por Padrão</h3>
+                    <p>Utilizando as RFCs 8767 e 8198, nosso DNS Firewall renova domínios quentes antes que expirem (<strong>Prefetch</strong>) e continua servindo registros expirados do cache local por até 24 horas (<strong>Serve-Expired</strong>) caso os servidores de autoridade mundiais sofram instabilidades ou ataques DDoS.</p>
                 </div>
-                <div style="flex: 1.2; min-width: 320px;">
-                    <div style="display: flex; flex-direction: column; gap: 2.5rem;">
-                        <div>
-                            <h3 style="color: var(--success); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;">
-                                <i data-lucide="network" style="width: 24px; height: 24px; color: var(--success);"></i> Deploy Autônomo
-                            </h3>
-                            <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">Appliance baseado em Rocky Linux com configuração automática de rede e segurança avançada.</p>
-                        </div>
-                        <div>
-                            <h3 style="color: var(--success); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-weight: 700; font-family: 'Outfit', sans-serif;">
-                                <i data-lucide="activity" style="width: 24px; height: 24px; color: var(--success);"></i> Tráfego DNS em Tempo Real
-                            </h3>
-                            <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">Visualização avançada e em tempo real do fluxo de queries e picos de acesso em toda a infraestrutura DNS.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <section class="tech-details-section" style="padding: 5rem 0; background: rgba(15, 23, 42, 0.2); border-top: 1px solid var(--surface-border);">
-            <div style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
-                    <!-- Card 1 -->
-                    <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-                        <h3 style="color: var(--text-highlight); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif; font-weight: 700;">
-                            <i data-lucide="cpu" style="width: 22px; height: 22px; color: var(--primary);"></i> Dynamic Auto-Tuning
-                        </h3>
-                        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">Configurar o <strong>Unbound DNS</strong> manualmente envolve editar arquivos complexos para ajustar buffers e slabs. O motor do Sentinel mede o número de threads da CPU e a memória RAM durante a inicialização, calculando e aplicando automaticamente os limites recomendados de cache de mensagens e buffers UDP do kernel Linux. Alta concorrência sem perda de pacotes.</p>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-                        <h3 style="color: var(--text-highlight); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif; font-weight: 700;">
-                            <i data-lucide="database" style="width: 22px; height: 22px; color: var(--primary);"></i> Cache Persistente (Zero-Impact Reboot)
-                        </h3>
-                        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">Qualquer reinicialização do servidor limpa o cache quente da RAM, gerando uma enxurrada de requisições lentas. O Sentinel faz o dump ordenado do cache para o disco SSD antes de reiniciar e o recarrega instantaneamente no boot. Sua rede volta do reboot com resoluções em 0 milisegundos.</p>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-                        <h3 style="color: var(--text-highlight); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif; font-weight: 700;">
-                            <i data-lucide="shield-check" style="width: 22px; height: 22px; color: var(--primary);"></i> Resiliência por Padrão
-                        </h3>
-                        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">Utilizando as RFCs 8767 e 8198, nosso DNS Firewall renova domínios quentes antes que expirem (<strong>Prefetch</strong>) e continua servindo registros expirados do cache local por até 24 horas (<strong>Serve-Expired</strong>) caso os servidores de autoridade mundiais sofram instabilidades ou ataques DDoS.</p>
-                    </div>
-
-                    <!-- Card 4 -->
-                    <div style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--surface-border); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-                        <h3 style="color: var(--text-highlight); font-size: 1.3rem; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif; font-weight: 700;">
-                            <i data-lucide="server" style="width: 22px; height: 22px; color: var(--primary);"></i> Requisitos de Hardware
-                        </h3>
-                        <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 1rem;">A distribuição via <strong>Appliance Rocky Linux</strong> otimiza o uso de recursos. Dimensionamento recomendado:</p>
-                        <ul style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; list-style: none; padding-left: 0;">
-                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
-                                <span style="display: inline-block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%;"></span>
-                                <span><strong style="color: var(--text-highlight)">Pequeno (Até 5.000 clientes):</strong> 2 a 4 vCPUs, 4GB RAM, 30GB SSD</span>
-                            </li>
-                            <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
-                                <span style="display: inline-block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%;"></span>
-                                <span><strong style="color: var(--text-highlight)">Médio (5k a 20k clientes):</strong> 4 a 8 Cores, 8GB a 16GB RAM, 60GB NVMe</span>
-                            </li>
-                            <li style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span style="display: inline-block; width: 6px; height: 6px; background: var(--primary); border-radius: 50%;"></span>
-                                <span><strong style="color: var(--text-highlight)">Grande (+20k clientes):</strong> Bare Metal, 16+ Cores, 32GB+ RAM, 120GB NVMe</span>
-                            </li>
-                        </ul>
-                    </div>
+                <div class="arch-card">
+                    <h3><i data-lucide="server"></i> Requisitos de Hardware</h3>
+                    <p>A distribuição via <strong>Appliance Rocky Linux</strong> otimiza o uso de recursos. Dimensionamento recomendado:</p>
+                    <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                        <li><strong style="color: var(--text-highlight)">Pequeno (Até 5.000 clientes):</strong> 2 a 4 vCPUs, 4GB RAM, 30GB SSD</li>
+                        <li><strong style="color: var(--text-highlight)">Médio (5k a 20k clientes):</strong> 4 a 8 Cores, 8GB a 16GB RAM, 60GB NVMe</li>
+                        <li><strong style="color: var(--text-highlight)">Grande (+20k clientes):</strong> Bare Metal, 16+ Cores, 32GB+ RAM, 120GB NVMe</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -1174,13 +1187,16 @@
             <p style="color: #94a3b8; max-width: 600px; margin: 0 auto;">Escolha o plano ideal para proteger sua infraestrutura. Bloqueio DNS de nível corporativo acessível.</p>
             
             <div class="pricing-grid">
-                <div class="pricing-card" id="card-free">
+                <div class="pricing-card">
                     <div class="price-title">FREE</div>
-                    <div class="price-val" id="val-free">R$ 0<span class="price-sub">/mês</span></div>
-                    <ul class="pricing-features" id="features-free">
-                        <!-- Filled by JS -->
+                    <div class="price-val">R$ 0<span class="price-sub">/mês</span></div>
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check"></i> DNS Security Básico</li>
+                        <li><i data-lucide="check"></i> Proteção anti-phishing padrão</li>
+                        <li><i data-lucide="check"></i> Até 1 Nó Satélite</li>
+                        <li><i data-lucide="x" style="color: #475569;"></i> Sem painel corporativo</li>
                     </ul>
-                    <a href="download.html" class="pricing-btn btn-outline" id="btn-free" style="text-decoration: none; cursor: pointer; box-sizing: border-box;">Começar Grátis</a>
+                    <a href="download.html" class="pricing-btn btn-outline" style="text-decoration: none; cursor: pointer; box-sizing: border-box;">Começar Grátis</a>
                     <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--primary); font-size: 0.85rem; font-weight: 500; background: rgba(56, 189, 248, 0.1); padding: 0.4rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);">
                         <i data-lucide="timer" style="width: 14px; height: 14px;"></i>
                         Inclui 30 dias de teste com recursos PRO
@@ -1192,19 +1208,24 @@
                     <div class="pricing-badge" id="badge-pro" style="background-color: var(--primary); color: #000; font-weight: 800; padding: 0.3rem 0.8rem;">MAIS POPULAR</div>
                     <div class="price-title">PRO Elite</div>
                     <div class="price-val" id="val-pro">R$ 80,00<span class="price-sub">/mês</span></div>
-                    <ul class="pricing-features" id="features-pro">
-                        <!-- Filled by JS -->
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check"></i> Proteção CTI Avançada</li>
+                        <li><i data-lucide="check"></i> Bloqueio Malware / DGA Zero-Day</li>
+                        <li><i data-lucide="check"></i> Dashboard NOC Master</li>
+                        <li><i data-lucide="check"></i> Ping Master (Monitor de Latência)</li>
                     </ul>
                     <a href="download.html" class="pricing-btn btn-primary" id="btn-pro" style="text-decoration: none; cursor: pointer; box-sizing: border-box;">Baixar e Assinar no Painel</a>
                     <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 0.8rem; opacity: 0.8;">Disponível após instalar - ative direto no seu painel</p>
                 </div>
 
                 <div class="pricing-card" id="card-lite">
-                    <div class="pricing-badge" id="badge-lite" style="background-color: var(--secondary); color: #fff; font-weight: 800; padding: 0.3rem 0.8rem; position: absolute; top: 1rem; right: 1rem; border-radius: 20px; font-size: 0.75rem; letter-spacing: 1px; z-index: 2;">VITALÍCIO</div>
+                    <div class="pricing-badge" style="background-color: var(--secondary); color: #fff; font-weight: 800; padding: 0.3rem 0.8rem; position: absolute; top: 1rem; right: 1rem; border-radius: 20px; font-size: 0.75rem; letter-spacing: 1px; z-index: 2;">VITALÍCIO</div>
                     <div class="price-title">PRO Lite</div>
-                    <div class="price-val" id="val-lite" style="font-size: 2.3rem; white-space: nowrap;">R$ 1.997,00<span class="price-sub" id="sub-lite" style="margin-left: 0.4rem;">único</span></div>
-                    <ul class="pricing-features" id="features-lite">
-                        <!-- Filled by JS -->
+                    <div class="price-val" id="val-lite" style="font-size: 2.3rem; white-space: nowrap;">R$ 1.997,00<span class="price-sub" style="margin-left: 0.4rem;">único</span></div>
+                    <ul class="pricing-features">
+                        <li><i data-lucide="check"></i> Recursos base do Plano PRO</li>
+                        <li><i data-lucide="check"></i> Dashboard incluído (Básico)</li>
+                        <li><i data-lucide="check"></i> CTI Requer add-on de suporte</li>
                     </ul>
                     <a href="download.html" class="pricing-btn btn-outline" id="btn-lite" style="text-decoration: none; cursor: pointer; box-sizing: border-box;">Baixar e Ativar Vitalícia</a>
                     <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 0.8rem; opacity: 0.8;">Disponível após instalar - ative direto no seu painel</p>
@@ -1248,7 +1269,7 @@
                         </tr>
                         <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.3);">
                             <td style="text-align: left; padding: 1rem;">Nós Satélites (Licenças)</td>
-                            <td><i data-lucide="minus" style="color: var(--text-muted); display: inline-block;"></i></td>
+                            <td>1 Nó</td>
                             <td>Ilimitado</td>
                             <td>1 Nó Base (+ Avulsos)</td>
                         </tr>
@@ -1269,10 +1290,8 @@
                     <i data-lucide="shield-check" style="color: var(--success); width: 28px; height: 28px;"></i>
                     Protegendo ativamente mais de <span id="social-proof-nodes" style="color: var(--primary); font-weight: 800; margin: 0 0.4rem;">--</span> provedores e redes
                 </h3>
-                <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0.5rem;">Nossa comunidade open-source cresce a cada dia, garantindo bloqueio CTI e estabilidade para milhares de usuários através do Sentinel DNS.</p>
-                <div style="font-size: 0.8rem; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-top: 0.5rem; margin-bottom: 0.2rem;">Provedores que confiam no Sentinel DNS</div>
-                <div id="clients-proof-list" style="font-size: 0.95rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; opacity: 0.9; font-weight: 600;">
-                    <span>JeetFiber Telecomunicações</span><span style="color:#334155; margin: 0 0.5rem;">&bull;</span><span>OliveiraTelecom</span>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Nossa comunidade open-source cresce a cada dia, garantindo bloqueio CTI e estabilidade para milhares de usuários através do Sentinel DNS.</p>
+                <div id="clients-proof-list" style="margin-top: 1.5rem; font-size: 0.95rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; opacity: 0.7;">
                 </div>
             </div>
         </section>
@@ -1294,7 +1313,7 @@
                 </div>
                 <div class="feature-card">
                     <h3 style="color: var(--text-highlight); font-size: 1.1rem; margin-bottom: 0.6rem;">Qual a diferença entre os planos FREE, PRO Elite e PRO Lite?</h3>
-                    <p>O plano FREE oferece proteção DNS básica, sem painel corporativo ou nós satélites. O PRO Elite inclui proteção CTI avançada, bloqueio de malware Zero-Day e cluster de satélites ilimitado, com cobrança mensal. O PRO Lite é uma licença vitalícia de pagamento único, com recursos base do PRO e dashboard básico incluído.</p>
+                    <p>O plano FREE oferece proteção DNS básica para até 1 nó satélite, sem painel corporativo. O PRO Elite inclui proteção CTI avançada, bloqueio de malware Zero-Day e cluster de satélites ilimitado, com cobrança mensal. O PRO Lite é uma licença vitalícia de pagamento único, com recursos base do PRO e dashboard básico incluído.</p>
                 </div>
                 <div class="feature-card">
                     <h3 style="color: var(--text-highlight); font-size: 1.1rem; margin-bottom: 0.6rem;">O Sentinel funciona com IPv6?</h3>
@@ -1323,71 +1342,33 @@
             </div>
         </section>
 
-        <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 4rem 1.5rem 3rem 1.5rem; font-family: 'Outfit', sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2.5rem; max-width: 1200px; margin: 0 auto; width: 100%;">
-                
-                <!-- Bloco 1: Logo + Descrição -->
-                <div style="flex: 1.5; min-width: 250px; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <div style="position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <div style="position: absolute; width: 48px; height: 48px; background: radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, transparent 70%); filter: blur(8px); z-index: 1;"></div>
-                        <img src="Logo.webp" style="width: 56px; height: 56px; z-index: 2; object-fit: contain; filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));" alt="Sentinel DNS Logo">
-                    </div>
-                    <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; max-width: 240px; margin: 0;">
-                        Sentinel DNS é um DNS Firewall e appliance recursivo open-source desenhado para Provedores de Internet e corporações.
-                    </p>
-                </div>
-
-                <!-- Bloco 2: Comunidade & Código -->
-                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
-                    <h4 style="color: #fff; font-size: 0.95rem; margin-top: 0; margin-bottom: 1.2rem; font-weight: 700;">Comunidade & Código</h4>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
-                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="github" style="width: 16px; height: 16px;"></i> GitHub Repositório
-                        </a>
-                        <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="send" style="width: 16px; height: 16px;"></i> Telegram
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Bloco 3: Contato -->
-                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
-                    <h4 style="color: #fff; font-size: 0.95rem; margin-top: 0; margin-bottom: 1.2rem; font-weight: 700;">Contato</h4>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
-                        <a href="mailto:contato@sentineldns.net" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="mail" style="width: 16px; height: 16px;"></i> contato@sentineldns.net
-                        </a>
-                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
-                            <i data-lucide="message-circle" style="width: 16px; height: 16px;"></i> WhatsApp
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Bloco 4: Legal -->
-                <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
-                    <h4 style="color: #fff; font-size: 0.95rem; margin-top: 0; margin-bottom: 1.2rem; font-weight: 700;">Legal</h4>
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
-                        <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Política de Privacidade</a>
-                        <a href="privacidade.html#termos" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Termos de Uso</a>
-                    </div>
-                </div>
-
-                <!-- Bloco 5: Copyright à Direita -->
-                <div style="flex: 1.5; min-width: 250px; display: flex; flex-direction: column; align-items: flex-end; text-align: right; font-size: 0.85rem; color: #64748b;">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; margin-bottom: 1rem; font-size: 0.85rem;">
-                        <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
-                        <a href="docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Documentação</a>
-                        <a href="blog/index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Blog</a>
-                        <a href="download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download ISO</a>
-                        <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
-                    </div>
-                    <p style="margin: 0; line-height: 1.6;">
-                        Sentinel DNS © 2026 — Todos os direitos reservados.<br>Open Source com licença MIT.
-                    </p>
-                </div>
-
+<div class="terminal-widget" aria-hidden="true">
+            <div class="terminal-header">
+                <div class="term-dot r"></div>
+                <div class="term-dot y"></div>
+                <div class="term-dot g"></div>
+                <span style="margin-left: 10px; color: #94a3b8; font-size: 0.8rem; font-family: sans-serif;">sentinel-master@core ~ /var/log/syslog</span>
             </div>
-        </footer>
+            <div class="terminal-body" id="term-output">
+</div>
+        </div>
+
+    <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
+            Conexão criptografada (End-to-End Encryption)
+        </div>
+        <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
+        <div style="display: flex; gap: 1.2rem;">
+            <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
+            <a href="docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Docs</a>
+            <a href="blog/oque-e-dns-recursivo.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Blog</a>
+            <a href="download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download</a>
+            <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
+            <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Suporte</a>
+        </div>
+    </footer>
+        <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
     </div>
 
     <script>
@@ -1397,41 +1378,29 @@
         const floatCta = document.querySelector('.floating-cta');
         if(floatCta) {
             window.addEventListener('scroll', () => {
-                const footer = document.querySelector('footer');
-                const footerRect = footer ? footer.getBoundingClientRect() : null;
-                const isNearFooter = footerRect ? footerRect.top < window.innerHeight : false;
-                
-                if(window.scrollY > 600 && !isNearFooter) floatCta.classList.add('visible');
+                if(window.scrollY > 600) floatCta.classList.add('visible');
                 else floatCta.classList.remove('visible');
             });
         }
         
 
+                // Fetch Social Proof from API
         fetch('/api/public/stats')
-            .then(r => {
-                if (!r.ok) throw new Error('Status HTTP inválido: ' + r.status);
-                return r.json();
-            })
+            .then(r => r.json())
             .then(data => {
-                if(data && data.clients && data.clients.length > 0) {
+                if(data && data.clients) {
                     const count = data.clients.length;
-                    // Mostra o número real exato, conforme solicitado pelo usuário
-                    document.getElementById('social-proof-nodes').innerText = count;
+                    document.getElementById('social-proof-nodes').innerText = count > 0 ? count : '--';
                     const clientsList = document.getElementById('clients-proof-list');
-                    const names = Array.from(new Set(data.clients.map(c => c.name).filter(n => n && n !== 'Desconhecido'))).slice(0, 6);
-                    if(names.length > 0) {
-                        clientsList.innerHTML = names.map(n => '<span>' + n + '</span>').join('<span style="color:#334155; margin: 0 0.5rem;">&bull;</span>');
+                    if(count > 0) {
+                        const names = Array.from(new Set(data.clients.map(c => c.name).filter(n => n && n !== 'Desconhecido'))).slice(0, 6);
+                        if(names.length > 0) {
+                            clientsList.innerHTML = names.map(n => '<span>' + n + '</span>').join('<span style="color:#334155; margin: 0 0.5rem;">&bull;</span>');
+                        }
                     }
                 }
             })
-            .catch(e => {
-                console.log('Social proof mantido com valores padrao:', e.message);
-                // Fallback para valor mínimo estático seguro se a API falhar
-                const socialProof = document.getElementById('social-proof-nodes');
-                if (socialProof && socialProof.innerText === '--') {
-                    socialProof.innerText = '3';
-                }
-            });
+            .catch(e => { console.log('Social proof indisponivel no modo puramente estatico'); });
 
         // ==========================================
         // 1. PARTICLES BACKGROUND
@@ -1497,25 +1466,21 @@
             try {
                 // Tenta buscar os dados reais da API
                 const response = await fetch('/api/landing-stats');
-                if (!response.ok) {
-                    throw new Error('API respondendo com status: ' + response.status);
-                }
-                const data = await response.json();
-                document.getElementById('stat-threats').innerText = data.threatsBlocked;
-                document.getElementById('stat-nodes').innerText = data.nodes + " Ativos";
-                document.getElementById('stat-latency').innerText = data.latency;
-                document.getElementById('stat-queries').innerText = data.queries;
-                
-                const socialProof = document.getElementById('social-proof-nodes');
-                if (socialProof) {
-                    socialProof.innerText = data.nodes;
-                }
-                
-                // Simular QPS baseado na resposta ou valor random realista
-                let targetQps = Math.floor(Math.random() * 50) + 400;
-                const qpsEl = document.getElementById('stat-live-qps');
-                if (qpsEl) {
-                    qpsEl.innerText = targetQps + " QPS";
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('stat-threats').innerText = data.threatsBlocked;
+                    document.getElementById('stat-nodes').innerText = data.nodes + " Ativos";
+                    document.getElementById('stat-latency').innerText = data.latency;
+                    document.getElementById('stat-queries').innerText = data.queries;
+                    
+                    const socialProof = document.getElementById('social-proof-nodes');
+                    if (socialProof) {
+                        socialProof.innerText = data.nodes;
+                    }
+                    
+                    // Simular QPS baseado na resposta ou valor random realista
+                    let targetQps = Math.floor(Math.random() * 50) + 400;
+                    document.getElementById('stat-live-qps').innerText = targetQps + " QPS";
                 }
             } catch (err) {
                 // Fallback gracioso para dados locais caso a API esteja offline (Página servida estaticamente)
@@ -1525,11 +1490,7 @@
                 document.getElementById('stat-nodes').innerText = "12 Ativos";
                 document.getElementById('stat-latency').innerText = "< 2ms";
                 document.getElementById('stat-queries').innerText = (baseQueries / 1000000).toFixed(2) + "M+";
-                
-                const qpsEl = document.getElementById('stat-live-qps');
-                if (qpsEl) {
-                    qpsEl.innerText = "450 QPS";
-                }
+                document.getElementById('stat-live-qps').innerText = "450 QPS";
                 
                 const socialProof = document.getElementById('social-proof-nodes');
                 if (socialProof) socialProof.innerText = "12";
@@ -1547,110 +1508,125 @@
         // 3. TRAFFIC CHART (WAVES)
         // ==========================================
         const chartCanvas = document.getElementById('trafficChart');
-        if (chartCanvas) {
-            const cCtx = chartCanvas.getContext('2d');
-            let chartW, chartH;
-            let trafficData = Array(50).fill(0).map(() => Math.random() * 50 + 20);
+        const cCtx = chartCanvas.getContext('2d');
+        let chartW, chartH;
+        let trafficData = Array(50).fill(0).map(() => Math.random() * 50 + 20);
 
-            function initChart() {
-                chartW = chartCanvas.width = chartCanvas.offsetWidth;
-                chartH = chartCanvas.height = chartCanvas.offsetHeight;
+        function initChart() {
+            chartW = chartCanvas.width = chartCanvas.offsetWidth;
+            chartH = chartCanvas.height = chartCanvas.offsetHeight;
+        }
+
+        function drawChart() {
+            cCtx.clearRect(0, 0, chartW, chartH);
+            
+            // Add new data point, remove old
+            let targetQps = Math.random() * 100 + 400; // Fake 400-500 QPS
+            document.getElementById('stat-live-qps').innerText = Math.floor(targetQps) + " QPS";
+            
+            trafficData.push(Math.random() * 60 + 20);
+            trafficData.shift();
+
+            cCtx.beginPath();
+            cCtx.moveTo(0, chartH);
+            
+            const slice = chartW / (trafficData.length - 1);
+            for(let i=0; i<trafficData.length; i++) {
+                const x = i * slice;
+                const y = chartH - (trafficData[i] / 100) * chartH * 0.8;
+                cCtx.lineTo(x, y);
             }
+            cCtx.lineTo(chartW, chartH);
+            cCtx.closePath();
 
-            function drawChart() {
-                cCtx.clearRect(0, 0, chartW, chartH);
-                
-                // Add new data point, remove old
-                let targetQps = Math.random() * 100 + 400; // Fake 400-500 QPS
-                const qpsEl = document.getElementById('stat-live-qps');
-                if (qpsEl) {
-                    qpsEl.innerText = Math.floor(targetQps) + " QPS";
-                }
-                
-                trafficData.push(Math.random() * 60 + 20);
-                trafficData.shift();
+            const grad = cCtx.createLinearGradient(0, 0, 0, chartH);
+            grad.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+            grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            cCtx.fillStyle = grad;
+            cCtx.fill();
 
-                cCtx.beginPath();
-                cCtx.moveTo(0, chartH);
-                
-                const slice = chartW / (trafficData.length - 1);
-                for(let i=0; i<trafficData.length; i++) {
-                    const x = i * slice;
-                    const y = chartH - (trafficData[i] / 100) * chartH * 0.8;
-                    cCtx.lineTo(x, y);
-                }
-                cCtx.lineTo(chartW, chartH);
-                cCtx.closePath();
+            cCtx.beginPath();
+            for(let i=0; i<trafficData.length; i++) {
+                const x = i * slice;
+                const y = chartH - (trafficData[i] / 100) * chartH * 0.8;
+                if(i===0) cCtx.moveTo(x, y);
+                else cCtx.lineTo(x, y);
+            }
+            cCtx.strokeStyle = 'rgba(16, 185, 129, 1)';
+            cCtx.lineWidth = 2;
+            cCtx.stroke();
+        }
+        
+        window.addEventListener('resize', initChart);
+        initChart();
+        setInterval(drawChart, 1000);
 
-                const grad = cCtx.createLinearGradient(0, 0, 0, chartH);
-                grad.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-                grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-                cCtx.fillStyle = grad;
-                cCtx.fill();
-
-                cCtx.beginPath();
-                for(let i=0; i<trafficData.length; i++) {
-                    const x = i * slice;
-                    const y = chartH - (trafficData[i] / 100) * chartH * 0.8;
-                    if(i===0) cCtx.moveTo(x, y);
-                    else cCtx.lineTo(x, y);
-                }
-                cCtx.strokeStyle = 'rgba(16, 185, 129, 1)';
-                cCtx.lineWidth = 2;
-                cCtx.stroke();
+        // ==========================================
+        // 4. TERMINAL LOG WIDGET
+        // ==========================================
+        const lines = [
+            '<span style="color:#22c55e">[OK]</span> sentinel-os: Kernel parameters loaded successfully.',
+            '<span style="color:#818cf8">[INFO]</span> auto-tuning: Detected 16 Cores / 32GB RAM. Allocating 4 threads...',
+            '<span style="color:#22c55e">[OK]</span> auto-tuning: Socket buffers optimized for 100k+ QPS.',
+            '<span style="color:#818cf8">[INFO]</span> cti-engine: Connecting to Global Threat Network...',
+            '<span style="color:#22c55e">[OK]</span> cti-engine: 4.2M malware signatures loaded.',
+            '<span style="color:#818cf8">[INFO]</span> cache: Restoring persistent cache from disk...',
+            '<span style="color:#22c55e">[OK]</span> cache: 850,000 records restored in 420ms.',
+            '<span style="color:#eab308">[WARN]</span> shield: Minor DDoS attempt mitigated on port 53.',
+            '<span style="color:#22c55e">[OK]</span> sentinel: Unbound DNS Master node is ONLINE and accepting queries.'
+        ];
+        
+        const termOutput = document.getElementById('term-output');
+        let lIndex = 0;
+        
+        const cursor = document.createElement('span');
+        cursor.className = 'blinking-cursor';
+        
+        function addTermLine() {
+            if (!termOutput) return;
+            if (termOutput.contains(cursor)) {
+                termOutput.removeChild(cursor);
             }
             
-            window.addEventListener('resize', initChart);
-            initChart();
-            setInterval(drawChart, 1000);
-        }
-    </script>
-    <script src="/lang.js?v=1.3"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const res = await fetch('/api/public/pricing');
-                if (!res.ok) return;
-                const pricing = await res.json();
-                if (Object.keys(pricing).length === 0) return;
-
-                // Helper para renderizar lista de features
-                const renderFeatures = (planKey, ulId) => {
-                    const ul = document.getElementById(ulId);
-                    if (!ul || !pricing[planKey] || !pricing[planKey].features) return;
-                    ul.innerHTML = pricing[planKey].features.map(f => {
-                        const icon = f.included ? '<i data-lucide="check" style="color: var(--success);"></i>' : '<i data-lucide="x" style="color: #475569;"></i>';
-                        const text = f.text_override ? `${f.name} <span style="font-size: 0.85rem; color: var(--text-muted);">${f.text_override}</span>` : f.name;
-                        return `<li>${icon} ${text}</li>`;
-                    }).join('');
-                };
-
-                // Preencher valores e badges
-                if (pricing.free) {
-                    const el = document.getElementById('val-free');
-                    if (el) el.innerHTML = `${pricing.free.price}<span class="price-sub">/${pricing.free.period}</span>`;
-                    renderFeatures('free', 'features-free');
-                }
-                if (pricing.pro) {
-                    const el = document.getElementById('val-pro');
-                    if (el) el.innerHTML = `${pricing.pro.price}<span class="price-sub">/${pricing.pro.period}</span>`;
-                    renderFeatures('pro', 'features-pro');
-                }
-                if (pricing.pro_lite) {
-                    const el = document.getElementById('val-lite');
-                    if (el) el.innerHTML = `${pricing.pro_lite.price}<span class="price-sub" style="margin-left: 0.4rem;">${pricing.pro_lite.period}</span>`;
-                    renderFeatures('pro_lite', 'features-lite');
-                }
-
-                // Reinicializar icones
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-            } catch(e) {
-                console.error("Erro ao carregar preços", e);
+            let newLineHTML = '';
+            if(lIndex < lines.length) {
+                newLineHTML = `<span class="term-prefix">root@sentinel:~#</span> ${lines[lIndex]}`;
+                lIndex++;
+            } else {
+                const pings = [
+                    '<span style="color:#38bdf8">[NOC]</span> Real-time latency: ' + (Math.floor(Math.random()*4)+1) + 'ms (Ultra-Low)',
+                    '<span style="color:#22c55e">[CACHE]</span> Hit Ratio: ' + (92 + Math.random()*7).toFixed(1) + '% | Memory: ' + (2 + Math.random()*2).toFixed(1) + 'GB',
+                    '<span style="color:#f43f5e">[SHIELD]</span> Blocked domain: malicious-botnet.ru',
+                    '<span style="color:#f43f5e">[SHIELD]</span> Blocked domain: phishing-auth-banco.com',
+                    '<span style="color:#818cf8">[SYNC]</span> CTI Engine: Feeds atualizados em background.'
+                ];
+                const randPing = pings[Math.floor(Math.random() * pings.length)];
+                newLineHTML = `<span class="term-prefix">root@sentinel:~#</span> ${randPing}`;
             }
-        });
-    </script>
-    <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
+
+            const div = document.createElement('div');
+            div.className = 'term-line';
+            div.innerHTML = newLineHTML;
+            termOutput.appendChild(div);
+            termOutput.appendChild(cursor);
+
+            const termLines = termOutput.querySelectorAll('.term-line');
+            if(termLines.length > 9) {
+                termOutput.removeChild(termLines[0]);
+            }
+            
+            termOutput.scrollTop = termOutput.scrollHeight;
+
+            if(lIndex < lines.length) {
+                setTimeout(addTermLine, Math.random() * 600 + 300);
+            } else {
+                setTimeout(addTermLine, Math.random() * 2000 + 1500);
+            }
+        }
+
+        setTimeout(addTermLine, 1000);
+    
+</script>
+    <script src="/lang.js?v=1.3"></script>
 </body>
 </html>

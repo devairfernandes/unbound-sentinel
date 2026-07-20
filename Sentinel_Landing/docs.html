@@ -238,23 +238,62 @@
     </style>
 </head>
 <body>
+    <!-- Menu Superior de Navegação -->
+    <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            
+            <!-- Logo + Nome à Esquerda -->
+            <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <img src="Logo.webp" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));" alt="Sentinel DNS Logo">
+                <span style="color: #fff; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Sentinel<span style="color: #38bdf8;">DNS</span></span>
+            </a>
 
-        <div class="header" style="border-bottom: 1px solid rgba(56, 189, 248, 0.15); padding: 1rem 1.5rem; backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')" aria-label="Abrir menu de navegação" style="background: transparent; border: none; color: #38bdf8; cursor: pointer; display: none;">
-            <i data-lucide="menu" width="28" height="28"></i>
-        </button>
-        <div class="mobile-logo-text" style="display: none; color: #fff; font-weight: bold; font-family: 'Outfit', sans-serif; font-size: 1.2rem;">
-            Sentinel<span style="color:#38bdf8">DNS</span>
+            <!-- Links de Navegação ao Centro/Direita -->
+            <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
+                <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="home" width="14" height="14"></i> Início</a>
+                <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="book" width="14" height="14"></i> Documentação</a>
+                <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
+                <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
+                <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
+                <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="send" width="14" height="14"></i> Telegram</a>
+            </nav>
+
+            <!-- Botão CTA na Extrema Direita -->
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(56, 189, 248, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(56, 189, 248, 0.25)'">
+                    Instalar Sentinel
+                </a>
+                
+                <!-- Botão de Menu Hambúrguer (Mobile) -->
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
+                    <i data-lucide="menu" width="24" height="24"></i>
+                </button>
+            </div>
+
         </div>
-        <div class="nav-links" style="display: flex; gap: 2rem; justify-content: center; align-items: center; flex: 1;">
-            <a href="index.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="home" width="16" height="16"></i> Início</a>
-            <a href="docs.html" style="color: #38bdf8; text-decoration: none; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;" aria-current="page"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
-            <a href="download.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
-            <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
-            <a href="https://t.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s; justify-content: center;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
+
+        <!-- Menu Mobile Retrátil -->
+        <div id="mobile-nav" style="display: none; flex-direction: column; gap: 1rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid rgba(56, 189, 248, 0.1); margin-top: 0.75rem; transition: all 0.3s ease;">
+            <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="home" width="16" height="16"></i> Início</a>
+            <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
+            <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
+            <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
+            <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
+            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
+            <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
         </div>
-    </div>
-</div>
+    </header>
+
+    <script>
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobile-nav');
+            if (mobileNav) {
+                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
+            }
+        }
+    </script>
+
+
 
     <div class="container">
         <h1>Documentação Oficial Sentinel DNS</h1>
@@ -766,19 +805,44 @@ journalctl -u unbound -f</code></pre>
             } catch (e) {}
         });
     </script>
-    <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
-            Conexão criptografada (End-to-End Encryption)
+    <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
+                Conexão criptografada (End-to-End Encryption)
+            </div>
+            <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
+                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                GitHub
+            </a>
         </div>
         <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
-        <div style="display: flex; gap: 1.2rem;">
+        <div style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
             <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
             <a href="docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Docs</a>
+            <a href="blog/index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Blog</a>
             <a href="download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download</a>
             <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
+            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Telegram</a>
             <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Suporte</a>
         </div>
     </footer>
+    <script>
+        lucide.createIcons();
+
+        // Floating CTA Logic
+        const floatCta = document.querySelector('.floating-cta');
+        if(floatCta) {
+            window.addEventListener('scroll', () => {
+                const footer = document.querySelector('footer');
+                const footerRect = footer ? footer.getBoundingClientRect() : null;
+                const isNearFooter = footerRect ? footerRect.top < window.innerHeight : false;
+                
+                if(window.scrollY > 600 && !isNearFooter) floatCta.classList.add('visible');
+                else floatCta.classList.remove('visible');
+            });
+        }
+    </script>
+    <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
 </body>
 </html>

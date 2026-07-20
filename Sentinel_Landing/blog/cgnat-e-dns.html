@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CGNAT e DNS: como reduzir latência e economizar link internacional | Blog Sentinel DNS</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="../style.css">
     <meta name="description" content="Aprenda como a dobradinha entre CGNAT bem configurado e um DNS Recursivo local otimizado pode salvar seu link de trânsito e reduzir Pings.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://sentineldns.net/blog/cgnat-e-dns.html">
@@ -745,6 +745,60 @@
 </style>
 </head>
 <body>
+    <!-- Menu Superior de Navegação -->
+    <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            
+            <!-- Logo + Nome à Esquerda -->
+            <a href="../index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <img src="../Logo.webp" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));" alt="Sentinel DNS Logo">
+                <span style="color: #fff; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Sentinel<span style="color: #38bdf8;">DNS</span></span>
+            </a>
+
+            <!-- Links de Navegação ao Centro/Direita -->
+            <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
+                <a href="../index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="home" width="14" height="14"></i> Início</a>
+                <a href="../docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="book" width="14" height="14"></i> Documentação</a>
+                <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
+                <a href="../download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
+                <a href="../privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
+                <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#cbd5e1'"><i data-lucide="send" width="14" height="14"></i> Telegram</a>
+            </nav>
+
+            <!-- Botão CTA na Extrema Direita -->
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="../download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(56, 189, 248, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(56, 189, 248, 0.25)'">
+                    Instalar Sentinel
+                </a>
+                
+                <!-- Botão de Menu Hambúrguer (Mobile) -->
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
+                    <i data-lucide="menu" width="24" height="24"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Menu Mobile Retrátil -->
+        <div id="mobile-nav" style="display: none; flex-direction: column; gap: 1rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid rgba(56, 189, 248, 0.1); margin-top: 0.75rem; transition: all 0.3s ease;">
+            <a href="../index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="home" width="16" height="16"></i> Início</a>
+            <a href="../docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
+            <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
+            <a href="../download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
+            <a href="../privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
+            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
+            <a href="../download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
+        </div>
+    </header>
+
+    <script>
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobile-nav');
+            if (mobileNav) {
+                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
+            }
+        }
+    </script>
 
     <main class="blog-container">
         <header class="blog-header">
@@ -752,26 +806,130 @@
             <div class="blog-meta">Publicado em 13 de Julho de 2026 &bull; Sentinel DNS Education</div>
         </header>
         <article class="blog-content">
-<p>Com o esgotamento do protocolo IPv4, provedores de internet (ISPs) em todo o mundo precisaram adotar o Carrier Grade NAT (CGNAT) para compartilhar IPs públicos escassos entre múltiplos clientes. No entanto, o CGNAT introduz gargalos de performance que, se não forem gerenciados, destroem a experiência do assinante.</p><h2>O Gargalo do CGNAT na Resolução de Nomes</h2><p>Um dos maiores problemas enfrentados por provedores é o esgotamento de portas (port exhaustion) no CGNAT. Cada cliente PPPoE, ao navegar em páginas modernas, abre dezenas de conexões UDP simultâneas apenas para resolução DNS. Quando o provedor direciona seus clientes para DNS públicos (8.8.8.8), o CGNAT precisa traduzir todas essas requisições externas, consumindo rapidamente a cota de portas alocada (Block Port Allocation).</p><h2>Como o DNS Local Salva o CGNAT</h2><p>A solução para desafogar as caixas de CGNAT (sejam Mikrotik, Huawei ou Cisco) é manter o tráfego DNS <strong>dentro da rede do provedor</strong>, antes do NAT.</p><h3>Redução de Tabelas de Conexão</h3><p>Ao entregar o IP do seu Servidor DNS Local para os clientes via PPPoE, as requisições DNS (UDP 53) fluem da rede privada do cliente para a rede privada do DNS. Elas <strong>não passam pelo CGNAT</strong>. Isso pode reduzir o uso das tabelas de NAT em até 30%, economizando CPU do roteador de borda e mitigando o erro de "falta de portas".</p><h3>Otimização de Rotas de CDN</h3><p>Quando a requisição DNS sai pela borda através do CGNAT para um servidor público, a CDN (Netflix, Google, Akamai) enxerga o IP do seu concentrador, não a topologia ideal. Um DNS local (como o Sentinel com Unbound) consulta as CDNs enviando parâmetros de sub-rede corretos (EDNS Client Subnet) ou resolvendo localmente de forma que o tráfego das redes de distribuição flua pelo seu PTT (Ponto de Troca de Tráfego), e não pelo link IP Trânsito pago.</p><h2>Boas práticas de Arquitetura</h2><ul><li><strong>Coloque o DNS perto do BNG:</strong> O servidor DNS deve estar o mais próximo possível do seu concentrador PPPoE (BNG), garantindo latências inferiores a 1ms na resposta.</li><li><strong>Desvie o tráfego UDP/TCP 53:</strong> Use regras de Firewall no seu roteador para forçar (redirecionar) clientes que tentam usar DNS externos (como o da Google) de volta para o seu DNS interno (Force DNS). Isso não apenas economiza banda, como garante que a resolução seja ultrarrápida.</li><li><strong>Ative o Prefetch:</strong> Tecnologias como o Prefetch mantêm os registros mais acessados sempre vivos na memória RAM do servidor DNS, evintando consultas lentas em horários de pico (20h-22h).</li></ul><div class="blog-cta"><h3>Economize link e CPU do CGNAT hoje mesmo</h3><p>O Sentinel DNS atua de forma autônoma na sua infraestrutura, resolvendo milhares de requisições por segundo em milissegundos.</p><a href="../download.html">Baixe a ISO Grátis</a></div>
+<p>À medida que a escassez global de endereços IPv4 se consolidou, os Provedores de Acesso à Internet (ISPs) foram forçados a adotar técnicas de compartilhamento de IP público. A tecnologia padrão para essa finalidade é o <strong>CGNAT (Carrier Grade NAT)</strong>, também conhecido como LSN (Large Scale NAT). Embora essencial para a sobrevivência operacional dos provedores, o CGNAT introduz uma camada complexa de tradução de pacotes que consome recursos de processamento e, principalmente, de portas de conexão. Um dos principais gargalos de performance nas caixas de CGNAT está diretamente relacionado à forma como o provedor resolve o tráfego de DNS (Domain Name System). Ao otimizar a resolução DNS, é possível não apenas reduzir a latência de navegação do assinante, mas também aliviar a carga sobre o CGNAT e economizar consideravelmente no consumo do link de trânsito IP internacional.</p>
+
+<h2>O Impacto do CGNAT e o Fenômeno do Esgotamento de Portas (Port Exhaustion)</h2>
+<p>O CGNAT opera mapeando múltiplos endereços IP privados (RFC 1918) para um único endereço IP público. Para diferenciar as conexões de cada cliente sob o mesmo IP público, o equipamento de borda (seja Mikrotik, Huawei, Cisco ou caixas baseadas em VyOS) associa cada conexão a uma porta de origem específica. Cada endereço IP público dispõe de exatamente 65.536 portas lógicas. Excluindo as portas reservadas, restam cerca de 64.000 portas utilizáveis.</p>
+<p>Para garantir estabilidade e previsibilidade, a maioria dos provedores adota a alocação de portas em blocos (BPA - Block Port Allocation ou PBA). Sob esse modelo, cada assinante PPPoE ou IP estático recebe uma cota fixa de portas (por exemplo, 1.024 ou 2.048 portas simultâneas). Se um usuário abrir conexões que ultrapassem essa cota, ele sofrerá o erro conhecido como **Port Exhaustion** (esgotamento de portas). Na prática, o assinante começará a notar que páginas web carregam parcialmente (imagens cinzas ou ausentes), aplicativos param de atualizar feeds e a navegação parece travada, gerando chamados de suporte técnico de difícil diagnóstico.</p>
+
+<h3>O Papel Silencioso do DNS no Esgotamento do CGNAT</h3>
+<p>Páginas web modernas são compostas por elementos hospedados em múltiplos servidores de terceiros (mídias sociais, trackers, anúncios, CDNs, bibliotecas). Ao acessar um único site de notícias, o navegador pode disparar instantaneamente mais de 50 consultas de DNS separadas para resolver os endereços de cada elemento da página. Cada uma dessas consultas de DNS, se enviada para um servidor DNS público fora da rede do provedor (como <code>8.8.8.8</code> da Google ou <code>1.1.1.1</code> da Cloudflare), viaja via protocolo UDP pela porta 53.</p>
+<p>Se o tráfego de DNS passar pela caixa de CGNAT para alcançar a internet externa:</p>
+<ol>
+    <li>Cada consulta DNS UDP consome uma porta de origem do bloco alocado ao assinante.</li>
+    <li>O roteador de CGNAT precisa manter a tabela de estados (conntrack) ativa para cada uma dessas dezenas de transações até que elas expirem ou obtenham resposta.</li>
+    <li>Muitos sistemas operacionais e navegadores abrem conexões redundantes ou repetem requisições em caso de atraso na rede, agravando a saturação da tabela de NAT.</li>
+</ol>
+<p>Em horários de pico, o volume de conexões DNS UDP concorrentes é tão alto que uma parte expressiva da cota de portas do assinante é consumida apenas para resolver nomes, restando pouca margem para a navegação real e downloads.</p>
+
+<h2>A Solução: Bypass de CGNAT Usando DNS Recursivo Local</h2>
+<p>A estratégia mais eficaz para resolver o esgotamento de portas e otimizar o CGNAT é implementar um **servidor DNS Recursivo local dentro do próprio Autonomous System (AS) do provedor**, instalado fisicamente antes das caixas de CGNAT.</p>
+<p>Nesta arquitetura:</p>
+<ul>
+    <li>O servidor DNS recebe uma interface de rede ligada diretamente à sub-rede privada onde trafegam os assinantes (antes de passarem pelo NAT).</li>
+    <li>Os roteadores domésticos dos clientes são configurados via PPPoE/DHCP para usar o IP privado local do DNS do provedor.</li>
+    <li>Quando o assinante gera as dezenas de consultas de DNS, o tráfego UDP na porta 53 flui da rede local do cliente diretamente ao servidor DNS interno. **Esse tráfego nunca passa pelo CGNAT**.</li>
+</ul>
+<p>Com essa mudança simples de topologia, o consumo de portas de CGNAT para fins de DNS é reduzido a zero. O CGNAT processará apenas o tráfego HTTP, HTTPS e conexões de dados reais, aliviando o uso de CPU e memória do roteador de borda e reduzindo a incidência de esgotamento de portas em mais de 30%.</p>
+
+<h2>Como o DNS Local Economiza Link e Melhora o Direcionamento de CDNs</h2>
+<p>Além de proteger o CGNAT, a presença de um DNS local bem configurado tem impacto direto na utilização de banda e no custo do link de trânsito IP internacional do provedor.</p>
+
+<h3>Otimização de Geocalização e CDN (Content Delivery Networks)</h3>
+<p>Grandes fornecedores de tráfego de vídeo e dados mantêm servidores (caches) espalhados em datacenters parceiros e Pontos de Troca de Tráfego (PTT/IX.br). Para entregar o conteúdo com a menor latência possível, a infraestrutura da CDN analisa o endereço IP que enviou a solicitação de DNS e devolve o IP da CDN geograficamente mais próxima.</p>
+<p>Se o provedor encaminha todo o tráfego DNS de seus assinantes para um DNS público localizado em um grande centro metropolitano (como São Paulo ou Rio de Janeiro), a CDN identificará o IP do DNS público e assumirá que os assinantes do provedor estão em São Paulo. Assim, a CDN redirecionará os downloads para São Paulo, forçando o provedor a transportar centenas de Gigabits de tráfego de vídeo por longas distâncias através de seus links de trânsito IP caros.</p>
+<p>Ao operar um DNS local:</p>
+<ol>
+    <li>As requisições de DNS saem diretamente do bloco de IPs públicos do próprio provedor (ou utilizam a extensão EDNS Client Subnet - ECS).</li>
+    <li>A CDN identifica o bloco de IPs real do provedor e responde com os servidores de cache instalados na rede local (PTT local ou cache CDN interno).</li>
+    <li>O tráfego de download é mantido dentro do PTT local gratuito ou na rede de peering direta, economizando a banda cara do trânsito IP internacional.</li>
+</ol>
+
+<h2>Comparativo de Impacto Técnico na Infraestrutura do ISP</h2>
+<p>Abaixo está exposto o comportamento da rede em termos de uso de portas, CPU e alocação de banda de trânsito internacional nas duas arquiteturas:</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 2rem 0; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--surface-border);">
+    <thead>
+        <tr style="background: rgba(56, 189, 248, 0.1); color: var(--primary);">
+            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">Métrica de Rede</th>
+            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">DNS Externo (Passando por CGNAT)</th>
+            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">DNS Local (Bypass de CGNAT)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Uso de Portas CGNAT por Assinante</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: #f43f5e;">Alto (cerca de 50 a 150 portas por carregamento)</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Zero portas consumidas no CGNAT</td>
+        </tr>
+        <tr>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Carga de CPU no Roteador CGNAT</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border);">Elevada (necessita mapear e rastrear UDP 53)</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Reduzida (processa apenas tráfego útil de dados)</td>
+        </tr>
+        <tr>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Consumo de Trânsito IP Pago</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: #fbbf24;">Alto (redirecionamentos de CDN incorretos)</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Mínimo (tráfego vai para o cache local ou PTT)</td>
+        </tr>
+        <tr>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Latência de Resolução DNS</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border);">15ms a 50ms + tempo de processamento NAT</td>
+            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">< 1ms a 2ms (cache local entrega instantâneo)</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Boas Práticas de Configuração e "Force DNS"</h2>
+<p>Para garantir que todos os assinantes utilizem os benefícios do DNS recursivo local, o provedor deve implementar regras de <strong>Force DNS</strong> no roteador de borda ou BNG. Alguns assinantes podem forçar manualmente o uso de DNS públicos (como <code>8.8.8.8</code>) diretamente nas configurações de seus dispositivos móveis ou computadores.</p>
+<p>Ao criar uma regra de redirecionamento (DST-NAT) no concentrador PPPoE para capturar qualquer pacote UDP/TCP na porta 53 destinado a endereços externos e encaminhá-lo silenciosamente para o IP do seu DNS recursivo local, você garante que 100% da sua rede se beneficie da latência reduzida e da economia de portas no CGNAT.</p>
+
+<div class="blog-cta">
+    <h3>Maximize a Eficiência de Suas CDNs e CGNAT</h3>
+    <p>O Sentinel DNS automatiza a implantação de servidores recursivos locais baseados em Unbound, aplicando regras de auto-tuning e gerenciamento inteligente de cache para reduzir em até 30% a carga de suas caixas de CGNAT.</p>
+    <a href="../download.html">Baixe a ISO Grátis</a>
+</div>
         </article>
 <div class="related-articles"><h3>Você também pode gostar:</h3><ul><li><a href="oque-e-dns-recursivo.html">O que é DNS Recursivo e por que seu provedor precisa de um</a></li><li><a href="dns-firewall-vs-dns-comum.html">DNS Firewall vs DNS comum: qual a diferença na prática</a></li></ul></div>
     </main>
-<footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
-            Conexão criptografada (End-to-End Encryption)
+<footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
+                Conexão criptografada (End-to-End Encryption)
+            </div>
+            <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">
+                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                GitHub
+            </a>
         </div>
         <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
-        <div style="display: flex; gap: 1.2rem;">
+        <div style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
             <a href="../index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Início</a>
             <a href="../docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Docs</a>
+            <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Blog</a>
             <a href="../download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Download</a>
             <a href="../privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Privacidade</a>
+            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Telegram</a>
             <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='#94a3b8'">Suporte</a>
         </div>
     </footer>
     <script>
         lucide.createIcons();
+
+        // Floating CTA Logic
+        const floatCta = document.querySelector('.floating-cta');
+        if(floatCta) {
+            window.addEventListener('scroll', () => {
+                const footer = document.querySelector('footer');
+                const footerRect = footer ? footer.getBoundingClientRect() : null;
+                const isNearFooter = footerRect ? footerRect.top < window.innerHeight : false;
+                
+                if(window.scrollY > 600 && !isNearFooter) floatCta.classList.add('visible');
+                else floatCta.classList.remove('visible');
+            });
+        }
     </script>
+    <a href="../download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
 </body>
 </html>
