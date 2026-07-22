@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação Oficial - Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="../Logo.webp">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
+
+    <!-- Navbar simplificada para Docs -->
+    <nav class="fixed w-full z-50 glass border-b border-[#1f2937]">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="../index.html" class="flex items-center gap-3">
+                    <img src="../Logo.webp" alt="Sentinel DNS Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-lg font-bold tracking-tight text-white">Sentinel DNS <span class="text-gray-500 font-normal ml-2">Docs</span></span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden md:block">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                        <input type="text" placeholder="Buscar na documentação..." class="bg-gray-900 border border-gray-700 text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <a href="../index.html" class="text-sm font-medium text-gray-400 hover:text-white ml-4">Voltar ao site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Layout com Sidebar -->
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-16 flex">
+        
+        <!-- Sidebar -->
+        <aside class="hidden md:block w-64 flex-shrink-0 border-r border-gray-800 pt-8 pr-6 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <nav class="space-y-6">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Começando</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-sm text-gray-400 hover:text-white block">Introdução</a></li>
+                        <li><a href="requisitos-de-sistema.html" class="text-sm text-gray-400 hover:text-white block">Requisitos de Sistema</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Instalação Rápida</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Configuração (ISP)</h4>
+                    <ul class="space-y-2">
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Configurando Anycast</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Integração com BGP</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Otimização de Cache</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Segurança</h4>
+                    <ul class="space-y-2">
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Threat Intelligence API</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Políticas RPZ</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Logs & SIEM</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        
+        <main class="flex-1 pt-20 pb-24 md:pl-10 flex flex-col items-center justify-center text-center">
+            <div class="mb-8 p-6 bg-blue-900/20 rounded-full border border-blue-500/30">
+                <i data-lucide="wrench" class="w-16 h-16 text-blue-400"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-4">Página em Desenvolvimento</h1>
+            <p class="text-xl text-gray-400 mb-8 max-w-xl">Nossa equipe está trabalhando duro para documentar este recurso. Esta seção estará disponível em breve!</p>
+            <a href="index.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar para Introdução
+            </a>
+        </main>
+
+        
+    </div>
+
+    
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <a href="../index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
+                    <a href="../docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                    <a href="../blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                    <a href="../download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
+                    <a href="../privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
+                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
+                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

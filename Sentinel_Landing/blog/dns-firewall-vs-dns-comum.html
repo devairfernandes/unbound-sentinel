@@ -1,937 +1,169 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNS Firewall vs DNS comum: qual a diferença na prática | Blog Sentinel DNS</title>
-    <link rel="stylesheet" href="../style.css">
-    <meta name="description" content="Entenda como a evolução do DNS transformou a ferramenta básica de rede em um escudo avançado de Cyber Threat Intelligence.">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://sentineldns.net/blog/dns-firewall-vs-dns-comum.html">
+    <title>DNS Firewall vs DNS comum: qual a diferença na prática - Sentinel DNS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "DNS Firewall vs DNS comum: qual a diferença na prática",
-  "description": "Entenda como a evolução do DNS transformou a ferramenta básica de rede em um escudo avançado de Cyber Threat Intelligence.",
-  "author": {
-    "@type": "Organization",
-    "name": "Sentinel DNS",
-    "url": "https://sentineldns.net/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Sentinel DNS",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://sentineldns.net/Logo.png"
-    }
-  },
-  "datePublished": "2026-07-13",
-  "dateModified": "2026-07-13"
-}
-</script>
-    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
-<style>
-        :root {
-            --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.4);
-            --secondary: #818cf8;
-            --success: #10b981;
-            --bg-base: #020617;
-            --surface: rgba(15, 23, 42, 0.6);
-            --surface-hover: rgba(30, 41, 59, 0.8);
-            --surface-border: rgba(51, 65, 85, 0.5);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --text-highlight: #e2e8f0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Dynamic Background */
-        .ambient-glow {
-            position: fixed;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
-            top: -200px;
-            right: -200px;
-            opacity: 0.15;
-            z-index: 0;
-            animation: pulse-glow 8s ease-in-out infinite alternate;
-            pointer-events: none;
-        }
-
-        .ambient-glow-2 {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(129, 140, 248, 0.3) 0%, transparent 60%);
-            bottom: -100px;
-            left: -100px;
-            opacity: 0.1;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        @keyframes pulse-glow {
-            0% { transform: scale(1); opacity: 0.15; }
-            100% { transform: scale(1.2); opacity: 0.25; }
-        }
-
-        #particles-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.5;
-        }
-
-        /* Grid Background Pattern */
-        .grid-bg {
-            position: fixed;
-            inset: 0;
-            background-size: 50px 50px;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-            z-index: 0;
-            pointer-events: none;
-            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-        }
-
-        .container {
-            max-width: 1440px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-            position: relative;
-            z-index: 10;
-        }
-
-.hero {
-            text-align: center;
-            margin-bottom: 5rem;
-            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .status-badge {
-            position: absolute;
-            top: 1.25rem;
-            left: 1.25rem;
-            z-index: 50;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(16, 185, 129, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 9999px;
-            color: var(--success);
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
-            animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        .hero-logo {
-            width: 220px;
-            height: auto;
-            margin: 0 auto 1.5rem auto;
-            display: block;
-            filter: drop-shadow(0 0 35px var(--primary-glow));
-            animation: float-logo 6s ease-in-out infinite;
-        }
-
-        @keyframes float-logo {
-            0% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-10px) scale(1.02); }
-            100% { transform: translateY(0px) scale(1); }
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            color: #f8fafc;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-
-        .hero h1 .highlight {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 4.5rem;
-            font-weight: 900;
-            display: block;
-            margin-top: 0.5rem;
-        }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            max-width: 750px;
-            margin: 0 auto 3rem auto;
-            line-height: 1.6;
-        }
-
-        .top-right-action {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            z-index: 50;
-            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .btn-small {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: var(--primary);
-            text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-small:hover {
-            background: rgba(56, 189, 248, 0.15);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.3);
-            color: #fff;
-        }
-        
-        .btn-small i {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Stats Section */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 5rem;
-            animation: fade-in-up 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .stat-card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--surface-border);
-            border-radius: 20px;
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        .stat-info h3 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-highlight);
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-info p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* Features Section */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            animation: fade-in-up 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .feature-card {
-            background: linear-gradient(180deg, var(--surface) 0%, rgba(15, 23, 42, 0.2) 100%);
-            border: 1px solid var(--surface-border);
-            border-radius: 24px;
-            padding: 3rem 2rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s ease;
-        }
-
-        .feature-card:hover {
-            border-color: rgba(129, 140, 248, 0.5);
-            background: linear-gradient(180deg, var(--surface-hover) 0%, rgba(15, 23, 42, 0.4) 100%);
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, var(--secondary), transparent);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 1.5rem;
-            color: var(--secondary);
-        }
-
-        .feature-card h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--text-main);
-        }
-
-        .feature-card p {
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        /* Terminal Widget Simulation */
-        .terminal-widget {
-            margin-top: 5rem;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fade-in-up 1.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .terminal-header {
-            background: #1e293b;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            border-bottom: 1px solid #334155;
-        }
-
-        .term-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .term-dot.r { background: #ef4444; }
-        .term-dot.y { background: #eab308; }
-        .term-dot.g { background: #22c55e; }
-
-        
-        .terminal-body {
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            font-size: 0.95rem;
-            color: #cbd5e1;
-            line-height: 1.8;
-            height: 350px;
-            overflow-y: hidden;
-            position: relative;
-            background: rgba(15, 23, 42, 0.95);
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
-        }
-
-        .terminal-body::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            background: linear-gradient(to top, rgba(15, 23, 42, 1), transparent);
-            pointer-events: none;
-        }
-
-        .term-line {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: term-type 0.3s forwards;
-            margin-bottom: 2px;
-        }
-
-        .term-prefix {
-            color: #38bdf8;
-            font-weight: bold;
-            margin-right: 8px;
-            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
-        }
-
-        .term-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background: #22c55e;
-            margin-left: 5px;
-            vertical-align: text-bottom;
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes term-type {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        
-
-        @keyframes fade-in-up {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Footer */
-        footer {
-            margin-top: 5rem;
-            text-align: center;
-            color: var(--text-muted);
-            border-top: 1px solid var(--surface-border);
-            padding-top: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .footer-left {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            footer { flex-direction: column; gap: 1rem; }
-        }
-        
-        /* Architecture Section (SEO Rich Content) */
-        .architecture-section {
-            padding: 5rem 0;
-            text-align: left;
-            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .architecture-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            background: linear-gradient(to right, var(--text-highlight), var(--primary-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .arch-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            margin-bottom: 4rem;
-        }
-        @media (min-width: 768px) {
-            .arch-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        .arch-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            transition: all 0.3s;
-        }
-        .arch-card:hover {
-            border-color: var(--primary-glow);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(56, 189, 248, 0.1);
-        }
-        .arch-card h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--text-highlight);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .arch-card h3 i {
-            color: #38bdf8;
-        }
-        .arch-card p {
-            color: var(--text-muted);
-            line-height: 1.7;
-        }
-        .arch-card ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 1rem;
-            color: #cbd5e1;
-        }
-        .arch-card ul li {
-            margin-bottom: 0.75rem;
-            position: relative;
-            padding-left: 1.5rem;
-            line-height: 1.5;
-        }
-        .arch-card ul li::before {
-            content: "•";
-            color: var(--success);
-            font-size: 1.5rem;
-            position: absolute;
-            left: 0;
-            top: -4px;
-        }
-
-        /* Pricing Section */
-        .pricing-section {
-            padding: 5rem 0;
-            text-align: center;
-            animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .pricing-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(to right, var(--text-highlight), var(--primary-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-            text-align: left;
-        }
-        .pricing-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            position: relative;
-            transition: all 0.3s;
-            overflow: hidden;
-        }
-        .pricing-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary-glow);
-            box-shadow: 0 10px 40px rgba(129, 140, 248, 0.2);
-        }
-        .pricing-card.popular {
-            border-color: rgba(56, 189, 248, 0.5);
-            background: linear-gradient(180deg, rgba(15,23,42,0.8) 0%, rgba(15,23,42,0.4) 100%);
-        }
-        .pricing-card.popular::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-glow), #38bdf8);
-        }
-        .pricing-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(56, 189, 248, 0.2);
-            color: #38bdf8;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        .price-title { font-size: 1.5rem; font-weight: 700; color: var(--text-highlight); margin-bottom: 0.5rem; }
-        .price-val { font-size: 2.8rem; font-weight: 900; color: #fff; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; }
-        .price-sub { font-size: 0.9rem; color: #94a3b8; font-family: 'Outfit', sans-serif; font-weight: 400; }
-        .pricing-features { list-style: none; padding: 0; margin: 2rem 0; }
-        .pricing-features li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: #cbd5e1; }
-        .pricing-features li i { color: var(--success); width: 18px; }
-        .pricing-btn { display: inline-block; width: 100%; text-align: center; padding: 1rem; border-radius: 0.75rem; font-weight: 700; text-decoration: none; transition: 0.2s; cursor: default; }
-        .btn-primary { background: var(--primary-glow); color: #fff; box-shadow: 0 0 20px rgba(129, 140, 248, 0.4); }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; }
-
-    
-        /* OVERRIDE TERMINAL CSS */
-        .terminal-body {
-            height: 320px !important;
-            font-family: 'Courier New', monospace;
-            background: #0b1121 !important;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
-        .term-line {
-            text-shadow: 0 0 2px rgba(255,255,255,0.2);
-        }
-        .term-prefix {
-            color: #22c55e !important;
-            text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
-        }
-        .blinking-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background: #22c55e;
-            margin-left: 5px;
-            vertical-align: middle;
-            animation: blink 1s step-end infinite;
-            box-shadow: 0 0 8px #22c55e;
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    
-    
-        /* Floating CTA */
-        .floating-cta {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: linear-gradient(135deg, var(--accent-primary) 0%, #1e40af 100%);
-            color: #fff;
-            padding: 1rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 1rem;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 100;
-            transition: all 0.3s ease;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px);
-        }
-        .floating-cta.visible {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .floating-cta:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 30px rgba(56, 189, 248, 0.6);
-            color: #fff;
-        }
-    
-    /* Widescreen Decorations */
-    .side-decor {
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0.03;
-        pointer-events: none;
-        z-index: 0;
-        display: none;
-        color: var(--primary);
-    }
-    @media (min-width: 1500px) {
-        .side-decor { display: block; }
-        .side-decor.left-decor { left: 40px; }
-        .side-decor.right-decor { right: 40px; }
-        .decor-node {
-            position: absolute;
-            width: 12px; height: 12px;
-            background: var(--success);
-            border-radius: 50%;
-            box-shadow: 0 0 15px var(--success);
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulse-node 3s infinite alternate;
-        }
-    }
-    @media (min-width: 1900px) {
-        .side-decor.left-decor { left: 8vw; }
-        .side-decor.right-decor { right: 8vw; }
-        .side-decor { opacity: 0.05; }
-    }
-    @keyframes pulse-node {
-        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
-    }
-    </style>
-<style>
-    body { background: var(--bg-color, #0f172a); color: var(--text-main, #e2e8f0); font-family: "Outfit", sans-serif; line-height: 1.6; }
-    .blog-container { max-width: 800px; margin: 120px auto 60px; padding: 0 20px; }
-    .blog-header { margin-bottom: 40px; text-align: center; }
-    .blog-header h1 { font-size: 2.5rem; color: #f8fafc; font-weight: 800; margin-bottom: 20px; line-height: 1.2; }
-    .blog-meta { color: #94a3b8; font-size: 0.9rem; }
-    .blog-content h2 { font-size: 1.8rem; color: #38bdf8; margin: 40px 0 20px; }
-    .blog-content h3 { font-size: 1.4rem; color: #e2e8f0; margin: 30px 0 15px; }
-    .blog-content p { margin-bottom: 20px; font-size: 1.1rem; color: #cbd5e1; }
-    .blog-content ul, .blog-content ol { margin-bottom: 20px; padding-left: 20px; color: #cbd5e1; font-size: 1.1rem; }
-    .blog-content li { margin-bottom: 10px; }
-    .blog-content table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: rgba(30,41,59,0.5); }
-    .blog-content th, .blog-content td { padding: 12px; text-align: left; border: 1px solid rgba(56,189,248,0.2); }
-    .blog-content th { background: rgba(56,189,248,0.1); color: #38bdf8; }
-    .blog-cta { background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(14,165,233,0.3); padding: 30px; border-radius: 12px; margin-top: 50px; text-align: center; }
-    .blog-cta h3 { color: #f8fafc; margin-top: 0; }
-    .blog-cta a { display: inline-block; background: #0ea5e9; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; margin-top: 15px; transition: 0.3s; }
-    .blog-cta a:hover { background: #0284c7; }
-    .related-articles { margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; }
-    .related-articles h3 { color: #38bdf8; margin-bottom: 15px; }
-    .related-articles ul { list-style: none; padding: 0; }
-    .related-articles li { margin-bottom: 10px; }
-    .related-articles a { color: #e2e8f0; text-decoration: none; border-bottom: 1px solid transparent; transition: 0.3s; }
-    .related-articles a:hover { color: #38bdf8; border-color: #38bdf8; }
-</style>
+    <link rel="icon" type="image/webp" href="../Logo.webp">
+  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
 </head>
-<body>
-    <!-- Menu Superior de Navegação -->
-    <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            
-            <!-- Logo + Nome à Esquerda -->
-            <a href="../index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.3s;" class="logo-link">
-                <img src="../Logo.webp" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));" alt="Sentinel DNS Logo">
-                <span style="color: #fff; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Sentinel<span style="color: #38bdf8;">DNS</span></span>
-            </a>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
-            <!-- Links de Navegação ao Centro/Direita -->
-            <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
-                <a href="../index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="home" width="14" height="14"></i> Início</a>
-                <a href="../docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="book" width="14" height="14"></i> Documentação</a>
-                <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
-                <a href="../download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
-                <a href="../privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
-                <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="send" width="14" height="14"></i> Telegram</a>
-            </nav>
-
-            <!-- Botão CTA na Extrema Direita -->
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="../download.html" class="header-cta" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);">
-                    Instalar Sentinel
+    <nav :class="{ 'glass': scrolled, 'bg-transparent border-transparent': !scrolled }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="../index.html" class="flex items-center gap-3">
+                    <img src="../Logo.webp" alt="Sentinel DNS Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
                 </a>
                 
-                <!-- Botão de Menu Hambúrguer (Mobile) -->
-                <button class="mobile-menu-toggle" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
-                    <i data-lucide="menu" width="24" height="24"></i>
-                </button>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="../index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
+                    <a href="../arquitetura.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
+                    <a href="../seguranca.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Segurança</a>
+                    <a href="../comparativo.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
+                    <a href="../docs/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
+                    
+                    <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
+                        <a href="../download.html" class="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
+                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp</a>
+                    </div>
+                </div>
             </div>
-
         </div>
+    </nav>
 
-        <!-- Menu Mobile Retrátil -->
-        <div id="mobile-nav" style="display: none; flex-direction: column; gap: 1rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid rgba(56, 189, 248, 0.1); margin-top: 0.75rem; transition: all 0.3s ease;">
-            <a href="../index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="home" width="16" height="16"></i> Início</a>
-            <a href="../docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
-            <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
-            <a href="../download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
-            <a href="../privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
-            <a href="../download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
-        </div>
-    </header>
-
-    <script>
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobile-nav');
-            if (mobileNav) {
-                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
-            }
-        }
-    </script>
-
-    <main class="blog-container">
-        <header class="blog-header">
-            <h1>DNS Firewall vs DNS comum: qual a diferença na prática</h1>
-            <div class="blog-meta">Publicado em 13 de Julho de 2026 &bull; Sentinel DNS Education</div>
-        </header>
-        <article class="blog-content">
-<p>Nos primórdios da internet, o protocolo DNS (Domain Name System) foi desenhado com base em um princípio de total confiança mútua. A rede era pequena, acadêmica e colaborativa, e o objetivo principal do DNS era puramente prático: associar nomes de domínios fáceis de memorizar aos seus respectivos endereços IP numéricos. Contudo, no cenário moderno da cibercultura e da segurança da informação, a internet transformou-se em um ambiente altamente hostil. Hoje, o DNS é explorado de forma massiva por cibercriminosos como vetor inicial de ataques de malware, campanhas de phishing e comunicação de botnets. Diante dessa realidade, os servidores de DNS tradicionais mostram-se obsoletos e vulneráveis. É nesse contexto que surge o conceito de <strong>DNS Firewall</strong> (também conhecido como DNS Seguro ou filtragem baseada em RPZ). Compreender a diferença prática entre um DNS comum e um DNS Firewall é o primeiro passo para blindar a infraestrutura de provedores de internet (ISPs) e redes corporativas.</p>
+    <main class="pt-32 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="prose prose-invert max-w-none">
+            <article class="blog-content">
+<p>Nos primórdios da internet, o protocolo DNS (Domain Name System) foi desenhado com base em um princípio de total confiança mútua. é rede era pequena, acadêmica e colaborativa, e o objetivo principal do DNS era puramente prático: assãociar nomes de domínios fáceis de memorizar aos seus respectivos endereços IP numéricos. Contudo, no cenário moderno da cibercultura e da segurança da informação, a internet transformou-se em um ambiente altamente hostil. Hoje, o DNS é explorado de forma massiva por cibercriminosãos como vetor inicial de ataques de malware, campanhas de phishing e comunicação de botnets. Diante dessa realidade, os servidores de DNS tradicionais mostram-se obsãoletos e vulneráveis. É nesse contexto que surge o conceito de <strong>DNS Firewall</strong> (também conhecido como DNS Seguro ou filtragem baseada em RPZ). Compreender a diferença prática entre um DNS comum e um DNS Firewall é o primeiro passão para blindar a infraestrutura de provedores de internet (ISPs) e redes corporativas.</p>
 
 <h2>O DNS Comum: Uma Infraestrutura Passiva e Cega</h2>
 <p>Um servidor DNS recursivo tradicional (seja um servidor rodando Bind9 herdado, o serviço de DNS padrão de um roteador Mikrotik ou mesmo os IPs públicos tradicionais sem filtros de segurança) opera de forma totalmente passiva e reativa. Ele é uma máquina projetada para obedecer cega e fielmente às instruções do protocolo:</p>
 <ol>
-    <li>Um computador de um assinante solicita a resolução do domínio <code>login-banco-falso.com</code> (um link de phishing idêntico ao do banco real).</li>
+    <li>Um computador de um assinante sãolicita a resãolução do domínio <code>login-banco-falsão.com</code> (um link de phishing idêntico ao do banco real).</li>
     <li>O servidor DNS comum recebe a requisição e, sem questionar a segurança ou a reputação daquele endereço, percorre a árvore hierárquica mundial do DNS para descobrir o IP de destino.</li>
-    <li>O servidor autoritativo do invasor responde com o IP do servidor malicioso.</li>
+    <li>O servidor autoritativo do invasãor responde com o IP do servidor maliciosão.</li>
     <li>O DNS comum repassa fielmente esse IP ao assinante, que estabelece a conexão direta e acaba tendo suas credenciais roubadas.</li>
 </ol>
-<p>Em resumo, o DNS comum não possui nenhum tipo de discernimento ético, analítico ou de segurança. Ele serve como o motor silencioso que facilita a conexão do usuário final com a infraestrutura criminosa na internet.</p>
+<p>Em resumo, o DNS comum não possui nenhum tipo de discernimento ético, analítico ou de segurança. Ele serve como o motor silenciosão que facilita a conexão do usuário final com a infraestrutura criminosa na internet.</p>
 
-<h2>O DNS Firewall: O Inspetor Ativo na Porta de Entrada</h2>
-<p>Diferente do modelo tradicional, o **DNS Firewall** atua como uma barreira de controle inteligente na Camada 7 (Camada de Aplicação). Ele analisa cada requisição de nome recebida antes de processá-la ou de entregar a resposta ao cliente. Ele faz isso integrando-se em tempo real com bases de dados de **Cyber Threat Intelligence (CTI)**, que catalogam domínios maliciosos ativos ao redor do globo.</p>
-<p>O coração tecnológico de um DNS Firewall é o mecanismo de **RPZ (Response Policy Zone)**. Criado originalmente pelo pioneiro da internet Paul Vixie, o RPZ permite que o servidor DNS aplique regras personalizadas de resolução de nomes baseadas na reputação do domínio consultado. Quando um assinante solicita um domínio perigoso, o DNS Firewall intercepta a resposta padrão e a substitui por uma política de segurança local pré-definida.</p>
+<h2>O DNS Firewall: O Inspetor étivo na Porta de Entrada</h2>
+<p>Diferente do modelo tradicional, o **DNS Firewall** atua como uma barreira de controle inteligente na Camada 7 (Camada de éplicação). Ele analisa cada requisição de nome recebida antes de processá-la ou de entregar a resposta ao cliente. Ele faz issão integrando-se em tempo real com bases de dados de **Cyber Threat Intelligence (CTI)**, que catalogam domínios maliciosãos ativos ao redor do globo.</p>
+<p>O coração tecnológico de um DNS Firewall é o mecanismo de **RPZ (Response Policy Zone)**. Criado originalmente pelo pioneiro da internet Paul Vixie, o RPZ permite que o servidor DNS aplique regras persãonalizadas de resãolução de nomes baseadas na reputação do domínio consultado. Quando um assinante sãolicita um domínio perigosão, o DNS Firewall intercepta a resposta padrão e a substitui por uma política de segurança local pré-definida.</p>
 
 <h3>Mecanismos de Bloqueio e Resposta de Segurança (RPZ)</h3>
 <p>O DNS Firewall pode responder a uma consulta de domínio suspeito de diversas maneiras, dependendo da política configurada pelo administrador da rede:</p>
 <ul>
-    <li><strong>Retorno NXDOMAIN:</strong> O servidor responde ao dispositivo do cliente que o domínio não existe (Non-Existent Domain). O navegador ou aplicativo falha imediatamente em iniciar a conexão IP, protegendo o usuário de forma silenciosa.</li>
+    <li><strong>Retorno NXDOMéIN:</strong> O servidor responde ao dispositivo do cliente que o domínio não existe (Non-Existent Domain). O navegador ou aplicativo falha imediatamente em iniciar a conexão IP, protegendo o usuário de forma silenciosa.</li>
     <li><strong>Resposta de IP Loopback ou Inválido (0.0.0.0):</strong> O servidor devolve o IP <code>0.0.0.0</code> ou <code>127.0.0.1</code>. Como a máquina do assinante tenta se conectar a si mesma, a conexão externa é abortada instantaneamente na camada IP.</li>
-    <li><strong>Redirecionamento para Walled Garden (Página de Bloqueio):</strong> O servidor DNS Firewall devolve o endereço IP de um servidor web interno do próprio provedor ou empresa. O usuário final, ao tentar acessar o link nocivo, é redirecionado a uma página informativa segura que explica detalhadamente que o site consultado contém phishing ou malware, reduzindo a sobrecarga do suporte do provedor.</li>
+    <li><strong>Redirecionamento para Walled Garden (Página de Bloqueio):</strong> O servidor DNS Firewall devolve o endereço IP de um servidor web interno do próprio provedor ou empresa. O usuário final, ao tentar acessar o link nocivo, é redirecionado a uma página informativa segura que explica detalhadamente que o site consultado contém phishing ou malware, reduzindo a sãobrecarga do suporte do provedor.</li>
 </ul>
 
 <h2>Vantagens Práticas para ISPs e Redes Corporativas</h2>
-<p>A implementação de um DNS Firewall traz benefícios profundos e mensuráveis para a operação diária de provedores de internet e redes de TI empresariais:</p>
+<p>é implementação de um DNS Firewall traz benefícios profundos e mensuráveis para a operação diária de provedores de internet e redes de TI empresariais:</p>
 
-<h3>1. Mitigação Preventiva de Ransomware e Roubo de Dados</h3>
-<p>O ransomware é um dos maiores pesadelos das redes corporativas modernas. Ele entra silenciosamente na rede e criptografa arquivos vitais, exigindo resgates financeiros expressivos. No entanto, a maioria das famílias de ransomware precisa consultar servidores de Comando e Controle (C2) externos via DNS para obter as chaves de criptografia e iniciar a invasão. Se o DNS da empresa for um DNS Firewall, a consulta pelo servidor de controle do hacker é bloqueada na origem, impedindo que o ransomware receba a chave e anulando o ataque antes mesmo da criptografia dos arquivos começar.</p>
+<h3>1. Mitigação Preventiva de Ransãomware e Roubo de Dados</h3>
+<p>O ransãomware é um dos maiores pesadelos das redes corporativas modernas. Ele entra silenciosamente na rede e criptografa arquivos vitais, exigindo resgates financeiros expressivos. No entanto, a maioria das famílias de ransãomware precisa consultar servidores de Comando e Controle (C2) externos via DNS para obter as chaves de criptografia e iniciar a invasão. Se o DNS da empresa for um DNS Firewall, a consulta pelo servidor de controle do hacker é bloqueada na origem, impedindo que o ransãomware receba a chave e anulando o ataque antes mesmo da criptografia dos arquivos começar.</p>
 
 <h3>2. Desinfecção Silenciosa de Dispositivos (Bloqueio Botnet)</h3>
 <p>Provedores de internet costumam abrigar, sem saber, milhares de dispositivos de IoT (câmeras de segurança, smart TVs, roteadores desatualizados) infectados por botnets (como Mirai ou Qbot). Esses dispositivos zumbis geram tráfego indesejado atacando servidores globais, o que pode fazer com que o bloco de IPs públicos do próprio provedor seja colocado em blacklists internacionais. O DNS Firewall intercepta as conexões de Comando e Controle (C2) que coordenam essas botnets, fazendo com que as máquinas infectadas dentro do provedor permaneçam "inativas" e incapazes de participar de ataques coordenados de negação de serviço (DDoS).</p>
 
 <h2>Tabela Comparativa: DNS Comum vs. DNS Firewall</h2>
-<p>Abaixo está detalhado como as duas abordagens se diferenciam nas principais situações operacionais e de segurança cotidianas:</p>
+<p>ébaixo está detalhado como as duas abordagens se diferenciam nas principais situações operacionais e de segurança cotidianas:</p>
 
-<table style="width: 100%; border-collapse: collapse; margin: 2rem 0; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--surface-border);">
+<table >
     <thead>
-        <tr style="background: rgba(56, 189, 248, 0.1); color: var(--primary);">
-            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">Recurso / Cenário</th>
-            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">DNS Recursivo Comum</th>
-            <th style="padding: 1rem; border: 1px solid var(--surface-border); text-align: left;">DNS Firewall (com RPZ e CTI)</th>
+        <tr >
+            <th >Recursão / Cenário</th>
+            <th >DNS Recursivo Comum</th>
+            <th >DNS Firewall (com RPZ e CTI)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Filtro de Conteúdo Phishing</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: #f43f5e;">Inexistente (resolve todos os IPs maliciosos)</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Ativo (bloqueia o domínio na consulta)</td>
+            <td >Filtro de Conteúdo Phishing</td>
+            <td >Inexistente (resãolve todos os IPs maliciosãos)</td>
+            <td >étivo (bloqueia o domínio na consulta)</td>
         </tr>
         <tr>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Prevenção de Comunicação Botnet C2</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: #f43f5e;">Permite (facilita o controle remoto de vírus)</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Corta (anula comandos de botnets e DGA)</td>
+            <td >Prevenção de Comunicação Botnet C2</td>
+            <td >Permite (facilita o controle remoto de vírus)</td>
+            <td >Corta (anula comandos de botnets e DGé)</td>
         </tr>
         <tr>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Auditoria e Logs de Ameaças</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border);">Inexistente ou básica</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Completa (identifica quais IPs acessam ameaças)</td>
+            <td >éuditoria e Logs de émeaças</td>
+            <td >Inexistente ou básica</td>
+            <td >Completa (identifica quais IPs acessam ameaças)</td>
         </tr>
         <tr>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Consumo de Tráfego de Banda de Rede</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border);">Mais alto (payloads de vírus baixados livremente)</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Mais baixo (downloads maliciosos nem iniciam)</td>
+            <td >Consumo de Tráfego de Banda de Rede</td>
+            <td >Mais alto (payloads de vírus baixados livremente)</td>
+            <td >Mais baixo (downloads maliciosãos nem iniciam)</td>
         </tr>
         <tr>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); font-weight: bold;">Proteção Anti-DGA (Algoritmo de Geração de Domínio)</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: #f43f5e;">Nenhuma (resolve domínios temporários do vírus)</td>
-            <td style="padding: 1rem; border: 1px solid var(--surface-border); color: var(--success);">Alta (bloqueia consultas DGA dinâmicas)</td>
+            <td >Proteção énti-DGé (élgoritmo de Geração de Domínio)</td>
+            <td >Nenhuma (resãolve domínios temporários do vírus)</td>
+            <td >élta (bloqueia consultas DGé dinâmicas)</td>
         </tr>
     </tbody>
 </table>
 
-<h2>FAQ de Segurança de Rede</h2>
-<h3>Um DNS Firewall substitui o uso do Antivírus local ou Firewall de borda tradicional?</h3>
-<p>Não. A segurança em TI funciona melhor sob o modelo de **Defesa em Profundidade** (múltiplas camadas de proteção). O DNS Firewall atua na camada mais externa da rede (primeira barreira de contato). Caso um vírus consiga entrar via pen drive ou arquivo criptografado, o antivírus local e o firewall tradicional de borda continuam sendo essenciais para mitigar o ataque localmente.</p>
+<h2>FéQ de Segurança de Rede</h2>
+<h3>Um DNS Firewall substitui o usão do éntivírus local ou Firewall de borda tradicional?</h3>
+<p>Não. é segurança em TI funciona melhor sãob o modelo de **Defesa em Profundidade** (múltiplas camadas de proteção). O DNS Firewall atua na camada mais externa da rede (primeira barreira de contato). Casão um vírus consiga entrar via pen drive ou arquivo criptografado, o antivírus local e o firewall tradicional de borda continuam sendo essenciais para mitigar o ataque localmente.</p>
 
-<h3>A filtragem de DNS Firewall aumenta a latência de navegação dos meus usuários?</h3>
-<p>Se configurada adequadamente, não. Os motores modernos de DNS recursivo (como o Unbound) armazenam as listas de bloqueio (RPZ) diretamente na memória RAM em estruturas de dados rápidas (tabelas hash indexadas). A verificação de reputação do domínio adiciona menos de 0,05ms à consulta, um valor completamente imperceptível para o usuário final, e amplamente compensado pelo cache hit ultra-rápido do servidor local.</p>
+<h3>é filtragem de DNS Firewall aumenta a latência de navegação dos meus usuários?</h3>
+<p>Se configurada adequadamente, não. Os motores modernos de DNS recursivo (como o Unbound) armazenam as listas de bloqueio (RPZ) diretamente na memória RéM em estruturas de dados rápidas (tabelas hash indexadas). é verificação de reputação do domínio adiciona menos de 0,05ms à consulta, um valor completamente imperceptível para o usuário final, e amplamente compensado pelo cache hit ultra-rápido do servidor local.</p>
 
 <div class="blog-cta">
     <h3>Proteja Sua Rede Contra Malware e Phishing Hoje Mesmo</h3>
-    <p>O Sentinel DNS integra inteligência CTI ativa ao motor de recursão local Unbound, filtrando ameaças de rede e bloqueando acessos indevidos na camada DNS de forma transparente para os usuários.</p>
-    <a href="../index.html#planos">Conheça Nossos Planos PRO</a>
+    <p>O Sentinel DNS integra inteligência CTI ativa ao motor de recursão local Unbound, filtrando ameaças de rede e bloqueando acessãos indevidos na camada DNS de forma transparente para os usuários.</p>
+    <a href="../index.html#planos">Conheça Nossãos Planos PRO</a>
 </div>
-        </article>
-<div class="related-articles"><h3>Você também pode gostar:</h3><ul><li><a href="oque-e-dns-recursivo.html">O que é DNS Recursivo e por que seu provedor precisa de um</a></li><li><a href="cgnat-e-dns.html">CGNAT e DNS: como reduzir latência e economizar link internacional</a></li></ul></div>
-    </main>
-<footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
-        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
-                Conexão criptografada (End-to-End Encryption)
-            </div>
-            <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s;" >
-                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--primary);"></i>
-                GitHub
-            </a>
+        
         </div>
-        <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
-        <div style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
-            <a href="../index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Início</a>
-            <a href="../docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Docs</a>
-            <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Blog</a>
-            <a href="../download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Download</a>
-            <a href="../privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Telegram</a>
-            <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Suporte</a>
+    </main>
+
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <a href="../index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
+                    <a href="../docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                    <a href="../blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                    <a href="../download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
+                    <a href="../privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
+                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
+                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                </div>
+
+            </div>
         </div>
     </footer>
+
     <script>
         lucide.createIcons();
-
-        // Floating CTA Logic
-        const floatCta = document.querySelector('.floating-cta');
-        if(floatCta) {
-            window.addEventListener('scroll', () => {
-                const footer = document.querySelector('footer');
-                const footerRect = footer ? footer.getBoundingClientRect() : null;
-                const isNearFooter = footerRect ? footerRect.top < window.innerHeight : false;
-                
-                if(window.scrollY > 600 && !isNearFooter) floatCta.classList.add('visible');
-                else floatCta.classList.remove('visible');
-            });
-        }
     </script>
-    <a href="../download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
 </body>
 </html>

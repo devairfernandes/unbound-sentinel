@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segurança & Threat Intelligence - Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="./Logo.webp">
+    <meta name="description" content="Proteção contra Malware, Botnets, Phishing e C2 via DNS.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+
+    <!-- Navigation -->
+    <nav :class="{ 'glass': scrolled, 'bg-transparent border-transparent': !scrolled }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="flex items-center gap-3">
+                    <img src="./Logo.webp" alt="Sentinel DNS Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
+                </a>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
+                    <a href="arquitetura.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
+                    <a href="seguranca.html" class="text-sm font-medium text-blue-400 transition-colors">Segurança</a>
+                    <a href="comparativo.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
+                    <a href="docs/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
+                    
+                    <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
+                        <a href="./download.html" class="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
+                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Threat Intelligence<br/>no Coração da Rede</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">O DNS é o primeiro ponto de contato de qualquer ataque. O Sentinel DNS atua antes que a conexão IP seja sequer estabelecida.</p>
+        </div>
+
+        <!-- Security Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <div class="glass-card p-6 border-l-4 border-l-blue-500 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/20 rounded-full blur-xl"></div>
+                <i data-lucide="gavel" class="w-8 h-8 text-blue-400 mb-4 relative z-10"></i>
+                <h3 class="text-xl font-bold mb-2 relative z-10">Módulo AnaBlock (ANATEL)</h3>
+                <p class="text-gray-400 text-sm relative z-10">Conformidade regulatória automatizada. Bloqueia judicialmente domínios listados pela ANATEL sem intervenção humana, consumindo nossa API judicial.</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="bug" class="w-8 h-8 text-red-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Malware & Botnets</h3>
+                <p class="text-gray-400 text-sm">Bloqueio proativo de domínios conhecidos por distribuir artefatos maliciosos e redes zumbis prontas para ataques DDoS.</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="hook" class="w-8 h-8 text-orange-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Phishing</h3>
+                <p class="text-gray-400 text-sm">Proteção contra campanhas de spear-phishing e domínios recém-registrados tentando simular bancos e serviços corporativos.</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="network" class="w-8 h-8 text-purple-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Command and Control (C2)</h3>
+                <p class="text-gray-400 text-sm">Quebra do ciclo de comunicação de malwares já instalados tentando receber comandos externos e exfiltrar dados sensíveis.</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="cpu" class="w-8 h-8 text-yellow-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Cryptomining</h3>
+                <p class="text-gray-400 text-sm">Bloqueio de scripts e pools de mineração que roubam CPU silenciosamente em navegadores e servidores (Cryptojacking).</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="activity" class="w-8 h-8 text-emerald-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Fast Flux & DGA</h3>
+                <p class="text-gray-400 text-sm">Algoritmos baseados em heurística para detectar e barrar Domain Generation Algorithms e redes Fast Flux evasivas.</p>
+            </div>
+
+            <div class="glass-card p-6">
+                <i data-lucide="shield" class="w-8 h-8 text-blue-500 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">DNS Tunneling</h3>
+                <p class="text-gray-400 text-sm">Detecção de vazamento de dados via TXT records e pacotes anômalos camuflados em requisições DNS legítimas.</p>
+            </div>
+
+        </div>
+
+        <div class="mt-24 border-t border-gray-800 pt-16">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold mb-6">Controle Total e Precisão Cirúrgica</h2>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="list-checks" class="text-emerald-500 mt-1 w-5 h-5"></i>
+                            <div>
+                                <strong class="text-white">Listas Inteligentes (Smart Feeds)</strong>
+                                <p class="text-gray-400 text-sm mt-1">Integração nativa via API com feeds de inteligência de ameaças mundiais. Atualização delta silenciosa sem impacto de CPU.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="text-blue-500 mt-1 w-5 h-5"></i>
+                            <div>
+                                <strong class="text-white">Whitelists e False Positives</strong>
+                                <p class="text-gray-400 text-sm mt-1">Motor robusto para lidar com Falsos Positivos. Defina Global Whitelists ou Overrides por segmento para garantir zero interrupção nos negócios.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="file-search" class="text-yellow-500 mt-1 w-5 h-5"></i>
+                            <div>
+                                <strong class="text-white">Auditoria e Logs (SIEM)</strong>
+                                <p class="text-gray-400 text-sm mt-1">Exportação nativa de logs estruturados (JSON, Syslog) para plataformas Splunk, ELK, ou Datadog para fins de conformidade e auditoria ISO27001.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="glass-card p-8 bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
+                    <!-- Faux Log Output -->
+                    <div class="font-mono text-xs text-gray-400 space-y-2 opacity-80">
+                        <div class="text-emerald-500">[INFO] Threat Intel Feed updated: +12,400 malicious domains</div>
+                        <div>[WARN] DNS Tunneling detected from IP 192.168.5.42 -> query: xxxxx.dns2.badactor.com</div>
+                        <div class="text-red-400">[BLOCK] Query for 'c2.malware-cnc.ru' (A) matched RPZ Policy: Botnet</div>
+                        <div>[AUDIT] User 'admin' added 'legit-domain.com' to Global Whitelist</div>
+                        <div class="text-blue-400">[INFO] Syslog export successful to 10.0.0.50:514</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                    <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <a href="./index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
+                    <a href="./docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                    <a href="./blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                    <a href="./download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
+                    <a href="./privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
+                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
+                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

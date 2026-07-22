@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação Oficial - Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="../Logo.webp">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
+
+    <!-- Navbar simplificada para Docs -->
+    <nav class="fixed w-full z-50 glass border-b border-[#1f2937]">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="../index.html" class="flex items-center gap-3">
+                    <img src="../Logo.webp" alt="Sentinel DNS Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-lg font-bold tracking-tight text-white">Sentinel DNS <span class="text-gray-500 font-normal ml-2">Docs</span></span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden md:block">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                        <input type="text" placeholder="Buscar na documentação..." class="bg-gray-900 border border-gray-700 text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <a href="../index.html" class="text-sm font-medium text-gray-400 hover:text-white ml-4">Voltar ao site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Layout com Sidebar -->
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-16 flex">
+        
+        <!-- Sidebar -->
+        <aside class="hidden md:block w-64 flex-shrink-0 border-r border-gray-800 pt-8 pr-6 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <nav class="space-y-6">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Começando</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-sm text-blue-400 font-medium block">Introdução</a></li>
+                        <li><a href="requisitos-de-sistema.html" class="text-sm text-gray-400 hover:text-white block">Requisitos de Sistema</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Instalação Rápida</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Configuração (ISP)</h4>
+                    <ul class="space-y-2">
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Configurando Anycast</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Integração com BGP</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Otimização de Cache</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Segurança</h4>
+                    <ul class="space-y-2">
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Threat Intelligence API</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Políticas RPZ</a></li>
+                        <li><a href="em-desenvolvimento.html" class="text-sm text-gray-400 hover:text-white block">Logs & SIEM</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 pt-8 pb-24 md:pl-10">
+            <div class="prose prose-invert max-w-3xl">
+                <h1 class="text-4xl font-bold mb-4">Introdução ao Sentinel DNS</h1>
+                <p class="text-xl text-gray-400 mb-8">Bem-vindo à documentação oficial. Aprenda a instalar, configurar e escalar seu cluster de DNS seguro.</p>
+                
+                <hr class="border-gray-800 my-8">
+                
+                <h2 class="text-2xl font-bold mb-4">O que é?</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">O Sentinel DNS é um resolvedor recursivo de alta performance focado em ISPs, Datacenters e cenários corporativos críticos. Diferente de softwares generalistas, ele foi construído do zero com foco em <strong>segurança por design</strong> e <strong>eficiência I/O</strong>.</p>
+                
+                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-8">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5"></i>
+                        <p class="text-sm text-blue-100 m-0">Recomendamos sempre utilizar a versão LTS em ambientes de produção que exijam uptime de 99.999%.</p>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4">Instalação via ISO (Recomendado)</h2>
+                <p class="text-gray-300 mb-4">O Sentinel DNS é empacotado nativamente como um appliance em Rocky Linux. A forma mais rápida e segura de instalar é utilizando nossa ISO otimizada para Bare Metal ou Hypervisors (Proxmox, VMware):</p>
+                
+                <div class="space-y-4 mb-8">
+                    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+                        <h3 class="font-semibold text-white mb-2">Passos para Instalação</h3>
+                        <ol class="list-decimal list-inside text-gray-400 space-y-2 text-sm">
+                            <li>Baixe a ISO mais recente na nossa <a href="../download.html" class="text-blue-400 hover:underline">página de downloads</a>.</li>
+                            <li>Faça o boot da ISO em uma máquina virtual (ex: Proxmox) ou grave em um pendrive (Rufus).</li>
+                            <li>Siga o assistente de instalação automatizado (detecta rede e discos automaticamente).</li>
+                            <li>Após o reboot, acesse o painel através do IP exibido na tela do terminal.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+                    <h3 class="font-semibold text-white mb-2">Integração AnaBlock</h3>
+                    <ul class="list-disc list-inside text-gray-400 space-y-2 text-sm">
+                        <li><strong>Como Funciona:</strong> Quando habilitado, o Sentinel consome a API Judicial da AnaBlock (verificando os endpoints <code>domains/all</code>, <code>url/all</code>, <code>ipv4/block</code> e <code>ipv6/block</code>).</li>
+                        <li><strong>Frequência:</strong> A atualização ocorre de forma silenciosa e periódica. Se houver timeout ou erro de autorização IP, o sistema notifica nos logs do backend e preserva o cache pré-existente (sem causar downtime).</li>
+                    </ul>
+                </div>
+                
+                <hr class="border-gray-800 my-10">
+
+                <h2 class="text-2xl font-bold mb-4" id="dimensionamento">Dimensionamento (Hardware)</h2>
+                <p class="text-gray-300 mb-4">O Sentinel aproveita ao máximo os recursos disponíveis graças ao mecanismo nativo de Auto-Tuning. O hardware recomendado varia conforme o tamanho da rede:</p>
+                
+                <div class="overflow-x-auto mb-8">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-900 border-b border-gray-800">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold text-gray-300">Perfil de Rede</th>
+                                <th class="px-4 py-3 font-semibold text-gray-300">Clientes Ativos</th>
+                                <th class="px-4 py-3 font-semibold text-gray-300">CPU</th>
+                                <th class="px-4 py-3 font-semibold text-gray-300">RAM</th>
+                                <th class="px-4 py-3 font-semibold text-gray-300">Disco</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            <tr>
+                                <td class="px-4 py-3 text-gray-400">Pequeno (Rede Local)</td>
+                                <td class="px-4 py-3 text-gray-400">Até 5.000</td>
+                                <td class="px-4 py-3 text-gray-400">2 a 4 vCPUs</td>
+                                <td class="px-4 py-3 text-gray-400">4 a 8 GB</td>
+                                <td class="px-4 py-3 text-gray-400">30 GB SSD</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 text-gray-400">Médio (ISP)</td>
+                                <td class="px-4 py-3 text-gray-400">5.000 a 20.000</td>
+                                <td class="px-4 py-3 text-gray-400">4 a 8 Cores</td>
+                                <td class="px-4 py-3 text-gray-400">8 a 16 GB</td>
+                                <td class="px-4 py-3 text-gray-400">60 GB NVMe</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 text-gray-400">Elite (Alto Tráfego)</td>
+                                <td class="px-4 py-3 text-gray-400">Acima de 20.000</td>
+                                <td class="px-4 py-3 text-gray-400">8 a 16 Cores</td>
+                                <td class="px-4 py-3 text-gray-400">16 a 32 GB</td>
+                                <td class="px-4 py-3 text-gray-400">100 GB NVMe Enterprise</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-blue-900/10 border border-blue-500/20 rounded-lg p-5 mb-10">
+                    <h3 class="font-semibold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Dicas de Virtualização (Proxmox/KVM)</h3>
+                    <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
+                        <li><strong>Processador:</strong> Configure a CPU como <code>host</code> em vez de <code>kvm64</code> para acelerar cálculos do DNSSEC.</li>
+                        <li><strong>Rede:</strong> Utilize sempre a interface <code>VirtIO</code> para eliminar latências UDP.</li>
+                        <li><strong>Clock:</strong> Para DNS recursivo de alta concorrência, o clock do núcleo (GHz) importa mais que a quantidade.</li>
+                    </ul>
+                </div>
+
+                <hr class="border-gray-800 my-10">
+
+                <h2 class="text-2xl font-bold mb-4" id="troubleshooting">Troubleshooting Comum & Sysadmin</h2>
+                
+                <div class="space-y-6 mb-10">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Logs em Tempo Real (Journald)</h3>
+                        <p class="text-sm text-gray-400 mb-2">Monitorar o tráfego e logs de erro do motor Unbound:</p>
+                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
+                            journalctl -u unbound -f
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Validação de Configuração (Checkconf)</h3>
+                        <p class="text-sm text-gray-400 mb-2">Sempre que alterar arquivos em <code>/etc/unbound/</code>, valide a sintaxe:</p>
+                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
+                            unbound-checkconf
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Reprocessar Rede (Modo Emergência)</h3>
+                        <p class="text-sm text-gray-400 mb-2">Para religar o prompt interativo em casos de falha crônica de rede ou mudança de gateway local:</p>
+                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
+                            rm -f /root/.firstboot_done && /root/firstboot-network.sh
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-800 my-10">
+
+                <h2 class="text-2xl font-bold mb-4" id="faq">FAQ Técnico</h2>
+                
+                <div class="space-y-6 mb-12">
+                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                        <h3 class="font-semibold text-white mb-3 text-lg">O Unbound perde cache ao reiniciar?</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Não. O Sentinel utiliza <em>Persistent Cache</em> invocado no boot via systemd. Ele grava dump na memória antes de desligar e recarrega em milissegundos sem esbarrar no disco, evitando lentidão matinal na rede de ISPs.</p>
+                    </div>
+                    
+                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                        <h3 class="font-semibold text-white mb-3 text-lg">Por que algumas atualizações param no plano Vitalício?</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">As plataformas PRO Lite possuem a licença de uso do DNS para sempre (nunca expiram), mas o consumo e curadoria de bandas pesadas de feeds de ameaças, malwares frescos e a base MaxMind GeoLite2 exigem custo contínuo de nuvem e inteligência. É preciso manter o <em>Add-on CTI</em> para que as queries à API não retornem limites.</p>
+                    </div>
+
+                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                        <h3 class="font-semibold text-white mb-3 text-lg">Posso criar regras de IPtables brutas?</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Não é recomendado contornar o <code>firewalld</code> no Rocky Linux do Sentinel. Use o módulo de Firewall embutido. Ao bloquear tráfego DNS para ranges específicos pelo Firewalld, o motor subjacente desvincula o serviço da zona automaticamente na camada kernel de forma limpa.</p>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+        
+    </div>
+
+    
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <a href="../index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
+                    <a href="../docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                    <a href="../blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                    <a href="../download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
+                    <a href="../privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
+                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
+                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

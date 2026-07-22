@@ -1,443 +1,128 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download ISO - Sentinel DNS | Instalação e Requisitos do Sistema</title>
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" href="/favicon.png">
-    
-<meta name="description" content="Baixe a imagem ISO oficial do Sentinel DNS v2.9.31. Instalação offline automatizada, auto-tuning de hardware e máxima proteção para provedores e redes corporativas.">
-    <meta name="keywords" content="download sentinel dns, baixar iso sentinel, instalador offline dns, unbound iso rocky linux, requisitos sentinel dns">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://sentineldns.net/download.html">
-    
-<meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/download.html">
-    <meta property="og:title" content="Download ISO - Sentinel DNS | Instalação e Requisitos">
-    <meta property="og:description" content="Baixe a imagem ISO do Unbound Sentinel DNS. Processo de instalação offline e requisitos de hardware para servidores e VMs.">
-    <meta property="og:image" content="https://sentineldns.net/banner-v2.png">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://sentineldns.net/download.html">
-    <meta property="twitter:title" content="Download ISO - Sentinel DNS | Instalação e Requisitos">
-    <meta property="twitter:description" content="Baixe a imagem ISO do Unbound Sentinel DNS. Processo de instalação offline e requisitos de hardware para servidores e VMs.">
-    <meta property="twitter:image" content="https://sentineldns.net/banner-v2.png">
-    
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Sentinel DNS Appliance ISO",
-      "operatingSystem": "Rocky Linux 9.7 (x86_64)",
-      "applicationCategory": "SecurityApplication",
-      "softwareVersion": "2.9.31",
-      "downloadUrl": "https://drive.google.com/file/d/1R_7dqcFS1kef_SWxAF3nLnnRm21Sjo3i/view?usp=sharing",
-      "description": "Imagem ISO de instalação offline automática do Sentinel DNS com auto-tuning, hardening de segurança e cache persistente.",
-      "requirements": "Processador com 2 vCores, 4 GB de RAM, 40 GB de SSD",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "BRL"
-      }
-    }
-    </script>
-    
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [{
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Início",
-        "item": "https://sentineldns.net/"
-      },{
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Download",
-        "item": "https://sentineldns.net/download.html"
-      }]
-    }
-    </script>
-
-    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        
-        body { 
-            background: radial-gradient(circle at 50% -20%, #0f172a, #020617); 
-            color: #f8fafc; 
-            font-family: 'Inter', system-ui, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            overflow-x: hidden;
-            padding: 2rem 0;
-        }
-
-        .grid-bg {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: 
-                linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: 0;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: gridMove 20s linear infinite;
-        }
-        
-        @keyframes gridMove {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
-        }
-
-        .container { 
-            position: relative;
-            z-index: 10;
-            text-align: center; 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 4rem 3rem; 
-            border-radius: 1.5rem; 
-            border: 1px solid rgba(56, 189, 248, 0.15); 
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 40px rgba(56, 189, 248, 0.1); 
-            max-width: 800px;
-            width: 90%;
-            animation: floatUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .header-icon {
-            display: block;
-            margin: 0 auto 1.5rem;
-            color: #38bdf8;
-            width: 64px;
-            height: 64px;
-            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
-        }
-
-        h1 { 
-            margin-top: 0; 
-            color: #fff; 
-            font-size: 2.5rem; 
-            font-weight: 800;
-            letter-spacing: -0.05em;
-            margin-bottom: 1rem;
-        }
-        
-        h1 span {
-            background: linear-gradient(to right, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p { 
-            color: #94a3b8; 
-            font-size: 1.1rem; 
-            line-height: 1.6; 
-            margin: 0 auto 2.5rem; 
-            max-width: 600px;
-        }
-
-        .download-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
-            color: #fff;
-            text-decoration: none;
-            padding: 1rem 2.5rem;
-            border-radius: 9999px;
-            font-size: 1.125rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.4);
-            margin-bottom: 3rem;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px -5px rgba(56, 189, 248, 0.6);
-            background: linear-gradient(135deg, #7dd3fc, #3b82f6);
-        }
-
-        .section-title {
-            color: #fff;
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 0.5rem;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .requirements-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            text-align: left;
-        }
-
-        @media (max-width: 600px) {
-            .requirements-grid { grid-template-columns: 1fr; }
-        }
-
-        .req-card {
-            background: rgba(0,0,0,0.2);
-            padding: 1.5rem;
-            border-radius: 1rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .req-icon {
-            background: rgba(16, 185, 129, 0.1);
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            color: #10b981;
-        }
-
-        .req-text h3 {
-            margin: 0 0 0.5rem 0;
-            color: #f8fafc;
-            font-size: 1rem;
-        }
-
-        .req-text p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            color: #38bdf8;
-            font-weight: 600;
-            text-decoration: none;
-            margin-top: 3rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .back-link svg {
-            margin-top: 1px; /* Ajuste milimétrico para SVG */
-        }
-
-        .back-link:hover {
-            color: #0ea5e9;
-            transform: translateX(-3px);
-        }
-        
-        .glow-line {
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5), transparent);
-        }
-
-        /* Responsive Mobile CSS */
-        @media (max-width: 992px) {
-            .nav-menu {
-                display: none;
-                flex-direction: column;
-                width: 100%;
-                background: rgba(15, 23, 42, 0.95);
-                padding: 1rem 0;
-                margin-top: 1rem;
-                border-radius: 8px;
-                border: 1px solid rgba(56, 189, 248, 0.2);
-            }
-            .nav-menu.active {
-                display: flex !important;
-            }
-            .mobile-menu-btn {
-                display: block !important;
-            }
-            .mobile-logo-text {
-                display: block !important;
-            }
-            .header h1 {
-                display: none;
-            }
-            .header {
-                padding: 1rem !important;
-            }
-        }
-        @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .grid-2 { grid-template-columns: 1fr; }
-            .step-card { flex-direction: column; text-align: center; }
-            .step-number { margin: 0 auto 1rem auto; }
-            .hardware-grid { grid-template-columns: 1fr; }
-        }
-    
-        /* Nav responsivo */
-        .header { background: rgba(15, 23, 42, 0.85); }
-        .mobile-menu-btn { display: none; }
-        .mobile-logo-text { display: none; }
-        @media (max-width: 992px) {
-            .nav-menu { display: none !important; flex-direction: column; width: 100%; background: rgba(15,23,42,0.97); padding: 1rem 0; margin-top: 1rem; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2); }
-            .nav-menu.active { display: flex !important; }
-            .mobile-menu-btn { display: block !important; }
-            .mobile-logo-text { display: block !important; }
-            .header { padding: 1rem !important; }
-        }
-        footer { flex-wrap: wrap; }
-        @media (max-width: 768px) {
-            footer { flex-direction: column; text-align: center; }
-            footer div:last-child { flex-wrap: wrap; justify-content: center; }
-        }
-    </style>
+    <title>Download - Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="./Logo.webp">
+    <meta name="description" content="Baixe a versão mais recente do Sentinel DNS.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
 </head>
-<body>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
-    <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; gap: 10px; align-items: center;">
-        <select id="lang-selector" style="padding: 6px 10px; background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; outline: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.9rem; backdrop-filter: blur(10px);">
-            <option value="pt" style="background: #0f172a;">Português (BR)</option>
-            <option value="en" style="background: #0f172a;">English (US)</option>
-            <option value="es" style="background: #0f172a;">Español</option>
-        </select>
-    </div>
-
-    <!-- Menu Superior de Navegação -->
-    <header style="position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(2, 6, 23, 0.75); border-bottom: 1px solid rgba(56, 189, 248, 0.1); padding: 0.75rem 2rem; font-family: 'Outfit', sans-serif; transition: all 0.3s ease;">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            
-            <!-- Logo + Nome à Esquerda -->
-            <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: opacity 0.3s;" class="logo-link">
-                <img src="Logo.webp" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));" alt="Sentinel DNS Logo">
-                <span style="color: #fff; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Sentinel<span style="color: #38bdf8;">DNS</span></span>
-            </a>
-
-            <!-- Links de Navegação ao Centro/Direita -->
-            <nav class="nav-menu" style="display: flex; align-items: center; gap: 1.75rem;">
-                <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="home" width="14" height="14"></i> Início</a>
-                <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="book" width="14" height="14"></i> Documentação</a>
-                <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="pen-tool" width="14" height="14"></i> Blog</a>
-                <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="download" width="14" height="14"></i> Instalação ISO</a>
-                <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="shield" width="14" height="14"></i> Privacidade</a>
-                <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: color 0.3s; display: flex; align-items: center; gap: 0.3rem;" ><i data-lucide="send" width="14" height="14"></i> Telegram</a>
-            </nav>
-
-            <!-- Botão CTA na Extrema Direita -->
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="download.html" class="header-cta" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);">
-                    Instalar Sentinel
+    <!-- Navigation -->
+    <nav :class="{ 'glass': scrolled, 'bg-transparent border-transparent': !scrolled }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="flex items-center gap-3">
+                    <img src="./Logo.webp" alt="Sentinel DNS Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
                 </a>
                 
-                <!-- Botão de Menu Hambúrguer (Mobile) -->
-                <button class="mobile-menu-toggle" aria-label="Menu" style="background: transparent; border: none; color: #cbd5e1; cursor: pointer; display: none; padding: 0.25rem;">
-                    <i data-lucide="menu" width="24" height="24"></i>
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Menu Mobile Retrátil -->
-        <div id="mobile-nav" style="display: none; flex-direction: column; gap: 1rem; padding: 1.5rem 0 0.5rem 0; border-top: 1px solid rgba(56, 189, 248, 0.1); margin-top: 0.75rem; transition: all 0.3s ease;">
-            <a href="index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="home" width="16" height="16"></i> Início</a>
-            <a href="docs.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="book" width="16" height="16"></i> Documentação</a>
-            <a href="blog/index.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="pen-tool" width="16" height="16"></i> Blog</a>
-            <a href="download.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="download" width="16" height="16"></i> Instalação ISO</a>
-            <a href="privacidade.html" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield" width="16" height="16"></i> Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" width="16" height="16"></i> Telegram</a>
-            <a href="download.html" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; text-decoration: none; padding: 0.6rem; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 0.5rem;">Instalar Sentinel</a>
-        </div>
-    </header>
-
-    <script>
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobile-nav');
-            if (mobileNav) {
-                mobileNav.style.display = (mobileNav.style.display === 'none' || mobileNav.style.display === '') ? 'flex' : 'none';
-            }
-        }
-    </script>
-
-
-    
-    
-    <div class="container">
-        
-        <i data-lucide="hard-drive-download" class="header-icon"></i>
-        
-        <h1 data-i18n="dl.title">Instalação <span>Sentinel DNS</span></h1>
-        <p data-i18n="dl.desc">Faça o download da imagem ISO oficial para instalar o nó Edge do Sentinel na sua infraestrutura corporativa.</p>
-        <p style="margin-top: -1.5rem;">O instalador é um appliance completo baseado em Rocky Linux 9, com configuração de rede assistida (kickstart) e motor Unbound pré-otimizado. Não é necessário conhecimento prévio em Linux para concluir a instalação: o assistente de primeiro boot detecta automaticamente os adaptadores de rede disponíveis e guia a configuração de IP, gateway e DNS em poucos passos.</p>
-        
-        <a data-i18n="dl.btn" href="https://drive.google.com/file/d/1R_7dqcFS1kef_SWxAF3nLnnRm21Sjo3i/view?usp=sharing" target="_blank" class="download-btn">
-            <i data-lucide="download"></i> Baixar Imagem ISO (v2.9.31)
-        </a>
-
-        <div class="requirements-section">
-            <span class="section-title" data-i18n="req.title">Requisitos Mínimos da Máquina</span>
-            <div class="requirements-grid">
-                <div class="req-card">
-                    <div class="req-icon">
-                        <i data-lucide="cpu"></i>
-                    </div>
-                    <div class="req-text">
-                        <h3 data-i18n="req.cpu_title">Processador (CPU)</h3>
-                        <p data-i18n="req.cpu_desc">2 vCores / Threads ou superior. Arquitetura x86_64.</p>
-                    </div>
-                </div>
-                <div class="req-card">
-                    <div class="req-icon">
-                        <i data-lucide="memory-stick"></i>
-                    </div>
-                    <div class="req-text">
-                        <h3 data-i18n="req.ram_title">Memória RAM</h3>
-                        <p data-i18n="req.ram_desc">4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.</p>
-                    </div>
-                </div>
-                <div class="req-card">
-                    <div class="req-icon">
-                        <i data-lucide="hard-drive"></i>
-                    </div>
-                    <div class="req-text">
-                        <h3 data-i18n="req.disk_title">Armazenamento (Disco)</h3>
-                        <p data-i18n="req.disk_desc">40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.</p>
-                    </div>
-                </div>
-                <div class="req-card">
-                    <div class="req-icon">
-                        <i data-lucide="network"></i>
-                    </div>
-                    <div class="req-text">
-                        <h3 data-i18n="req.net_title">Rede / Conectividade</h3>
-                        <p data-i18n="req.net_desc">Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.</p>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
+                    <a href="arquitetura.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
+                    <a href="seguranca.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Segurança</a>
+                    <a href="comparativo.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
+                    <a href="docs/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
+                    
+                    <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
+                        <a href="./download.html" class="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
+                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp</a>
                     </div>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="requirements-section" style="margin-top: 3rem;">
-            <span class="section-title">Como Instalar</span>
-            <ol style="text-align: left; color: #94a3b8; font-size: 0.95rem; line-height: 1.8; padding-left: 1.5rem; max-width: 600px; margin: 0 auto;">
-                <li>Grave a imagem ISO em um pendrive (Rufus, Etcher) ou monte-a diretamente em uma VM (VMware, Proxmox, VirtualBox).</li>
+    <main class="pt-32 pb-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Download</h1>
+            <p class="text-xl text-gray-400">Instaladores oficiais, binários pré-compilados e código fonte.</p>
+        </div>
+
+        <div class="glass-card p-8 mb-12 flex flex-col md:flex-row justify-between items-center gap-8 border-l-4 border-l-blue-500">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <h2 class="text-2xl font-bold">Sentinel Core LTS</h2>
+                    <span class="px-2 py-1 text-xs font-semibold bg-emerald-500/20 text-emerald-400 rounded">v2.9.30</span>
+                </div>
+                <p class="text-gray-400 mb-4">Versão de Long-Term Support recomendada para a maioria dos provedores (ISPs) e Data Centers.</p>
+                <div class="flex items-center gap-4 text-sm text-gray-500 font-mono">
+                    <span>SHA256: 8f4e3c2b1a...9d</span>
+                    <a href="#" class="text-blue-400 hover:underline">Release Notes</a>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3 min-w-[200px]">
+                <a href="https://drive.google.com/file/d/1R_7dqcFS1kef_SWxAF3nLnnRm21Sjo3i/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-colors">
+                    <i data-lucide="download" class="w-4 h-4"></i> Baixar ISO Grátis
+                </a>
+                <div class="text-center text-xs text-gray-500 mt-2">
+                    Pronto para Bare Metal, Proxmox e VMware
+                </div>
+            </div>
+        </div>
+
+        <!-- System Requirements -->
+        <div class="mt-16">
+            <h3 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <i data-lucide="server" class="w-6 h-6 text-blue-500"></i> Requisitos Mínimos da Máquina
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- CPU -->
+                <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800 flex items-start gap-4">
+                    <div class="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                        <i data-lucide="cpu" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-1">Processador (CPU)</h4>
+                        <p class="text-gray-400 text-sm">2 vCores / Threads ou superior. Arquitetura x86_64.</p>
+                    </div>
+                </div>
+                <!-- RAM -->
+                <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800 flex items-start gap-4">
+                    <div class="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                        <i data-lucide="memory-stick" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-1">Memória RAM</h4>
+                        <p class="text-gray-400 text-sm">4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.</p>
+                    </div>
+                </div>
+                <!-- Disco -->
+                <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800 flex items-start gap-4">
+                    <div class="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                        <i data-lucide="hard-drive" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-1">Armazenamento (Disco)</h4>
+                        <p class="text-gray-400 text-sm">40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.</p>
+                    </div>
+                </div>
+                <!-- Rede -->
+                <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800 flex items-start gap-4">
+                    <div class="p-3 bg-blue-500/10 rounded-lg text-blue-400">
+                        <i data-lucide="network" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-1">Rede / Conectividade</h4>
+                        <p class="text-gray-400 text-sm">Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to install -->
+        <div class="mt-16 bg-blue-900/10 border border-blue-500/20 rounded-xl p-8">
+            <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i data-lucide="terminal" class="w-6 h-6 text-blue-500"></i> Como Instalar
+            </h3>
+            <ol class="list-decimal list-inside text-gray-300 space-y-4 leading-relaxed">
+                <li>Grave a imagem ISO em um pendrive (Rufus, Etcher) ou monte-a diretamente em uma VM (VMware, Proxmox).</li>
                 <li>Dê boot na máquina pela mídia do Sentinel DNS e aguarde o carregamento automático do instalador Rocky Linux.</li>
                 <li>No assistente de primeiro boot, selecione a interface de rede e informe IP, máscara e gateway — ou escolha DHCP automático.</li>
                 <li>Aguarde o auto-tuning do motor Unbound, que ajusta buffers e cache de acordo com a CPU e RAM detectadas.</li>
@@ -445,186 +130,46 @@
             </ol>
         </div>
 
-        <div class="requirements-section" style="margin-top: 3rem;">
-            <span class="section-title">Perguntas Frequentes</span>
-            <div style="text-align: left; max-width: 600px; margin: 0 auto;">
-                <h3 style="color: #f8fafc; font-size: 1rem; margin-bottom: 0.4rem;">A instalação exige conexão com a internet?</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0 0 1.2rem;">Não. A instalação do sistema é executada de forma totalmente local e offline. A internet só é necessária posteriormente para a sincronização da telemetria CTI.</p>
-                <h3 style="color: #f8fafc; font-size: 1rem; margin-bottom: 0.4rem;">Posso atualizar o Sentinel DNS sem reinstalar a ISO?</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0 0 1.2rem;">Sim. Atualizações de versão e regras de bloqueio são aplicadas via painel administrativo, sem necessidade de gerar uma nova mídia de instalação.</p>
-                <h3 style="color: #f8fafc; font-size: 1rem; margin-bottom: 0.4rem;">O appliance funciona em hardware físico (bare metal)?</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Sim. O Sentinel DNS pode ser instalado tanto em máquinas virtuais quanto diretamente em servidores físicos, sendo recomendado bare metal para redes com mais de 20.000 clientes.</p>
+    </main>
+
+    
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                    <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
+                        GitHub
+                    </a>
+                </div>
+
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <a href="./index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
+                    <a href="./docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                    <a href="./blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
+                    <a href="./download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
+                    <a href="./privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
+                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
+                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                </div>
+
             </div>
-        </div>
-        
-        <a href="index.html" class="back-link">
-            <i data-lucide="arrow-left" width="16" height="16"></i> Voltar para o Início
-        </a>
-
-        <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; font-size: 0.8rem; color: #64748b;">
-            &copy; 2026 Unbound Sentinel. Todos os direitos reservados. | <a href="privacidade.html" style="color: #94a3b8; text-decoration: underline; transition: color 0.3s ease;">Política de Privacidade</a> | Visitas: <span id="visit-count" style="color: #38bdf8; font-weight: 600;">...</span>
-        </div>
-
-        <div class="glow-line"></div>
-    </div>
-
-    <script>
-        lucide.createIcons();
-
-        // Inlined translation dictionary to completely bypass CDN caching issues
-        const translations = {
-            "pt": {
-                "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Voltar para o Início",
-                "dl.title": "Instalação <span>Sentinel DNS</span>",
-                "dl.desc": "Faça o download da imagem ISO oficial para instalar o nó Edge do Sentinel na sua infraestrutura corporativa.",
-                "dl.btn": "<i data-lucide=\"download\"></i> Baixar Imagem ISO (v2.9.31)",
-                "req.title": "Requisitos Mínimos da Máquina",
-                "req.cpu_title": "Processador (CPU)",
-                "req.cpu_desc": "2 vCores / Threads ou superior. Arquitetura x86_64.",
-                "req.ram_title": "Memória RAM",
-                "req.ram_desc": "4 GB Mínimo. Recomendado 8 GB para redes com mais de 5.000 clientes.",
-                "req.disk_title": "Armazenamento (Disco)",
-                "req.disk_desc": "40 GB SSD. Necessário para cache em alta velocidade e banco de dados local.",
-                "req.net_title": "Rede / Conectividade",
-                "req.net_desc": "Placa de rede Gigabit. Porta 53 (UDP/TCP) e porta 443 (TCP) liberadas.",
-                "dl.intro": "O instalador é um appliance completo baseado em Rocky Linux 9, com configuração de rede assistida (kickstart) e motor Unbound pré-otimizado. Não é necessário conhecimento prévio em Linux para concluir a instalação: o assistente de primeiro boot detecta automaticamente os adaptadores de rede disponíveis e guia a configuração de IP, gateway e DNS em poucos passos.",
-                "steps.title": "Como Instalar",
-                "steps.s1": "Grave a imagem ISO em um pendrive (Rufus, Etcher) ou monte-a diretamente em uma VM (VMware, Proxmox, VirtualBox).",
-                "steps.s2": "Dê boot na máquina pela mídia do Sentinel DNS e aguarde o carregamento automático do instalador Rocky Linux.",
-                "steps.s3": "No assistente de primeiro boot, selecione a interface de rede e informe IP, máscara e gateway — ou escolha DHCP automático.",
-                "steps.s4": "Aguarde o auto-tuning do motor Unbound, que ajusta buffers e cache de acordo com a CPU e RAM detectadas.",
-                "steps.s5": "Acesse o painel administrativo pelo IP configurado para liberar a licença e ativar os nós satélite.",
-                "faq.title": "Perguntas Frequentes",
-                "faq.q1": "A instalação exige conexão com a internet?",
-                "faq.a1": "Não. A instalação do sistema é executada de forma totalmente local e offline. A internet só é necessária posteriormente para a sincronização da telemetria CTI.",
-                "faq.q2": "Posso atualizar o Sentinel DNS sem reinstalar a ISO?",
-                "faq.a2": "Sim. Atualizações de versão e regras de bloqueio são aplicadas via painel administrativo, sem necessidade de gerar uma nova mídia de instalação.",
-                "faq.q3": "O appliance funciona em hardware físico (bare metal)?",
-                "faq.a3": "Sim. O Sentinel DNS pode ser instalado tanto em máquinas virtuais quanto diretamente em servidores físicos, sendo recomendado bare metal para redes com mais de 20.000 clientes."
-            },
-            "en": {
-                "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Back to Home",
-                "dl.title": "Sentinel DNS <span>Installation</span>",
-                "dl.desc": "Download the official ISO image to install the Sentinel Edge node in your corporate infrastructure.",
-                "dl.btn": "<i data-lucide=\"download\"></i> Download ISO Image (v2.9.31)",
-                "req.title": "Minimum Machine Requirements",
-                "req.cpu_title": "Processor (CPU)",
-                "req.cpu_desc": "2 vCores / Threads or higher. x86_64 Architecture.",
-                "req.ram_title": "RAM Memory",
-                "req.ram_desc": "4 GB Minimum. 8 GB recommended for networks with over 5,000 clients.",
-                "req.disk_title": "Storage (Disk)",
-                "req.disk_desc": "40 GB SSD. Required for high-speed caching and local database.",
-                "req.net_title": "Network / Connectivity",
-                "req.net_desc": "Gigabit network card. Port 53 (UDP/TCP) and port 443 (TCP) opened.",
-                "dl.intro": "The installer is a complete appliance based on Rocky Linux 9, featuring assisted network configuration (kickstart) and a pre-optimized Unbound engine. No prior Linux knowledge is required to complete the installation: the first-boot wizard automatically detects available network adapters and guides you through IP, gateway, and DNS setup in just a few steps.",
-                "steps.title": "How to Install",
-                "steps.s1": "Burn the ISO image to a USB drive (Rufus, Etcher) or mount it directly on a VM (VMware, Proxmox, VirtualBox).",
-                "steps.s2": "Boot the machine from the Sentinel DNS media and wait for the Rocky Linux installer to load automatically.",
-                "steps.s3": "In the first-boot wizard, select the network interface and enter IP, subnet mask, and gateway — or choose automatic DHCP.",
-                "steps.s4": "Wait for the Unbound engine auto-tuning, which adjusts buffers and cache based on the detected CPU and RAM.",
-                "steps.s5": "Access the admin panel through the configured IP to activate the license and enable satellite nodes.",
-                "faq.title": "Frequently Asked Questions",
-                "faq.q1": "Does the installation require an internet connection?",
-                "faq.a1": "No. The system installation runs entirely locally and offline. Internet access is only needed afterward to sync CTI telemetry.",
-                "faq.q2": "Can I update Sentinel DNS without reinstalling the ISO?",
-                "faq.a2": "Yes. Version updates and blocking rules are applied through the admin panel, with no need to generate new installation media.",
-                "faq.q3": "Does the appliance run on physical (bare metal) hardware?",
-                "faq.a3": "Yes. Sentinel DNS can be installed on virtual machines or directly on physical servers, with bare metal recommended for networks with over 20,000 clients."
-            },
-            "es": {
-                "nav.home": "<i data-lucide=\"arrow-left\" width=\"16\" height=\"16\"></i> Volver al Inicio",
-                "dl.title": "Instalación <span>Sentinel DNS</span>",
-                "dl.desc": "Descarga la imagem ISO oficial para instalar el nodo Edge de Sentinel en tu infraestructura corporativa.",
-                "dl.btn": "<i data-lucide=\"download\"></i> Descargar Imagen ISO (v2.9.31)",
-                "req.title": "Requisitos Mínimos de la Máquina",
-                "req.cpu_title": "Procesador (CPU)",
-                "req.cpu_desc": "2 vCores / Hilos o superior. Arquitectura x86_64.",
-                "req.ram_title": "Memoria RAM",
-                "req.ram_desc": "4 GB Mínimo. Recomendado 8 GB para redes con más de 5.000 clientes.",
-                "req.disk_title": "Almacenamiento (Disco)",
-                "req.disk_desc": "40 GB SSD. Necesario para caché de alta velocidad y base de datos local.",
-                "req.net_title": "Red / Conectividad",
-                "req.net_desc": "Tarjeta de red Gigabit. Puerto 53 (UDP/TCP) y puerto 443 (TCP) abiertos.",
-                "dl.intro": "El instalador es un appliance completo basado en Rocky Linux 9, con configuración de red asistida (kickstart) y motor Unbound pre-optimizado. No se requiere conocimiento previo de Linux para completar la instalación: el asistente de primer arranque detecta automáticamente los adaptadores de red disponibles y guía la configuración de IP, puerta de enlace y DNS en pocos pasos.",
-                "steps.title": "Cómo Instalar",
-                "steps.s1": "Grabe la imagen ISO en una unidad USB (Rufus, Etcher) o móntela directamente en una VM (VMware, Proxmox, VirtualBox).",
-                "steps.s2": "Arranque la máquina desde el medio de Sentinel DNS y espere a que se cargue automáticamente el instalador de Rocky Linux.",
-                "steps.s3": "En el asistente de primer arranque, seleccione la interfaz de red e ingrese IP, máscara y puerta de enlace, o elija DHCP automático.",
-                "steps.s4": "Espere el auto-tuning del motor Unbound, que ajusta los búferes y la caché según la CPU y RAM detectadas.",
-                "steps.s5": "Acceda al panel administrativo a través de la IP configurada para activar la licencia y habilitar los nodos satélite.",
-                "faq.title": "Preguntas Frecuentes",
-                "faq.q1": "¿La instalación requiere conexión a internet?",
-                "faq.a1": "No. La instalación del sistema se ejecuta de forma totalmente local y sin conexión. Internet solo es necesario después para sincronizar la telemetría CTI.",
-                "faq.q2": "¿Puedo actualizar Sentinel DNS sin reinstalar la ISO?",
-                "faq.a2": "Sí. Las actualizaciones de versión y las reglas de bloqueo se aplican a través del panel administrativo, sin necesidad de generar un nuevo medio de instalación.",
-                "faq.q3": "¿El appliance funciona en hardware físico (bare metal)?",
-                "faq.a3": "Sí. Sentinel DNS se puede instalar tanto en máquinas virtuales como directamente en servidores físicos, recomendándose bare metal para redes con más de 20.000 clientes."
-            }
-        };
-    });
-    });
-            }
-            let savedLang = 'pt';
-            try {
-                savedLang = localStorage.getItem('landing_lang') || 'pt';
-            } catch (e) {
-                console.warn("Storage blocked:", e);
-            }
-            applyTranslations(savedLang);
-
-            // Fetch visitor count (read-only)
-            try {
-                fetch('https://api.counterapi.dev/v1/sentineldns/visits/')
-                    .then(res => res.json())
-                    .then(data => {
-                        const el = document.getElementById('visit-count');
-                        if (el && data && data.count) {
-                            el.innerText = data.count;
-                        }
-                    })
-                    .catch(() => {});
-            } catch (e) {}
-        });
-    </script>
-    <footer style="border-top: 1px solid rgba(56,189,248,0.1); padding: 2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #94a3b8; font-family: 'Outfit', sans-serif;">
-        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="lock" style="width: 15px; height: 15px; color: #10b981;"></i>
-                Conexão criptografada (End-to-End Encryption)
-            </div>
-            <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.3s;" >
-                <i data-lucide="github" style="width: 15px; height: 15px; color: var(--primary);"></i>
-                GitHub
-            </a>
-        </div>
-        <div>Sentinel DNS © 2026 — Todos os direitos reservados</div>
-        <div style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
-            <a href="index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Início</a>
-            <a href="docs.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Docs</a>
-            <a href="blog/index.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Blog</a>
-            <a href="download.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Download</a>
-            <a href="privacidade.html" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Telegram</a>
-            <a href="mailto:dnssentinel@sentineldns.net" style="color: #94a3b8; text-decoration: none; transition: color 0.3s;" >Suporte</a>
         </div>
     </footer>
+
+    <!-- Initialize Icons -->
     <script>
         lucide.createIcons();
-
-        // Floating CTA Logic
-        const floatCta = document.querySelector('.floating-cta');
-        if(floatCta) {
-            window.addEventListener('scroll', () => {
-                const footer = document.querySelector('footer');
-                const footerRect = footer ? footer.getBoundingClientRect() : null;
-                const isNearFooter = footerRect ? footerRect.top < window.innerHeight : false;
-                
-                if(window.scrollY > 600 && !isNearFooter) floatCta.classList.add('visible');
-                else floatCta.classList.remove('visible');
-            });
-        }
     </script>
-    <a href="download.html" class="floating-cta"><i data-lucide="download"></i> Baixar ISO Grátis</a>
-    <script src="lang.js"></script>
 </body>
 </html>
