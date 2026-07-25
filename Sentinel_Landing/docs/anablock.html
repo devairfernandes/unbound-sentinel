@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnaBlock - Documentação Oficial Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="../Logo.webp">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
+
+    <!-- Navbar simplificada para Docs -->
+    <nav class="fixed w-full z-50 glass border-b border-[#1f2937]">
+        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="../" class="flex items-center gap-3">
+                    <img src="../Logo.webp" alt="Sentinel DNS Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-lg font-bold tracking-tight text-white">Sentinel DNS <span class="text-gray-500 font-normal ml-2">Docs</span></span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <div class="relative hidden md:block">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                        <input type="text" placeholder="Buscar na documentação..." class="bg-gray-900 border border-gray-700 text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <a href="../" class="text-sm font-medium text-gray-400 hover:text-white ml-4">Voltar ao site</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Layout com Sidebar -->
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-16 flex">
+        
+        <!-- Sidebar -->
+        <aside class="hidden md:block w-64 flex-shrink-0 border-r border-gray-800 pt-8 pr-6 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <nav class="space-y-6">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Começando</h4>
+                    <ul class="space-y-2">
+                        <li><a href="./" class="text-sm text-gray-400 hover:text-white block">Introdução</a></li>
+                        <li><a href="requisitos-de-sistema" class="text-sm text-gray-400 hover:text-white block">Requisitos de Sistema</a></li>
+                        <li><a href="instalacao-rapida" class="text-sm text-gray-400 hover:text-white block">Instalação Rápida</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Configuração (ISP)</h4>
+                    <ul class="space-y-2">
+                        <li><a href="anablock" class="text-sm text-blue-400 font-medium block">AnaBlock</a></li>
+                        <li><a href="geoip" class="text-sm text-gray-400 hover:text-white block">GeoIP / MaxMind</a></li>
+                        <li><a href="geoblocking" class="text-sm text-gray-400 hover:text-white block">Geoblocking</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Segurança</h4>
+                    <ul class="space-y-2">
+                        <li><a href="em-desenvolvimento" class="text-sm text-gray-400 hover:text-white block">Threat Intelligence API</a></li>
+                        <li><a href="em-desenvolvimento" class="text-sm text-gray-400 hover:text-white block">Políticas RPZ</a></li>
+                        <li><a href="em-desenvolvimento" class="text-sm text-gray-400 hover:text-white block">Logs & SIEM</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 pt-8 pb-24 md:pl-10">
+            <div class="prose prose-invert max-w-3xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 text-xs font-semibold bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Conformidade ANATEL</span>
+                    <span class="px-3 py-1 text-xs font-mono bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">Módulo ISP</span>
+                </div>
+                
+                <h1 class="text-4xl font-bold mb-4">AnaBlock — Sincronização e Bloqueios Judiciais (ANATEL)</h1>
+                <p class="text-xl text-gray-300 leading-relaxed mb-8">O AnaBlock é o módulo nativo do Sentinel DNS projetado para automatizar a conformidade regulatória de Provedores de Internet (ISPs) no Brasil, garantindo o cumprimento de ordens judiciais e determinações oficiais da ANATEL com máxima segurança operacional.</p>
+
+                <hr class="border-gray-800 my-8">
+
+                <h2 class="text-2xl font-bold mb-4 text-white">1. Como Funciona</h2>
+                <p class="text-gray-300 mb-4">O sistema conecta-se periodicamente aos feeds de inteligência de bloqueio, processa as determinações regulatórias atualizadas e injeta automaticamente as zonas de bloqueio no resolver Unbound.</p>
+                <div class="bg-gray-900/60 p-6 rounded-xl border border-gray-800 mb-6">
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+                            <span><strong>Sincronização Automática:</strong> O ciclo de atualização ocorre a cada <strong>12 horas</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+                            <span><strong>Validação de Sintaxe Pré-Aplicação:</strong> Nenhuma regra é aplicada ao Unbound sem antes passar por verificação rigorosa de formato e sintaxe.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+                            <span><strong>Zero Indisponibilidade:</strong> Se um domínio da lista contiver caracteres inválidos ou erro de formatação, a entrada malformada é descartada e isolada nos logs, impedindo que o serviço de DNS caia.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4 text-white">2. Ciclo de Atualização e Validação</h2>
+                <p class="text-gray-300 mb-4">O fluxo de execução do AnaBlock garante integridade total do serviço DNS durante as atualizações:</p>
+                <ol class="list-decimal list-inside space-y-2 text-gray-300 mb-6">
+                    <li>Download do feed de ordens judiciais e da ANATEL.</li>
+                    <li>Parsing e sanitização de nomes de domínio (remoção de caracteres especiais ou entradas corrompidas).</li>
+                    <li>Compilação para a estrutura `local-zone` e `local-data` do Unbound.</li>
+                    <li>Teste de sintaxe seco (`unbound-checkconf`).</li>
+                    <li>Recarga limpa em memória (`unbound-control reload`) sem perda de conexões ativas.</li>
+                </ol>
+
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-10 overflow-hidden shadow-2xl relative" x-data="anablockLog()">
+                    <!-- Terminal Header -->
+                    <div class="flex items-center justify-between mb-4 border-b border-gray-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-gray-500"></i>
+                            <span class="text-gray-400 font-mono text-sm">anablock_sync.sh (Monitor em Tempo Real)</span>
+                        </div>
+                        <span x-text="statusText" :class="statusClass" class="px-2 py-1 text-xs font-semibold rounded font-mono shadow-sm">Carregando...</span>
+                    </div>
+                    <!-- Terminal Body -->
+                    <div class="font-mono text-xs md:text-sm text-gray-400 space-y-2 opacity-90 h-48 overflow-y-auto custom-scrollbar">
+                        <template x-if="loading">
+                            <div class="flex items-center gap-2 text-gray-500 animate-pulse">
+                                <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                                Conectando ao servidor para ler logs...
+                            </div>
+                        </template>
+                        <template x-if="!loading && logs.length === 0">
+                            <div><span class="text-gray-500">Aguardando primeira sincronização. Nenhum dado disponível ainda.</span></div>
+                        </template>
+                        <template x-for="log in logs" :key="log">
+                            <div x-html="formatLog(log)" class="leading-relaxed"></div>
+                        </template>
+                        <div x-show="!loading && logs.length > 0" class="text-gray-500 mt-4 border-t border-gray-800/50 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span>Última execução: <span class="text-gray-300" x-text="formatDate(lastSync)"></span></span>
+                            <span>Domínios Ativos: <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded" x-text="domainCount"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4 text-white">3. Informações Operacionais</h2>
+                <div class="bg-blue-950/30 p-5 rounded-xl border border-blue-800/40 mb-8">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"></i>
+                        <div class="text-sm text-blue-200">
+                            <strong>Pendente de Confirmação:</strong> O suporte para adição de exceções manuais (Whitelist de ISP) e personalização do endpoint de telemetria externa encontram-se em homologação final para a próxima sub-versão.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-8 border-t border-gray-800 mt-12">
+                    <a href="instalacao-rapida" class="text-sm font-medium text-gray-400 hover:text-white flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Instalação Rápida
+                    </a>
+                    <a href="geoip" class="text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                        GeoIP / MaxMind <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
+                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
+                        Conexão criptografada (End-to-End Encryption)
+                    </div>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="../animations.js"></script>
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('anablockLog', () => ({
+                logs: [],
+                status: 'INACTIVE',
+                lastSync: null,
+                domainCount: 0,
+                loading: true,
+                
+                async init() {
+                    try {
+                        const res = await fetch('/api/public/anablock-log');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.logs = data.logs;
+                            this.status = data.status;
+                            this.lastSync = data.lastSync;
+                            this.domainCount = data.domainCount;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao carregar log', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get statusText() {
+                    if (this.loading) return 'CARREGANDO';
+                    if (this.status === 'ACTIVE') return 'ACTIVE';
+                    if (this.status === 'DELAYED') return 'DELAYED (ALERTA)';
+                    return 'INACTIVE';
+                },
+                
+                get statusClass() {
+                    if (this.loading) return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+                    if (this.status === 'ACTIVE') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    if (this.status === 'DELAYED') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                },
+                
+                formatLog(line) {
+                    const match = line.match(/^\[(.*?)\] (.*)$/);
+                    if (!match) return line;
+                    const time = new Date(match[1]).toLocaleTimeString('pt-BR');
+                    let msg = match[2];
+                    
+                    let color = 'text-gray-300';
+                    if (msg.includes('ERROR') || msg.includes('Failed')) color = 'text-red-400 font-medium';
+                    else if (msg.includes('Success') || msg.includes('Syntax OK')) color = 'text-emerald-400';
+                    else if (msg.includes('Fetching') || msg.includes('Validating')) color = 'text-blue-400';
+                    
+                    return `<span class="text-blue-500/70 mr-2">[${time}]</span> <span class="${color}">${msg}</span>`;
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Nunca';
+                    return new Date(dateStr).toLocaleString('pt-BR');
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

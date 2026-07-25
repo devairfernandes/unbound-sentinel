@@ -179,7 +179,8 @@ function getUsers() {
     if (!fs.existsSync(USERS_FILE)) {
         // Se não existir, cria o admin padrão do .env com bcrypt
         const hash = bcrypt.hashSync(ADMIN_PASS, BCRYPT_ROUNDS);
-        const defaultUsers = { [ADMIN_USER]: { password: hash, role: 'admin', name: 'Administrador' } };
+        const isDefaultPassword = ADMIN_PASS === 'admin123';
+        const defaultUsers = { [ADMIN_USER]: { password: hash, role: 'admin', name: 'Administrador', mustChangePassword: isDefaultPassword } };
         fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 4));
         return defaultUsers;
     }
@@ -877,24 +878,14 @@ app.use(cors({
 }));
 
 // Fix 9: Helmet — cabeçalhos de segurança HTTP
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://unpkg.com", "https://cdn.jsdelivr.net"],
-            connectSrc: ["'self'", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://master.sentineldns.uk", "https://static.cloudflareinsights.com", "https://cloudflareinsights.com"],
-            frameAncestors: ["'none'"]
-        }
-    },
-    crossOriginEmbedderPolicy: false, // Compatibilidade com iframes de pagamento (Stripe)
-    hsts: { maxAge: 31536000, includeSubDomains: false } // HSTS sem subdomains
-}));
-app.use(helmet.noSniff());         // X-Content-Type-Options: nosniff
-app.use(helmet.frameguard({ action: 'sameorigin' })); // X-Frame-Options: SAMEORIGIN
-app.use(helmet.xssFilter());       // X-XSS-Protection
+// app.use(helmet({
+//     contentSecurityPolicy: false,
+//     crossOriginEmbedderPolicy: false,
+//     hsts: { maxAge: 31536000, includeSubDomains: false }
+// }));
+// app.use(helmet.noSniff());         
+// app.use(helmet.frameguard({ action: 'sameorigin' })); 
+// app.use(helmet.xssFilter());       
 
 // Aplica rate limiters globais
 app.use('/api', apiLimiter);   // todas as rotas /api/*
@@ -1195,16 +1186,9 @@ app.post('/api/login', (req, res) => {
         const userData = { ...users[user] };
         delete userData.password;
         
-        const authString = 'Basic ' + Buffer.from(user + ':' + pass).toString('base64');
         const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-        res.cookie('sentinel_auth', authString, {
-            httpOnly: true,
-            secure: isSecure,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
-        });
-
-        // Cookie CSRF sem HttpOnly para permitir que o JS do frontend o leia e o anexe no header
+        
+        // Sempre envia o cookie CSRF no sucesso da validação inicial (mesmo se precisar trocar senha)
         const csrfToken = crypto.randomBytes(24).toString('hex');
         res.cookie('sentinel_csrf', csrfToken, {
             secure: isSecure,
@@ -1212,9 +1196,53 @@ app.post('/api/login', (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
+        if (userData.mustChangePassword) {
+            console.log(`[Auth] [IP: ${ip}] Usuário ${user} precisa trocar a senha padrão obrigatória.`);
+            return res.json({ message: 'Requer troca de senha', user: userData, requirePasswordChange: true });
+        }
+        
+        const authString = 'Basic ' + Buffer.from(user + ':' + pass).toString('base64');
+        res.cookie('sentinel_auth', authString, {
+            httpOnly: true,
+            secure: isSecure,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+        });
+
         res.json({ message: 'Login realizado', user: userData });
     } else {
         res.status(401).json({ error: 'Usuário ou senha inválidos' });
+    }
+});
+
+app.post('/api/auth/force-change', (req, res) => {
+    const { user, oldPass, newPass } = req.body;
+    const ip = getClientIp(req);
+
+    if (checkLoginRateLimit(ip)) {
+        return res.status(429).json({ error: 'Muitas tentativas. Tente novamente mais tarde.' });
+    }
+
+    const users = getUsers();
+    if (!users[user] || !verifyPassword(user, oldPass, ip)) {
+        return res.status(401).json({ error: 'Senha atual inválida.' });
+    }
+
+    if (!newPass || newPass.length < 6) {
+        return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    const newHash = bcrypt.hashSync(newPass, BCRYPT_ROUNDS);
+    users[user].password = newHash;
+    delete users[user].mustChangePassword;
+
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+        console.log(`[Auth] [IP: ${ip}] Senha de '${user}' alterada obrigatoriamente no primeiro login.`);
+        res.json({ message: 'Senha alterada com sucesso. Você já pode fazer o login.' });
+    } catch (e) {
+        console.error(`[Auth] Falha ao salvar nova senha: ${e.message}`);
+        res.status(500).json({ error: 'Falha ao salvar a nova senha no servidor.' });
     }
 });
 
@@ -1966,12 +1994,8 @@ app.delete('/api/system/clients/:id', auth, requireRole(['admin']), (req, res) =
     // Coleta licenças do cliente antes de remover
     const clientLicKeys = Object.keys(licDb).filter(k => licDb[k].client_id === clientId);
 
-    // Remove licenças vinculadas e reseta sessões ativas
+    // Remove licenças vinculadas
     for (const key of clientLicKeys) {
-        const hwid = licDb[key].hwid;
-        if (hwid && activeSessions[hwid]) {
-            activeSessions[hwid].status = 'free';
-        }
         delete licDb[key];
     }
 
@@ -1989,12 +2013,21 @@ app.delete('/api/system/clients/:id', auth, requireRole(['admin']), (req, res) =
         }
     }
 
-    // Agora sim, removemos do banco de clientes (Hard Delete) já que a 
-    // Blacklist assumiu a responsabilidade de bloquear futuros check-ins
+    // Deleta as sessões ativas vinculadas a este cliente para atualizar os contadores do dashboard
+    if (clientsDB[clientId].hwids && clientsDB[clientId].hwids.length > 0) {
+        clientsDB[clientId].hwids.forEach(hw => {
+            if (activeSessions[hw]) {
+                delete activeSessions[hw];
+            }
+        });
+    }
+
+    // Agora sim, removemos do banco de clientes (Hard Delete)
     delete clientsDB[clientId];
 
     try {
         saveClients();
+        saveSessions();
         fs.writeFileSync(licDbPath, JSON.stringify(licDb, null, 4), 'utf8');
         if (clientLicKeys.length > 0) saveSessions();
 
@@ -4694,8 +4727,7 @@ app.get('/api/public/pricing', (req, res) => {
 if (process.env.IS_MASTER === 'true') {
     const landingDir = path.join(__dirname, '../Sentinel_Landing');
 
-    // Bloqueia acesso a arquivos .md (README.md, CHANGELOG.md, etc) via HTTP
-    // Eles ficam no repositório para uso interno, mas não devem ser servidos pela web.
+    // 1. Bloqueia acesso a arquivos .md (README.md, CHANGELOG.md, etc) via HTTP
     app.use((req, res, next) => {
         if (/\.md$/i.test(req.path)) {
             return res.status(404).send('Not Found');
@@ -4703,18 +4735,45 @@ if (process.env.IS_MASTER === 'true') {
         next();
     });
 
-    app.use(express.static(landingDir));
-
-    // Rotas amigáveis sem .html
-    const landingPages = {
-        '/docs':        'docs.html',
-        '/download':    'download.html',
-        '/privacidade': 'privacidade.html',
-        '/blog':        'index.html',
-    };
-    Object.entries(landingPages).forEach(([route, file]) => {
-        app.get(route, (req, res) => res.sendFile(path.join(landingDir, file)));
+    // 2. Redirecionamento 301 (Permanente) de URLs legadas com .html para URLs limpas (SEO)
+    app.use((req, res, next) => {
+        if (req.path.endsWith('.html')) {
+            let cleanPath = req.path.slice(0, -5); // Remove .html
+            if (cleanPath.endsWith('/index')) {
+                cleanPath = cleanPath.slice(0, -6) || '/';
+            } else if (cleanPath === '/index') {
+                cleanPath = '/';
+            }
+            const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+            return res.redirect(301, cleanPath + queryString);
+        }
+        next();
     });
+
+    // 3. Resolução e entrega dinâmica de URLs limpas (serve file.html ou subpasta/index.html)
+    app.use((req, res, next) => {
+        // Se a requisição já possui extensão (ex: .css, .js, .png, .webp, .svg, .xml, .txt), ignora
+        if (path.extname(req.path)) {
+            return next();
+        }
+
+        // Tenta encontrar o arquivo .html correspondente na raiz ou subpastas (ex: /arquitetura -> arquitetura.html)
+        const htmlFile = path.join(landingDir, req.path + '.html');
+        if (fs.existsSync(htmlFile) && fs.statSync(htmlFile).isFile()) {
+            return res.sendFile(htmlFile);
+        }
+
+        // Tenta encontrar index.html dentro de subpasta (ex: /blog -> /blog/index.html)
+        const indexFile = path.join(landingDir, req.path, 'index.html');
+        if (fs.existsSync(indexFile) && fs.statSync(indexFile).isFile()) {
+            return res.sendFile(indexFile);
+        }
+
+        next();
+    });
+
+    // 4. Sirva assets estáticos (imagens, CSS, JS)
+    app.use(express.static(landingDir));
 }
 app.get('/login', (req, res) => {
     // Serve página de login mínima e separada em vez do bundle completo do painel.
@@ -4725,6 +4784,12 @@ app.get('/login', (req, res) => {
     }
     // Fallback: index.html original (não deveria chegar aqui em produção)
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+app.get('/', (req, res, next) => {
+    if (!req.cookies || !req.cookies['sentinel_auth']) {
+        return res.redirect('/login');
+    }
+    next();
 });
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/maxmind', express.static(path.join(__dirname, '..', 'license-manager', 'public', 'maxmind')));
@@ -4741,7 +4806,17 @@ const PORT = process.env.PORT || 3300;
 
 app.get('/api/security/sources', auth, (req, res) => {
     const sourcesPath = path.join(__dirname, 'cti_sources.json');
-    if (!fs.existsSync(sourcesPath)) return res.json([]);
+    if (!fs.existsSync(sourcesPath)) {
+        const defaultSources = [
+            { "id": "urlhaus", "name": "URLhaus (Abuse.ch)", "description": "Banco de dados global focado em domínios que distribuem Malware e Ransomware.", "url": "https://urlhaus.abuse.ch/downloads/hostfile/", "enabled": true, "monitor": true, "type": "hostfile", "category": "Malware" },
+            { "id": "stevenblack", "name": "StevenBlack Unified", "description": "Lista unificada de Ads, Malware e domínios de tracking. Altamente confiável.", "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts", "enabled": false, "monitor": false, "type": "hostfile", "category": "Ads/Malware" },
+            { "id": "phishing_db", "name": "Phishing Database", "description": "Focada em interceptar domínios de phishing ativos e golpes financeiros.", "url": "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-active.txt", "enabled": false, "monitor": false, "type": "plain", "category": "Phishing" },
+            { "id": "gambling", "name": "Gambling Blocklist", "description": "Bloqueio de sites de apostas, cassinos online e 'tigrinhos'.", "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/extensions/gambling/hosts", "enabled": false, "monitor": false, "type": "hostfile", "category": "Gambling" },
+            { "id": "porn", "name": "Conteúdo Adulto (Porn)", "description": "Bloqueio de sites de pornografia, conteúdo adulto e links explícitos (StevenBlack).", "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn/hosts", "enabled": false, "monitor": false, "type": "hostfile", "category": "Porn" }
+        ];
+        try { fs.writeFileSync(sourcesPath, JSON.stringify(defaultSources, null, 4)); } catch(e){}
+        return res.json(defaultSources);
+    }
     res.json(JSON.parse(fs.readFileSync(sourcesPath, 'utf8')));
 });
 
@@ -6105,7 +6180,7 @@ function compileProfileRules(profile, globalSafeSearch, localIp, useBlockPage, a
     });
 
     // 2. SafeSearch (filtrando os domínios que já estão totalmente bloqueados)
-    const isSafeSearchEnabled = !!globalSafeSearch || !!blocked.safesearch || !!blocked.safeSearch;
+    const isSafeSearchEnabled = !!blocked.safesearch || !!blocked.safeSearch;
     if (isSafeSearchEnabled) {
         let ssRules = "";
         const ssTargets = [
@@ -6439,7 +6514,18 @@ app.delete('/api/security/geoblocking/:code', auth, requireRole(['admin']), asyn
 
 // ===== INTEGRAÇÃO ANABLOCK =====
 const ANABLOCK_DB_PATH = path.join(__dirname, 'anablock.json');
+const ANABLOCK_LOG_PATH = path.join(__dirname, 'anablock_sync.log');
 const ANABLOCK_API_URL = "https://api.anablock.net.br/domains/all?output=unbound";
+
+function logAnaBlock(message, isError = false) {
+    const timestamp = new Date().toISOString();
+    const formatted = `[${timestamp}] ${isError ? 'ERROR: ' : ''}${message}\n`;
+    try {
+        fs.appendFileSync(ANABLOCK_LOG_PATH, formatted);
+    } catch (e) {
+        console.error('Falha ao escrever no log do AnaBlock:', e);
+    }
+}
 
 function getAnaBlockConfig() {
     if (!fs.existsSync(ANABLOCK_DB_PATH)) {
@@ -6488,8 +6574,9 @@ async function syncAnaBlock() {
     }
 
     try {
+        logAnaBlock('Fetching judicial blocklist from ANATEL API...');
         const [domainsRaw, urlsRaw, ipv4Raw, ipv6Raw] = await Promise.allSettled([
-            fetchAnaBlockList('https://api.anablock.net.br/domains/all?output=unbound'),
+            fetchAnaBlockList('https://api.anablock.net.br/api/domain/all'),
             fetchAnaBlockList('https://api.anablock.net.br/api/url/all'),
             fetchAnaBlockList('https://api.anablock.net.br/api/ipv4/block'),
             fetchAnaBlockList('https://api.anablock.net.br/api/ipv6/block')
@@ -6498,22 +6585,49 @@ async function syncAnaBlock() {
         let finalConfig = 'server:\n';
         let objectCount = 0;
 
+        const isDomain = (d) => /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(d);
+        const isIpv4 = (ip) => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$/.test(ip);
+        const isIpv6 = (ip) => /^[a-fA-F0-9:]+(\/[0-9]{1,3})?$/.test(ip);
+
+        const seenDomains = new Set();
+        const seenIps = new Set();
+
         // Process Domains
         if (domainsRaw.status === 'fulfilled' && domainsRaw.value) {
-            const body = domainsRaw.value;
-            if (body.includes('local-zone')) {
-                finalConfig += body + '\n';
-                objectCount += (body.match(/local-zone/g) || []).length;
+            const lines = domainsRaw.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('<'));
+            for (const line of lines) {
+                // Se a API ainda retornar no formato local-zone
+                if (line.includes('local-zone:')) {
+                    const match = line.match(/local-zone: "([^"]+)"/);
+                    if (match && match[1]) {
+                        if (!seenDomains.has(match[1])) {
+                            seenDomains.add(match[1]);
+                            finalConfig += line + '\n';
+                            objectCount++;
+                        }
+                    } else {
+                        finalConfig += line + '\n';
+                        objectCount++;
+                    }
+                } else {
+                    const domain = line.replace(/^https?:\/\//, '').split('/')[0];
+                    if (isDomain(domain) && !seenDomains.has(domain)) {
+                        seenDomains.add(domain);
+                        finalConfig += `local-zone: "${domain}" always_nxdomain\n`;
+                        objectCount++;
+                    }
+                }
             }
         }
 
         // Process URLs
         if (urlsRaw.status === 'fulfilled' && urlsRaw.value) {
-            const lines = urlsRaw.value.split('\n').map(l => l.trim()).filter(l => l);
+            const lines = urlsRaw.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('<'));
             for (const line of lines) {
                 try {
                     const url = new URL(line.startsWith('http') ? line : 'http://' + line);
-                    if (url.hostname) {
+                    if (url.hostname && isDomain(url.hostname) && !seenDomains.has(url.hostname)) {
+                        seenDomains.add(url.hostname);
                         finalConfig += `local-zone: "${url.hostname}" always_nxdomain\n`;
                         objectCount++;
                     }
@@ -6523,25 +6637,34 @@ async function syncAnaBlock() {
 
         // Process IPv4
         if (ipv4Raw.status === 'fulfilled' && ipv4Raw.value) {
-            const lines = ipv4Raw.value.split('\n').map(l => l.trim()).filter(l => l);
+            const lines = ipv4Raw.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('<'));
             for (const ip of lines) {
-                finalConfig += `private-address: ${ip}\n`;
-                objectCount++;
+                if (isIpv4(ip) && !seenIps.has(ip)) {
+                    seenIps.add(ip);
+                    finalConfig += `private-address: ${ip}\n`;
+                    objectCount++;
+                }
             }
         }
 
         // Process IPv6
         if (ipv6Raw.status === 'fulfilled' && ipv6Raw.value) {
-            const lines = ipv6Raw.value.split('\n').map(l => l.trim()).filter(l => l);
+            const lines = ipv6Raw.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('<'));
             for (const ip of lines) {
-                finalConfig += `private-address: ${ip}\n`;
-                objectCount++;
+                if (isIpv6(ip) && !seenIps.has(ip)) {
+                    seenIps.add(ip);
+                    finalConfig += `private-address: ${ip}\n`;
+                    objectCount++;
+                }
             }
         }
 
         if (objectCount === 0) {
             throw new Error('Nenhum objeto retornado ou arquivos vazios.');
         }
+
+        logAnaBlock(`Success: ${objectCount} entries fetched and processed.`);
+        logAnaBlock('Validating Unbound configuration syntax...');
 
         const localDir = '/etc/unbound/local.d';
         const confDir = '/etc/unbound/conf.d';
@@ -6561,6 +6684,7 @@ async function syncAnaBlock() {
                 exec('unbound-checkconf', (err) => {
                     if (err) {
                         config.error = 'Sintaxe inválida no conf do AnaBlock';
+                        logAnaBlock(`Failed: Syntax error in Unbound configuration.`, true);
                         saveAnaBlockConfig(config);
                         return resolve({ success: false, error: config.error });
                     }
@@ -6568,6 +6692,8 @@ async function syncAnaBlock() {
                         config.lastSync = new Date().toISOString();
                         config.domainCount = objectCount; // Reaproveitamos o campo
                         config.error = null;
+                        logAnaBlock('Syntax OK. Reloading Unbound cache seamlessly.');
+                        logAnaBlock('Waiting for next synchronization cycle (12h)...');
                         saveAnaBlockConfig(config);
                         resolve({ success: true });
                     });
@@ -6577,11 +6703,14 @@ async function syncAnaBlock() {
             config.lastSync = new Date().toISOString();
             config.domainCount = objectCount;
             config.error = null;
+            logAnaBlock('Syntax OK. Unbound not installed locally. Applied to config only.');
+            logAnaBlock('Waiting for next synchronization cycle (12h)...');
             saveAnaBlockConfig(config);
             return { success: true, warning: 'Unbound não instalado — lista baixada mas não aplicada' };
         }
     } catch (e) {
         config.error = `Erro ao sincronizar AnaBlock: ${e.message}`;
+        logAnaBlock(config.error, true);
         saveAnaBlockConfig(config);
         return { success: false, error: config.error };
     }
@@ -6607,8 +6736,12 @@ app.post('/api/anablock/toggle', auth, requireRole(['admin']), (req, res) => {
         // Remove arquivo de configuração se desabilitar
         if (fs.existsSync('/etc/unbound/conf.d/anablock.conf')) {
             fs.unlinkSync('/etc/unbound/conf.d/anablock.conf');
-            exec('systemctl reload unbound');
         }
+        if (fs.existsSync('/etc/unbound/local.d/anablock.conf')) {
+            fs.unlinkSync('/etc/unbound/local.d/anablock.conf');
+        }
+        const { exec } = require('child_process');
+        exec('systemctl reload unbound');
     }
     saveAnaBlockConfig(config);
     res.json({ success: true, config });
@@ -6620,6 +6753,37 @@ app.post('/api/anablock/toggle', auth, requireRole(['admin']), (req, res) => {
 app.post('/api/anablock/sync', auth, requireRole(['admin']), async (req, res) => {
     const result = await syncAnaBlock();
     res.json(result);
+});
+
+// Endpoint público para exibir o status e os últimos logs no widget da Landing/Documentação
+app.get('/api/public/anablock-log', (req, res) => {
+    try {
+        const config = getAnaBlockConfig();
+        let logs = [];
+        if (fs.existsSync(ANABLOCK_LOG_PATH)) {
+            // Lendo as últimas 10 linhas do log
+            const logContent = fs.readFileSync(ANABLOCK_LOG_PATH, 'utf8');
+            logs = logContent.split('\n').filter(l => l.trim().length > 0).slice(-10);
+        }
+        
+        // Verifica se a última sincronização passou de 13h (sinalizando problema no cron de 12h)
+        let isLate = false;
+        if (config.lastSync) {
+            const hoursSinceSync = (new Date() - new Date(config.lastSync)) / (1000 * 60 * 60);
+            if (hoursSinceSync > 13) isLate = true;
+        }
+
+        res.json({
+            enabled: config.enabled,
+            status: config.enabled ? (isLate ? 'DELAYED' : 'ACTIVE') : 'INACTIVE',
+            lastSync: config.lastSync,
+            domainCount: config.domainCount || 0,
+            logs: logs,
+            error: config.error
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao buscar log' });
+    }
 });
 
 // Fix 2: Endpoint de debug protegido com auth admin — NÃO expõe tokens de pagamento

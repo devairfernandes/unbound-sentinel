@@ -234,17 +234,33 @@
                         Ler sobre integração <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                 </div>
-                <div class="glass-card p-8 border-l-4 border-l-blue-500 bg-gradient-to-b from-gray-900 to-black">
+                <div class="glass-card p-8 border-l-4 border-l-blue-500 bg-gradient-to-b from-gray-900 to-black" x-data="anablockLog()">
+                    <!-- Terminal Header -->
                     <div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
-                        <span class="text-gray-400 font-mono text-sm">anablock_sync.sh</span>
-                        <span class="px-2 py-1 text-xs font-semibold bg-emerald-500/20 text-emerald-400 rounded">ACTIVE</span>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-gray-500"></i>
+                            <span class="text-gray-400 font-mono text-sm">anablock_sync.sh</span>
+                        </div>
+                        <span x-text="statusText" :class="statusClass" class="px-2 py-1 text-xs font-semibold rounded font-mono shadow-sm">Carregando...</span>
                     </div>
-                    <div class="font-mono text-xs text-gray-400 space-y-3 opacity-90">
-                        <div><span class="text-blue-400">[12:00:01]</span> Fetching judicial blocklist from ANATEL API...</div>
-                        <div><span class="text-emerald-400">[12:00:03]</span> Success: 142 new domains added to RPZ blocklist.</div>
-                        <div><span class="text-blue-400">[12:00:04]</span> Validating Unbound configuration syntax...</div>
-                        <div><span class="text-emerald-400">[12:00:05]</span> Syntax OK. Reloading Unbound cache seamlessly.</div>
-                        <div class="text-gray-500 mt-4">Waiting for next synchronization cycle (12h)...</div>
+                    <!-- Terminal Body -->
+                    <div class="font-mono text-xs md:text-sm text-gray-400 space-y-3 opacity-90 h-48 overflow-y-auto custom-scrollbar">
+                        <template x-if="loading">
+                            <div class="flex items-center gap-2 text-gray-500 animate-pulse">
+                                <div class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                                Lendo logs do servidor...
+                            </div>
+                        </template>
+                        <template x-if="!loading && logs.length === 0">
+                            <div><span class="text-gray-500">Aguardando primeira sincronização...</span></div>
+                        </template>
+                        <template x-for="log in logs" :key="log">
+                            <div x-html="formatLog(log)" class="leading-relaxed"></div>
+                        </template>
+                        <div x-show="!loading && logs.length > 0" class="text-gray-500 mt-4 border-t border-gray-800/50 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span>Última: <span class="text-gray-300" x-text="formatDate(lastSync)"></span></span>
+                            <span>Domínios: <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded" x-text="domainCount"></span></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -437,7 +453,66 @@
                 }
             });
         });
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('anablockLog', () => ({
+                logs: [],
+                status: 'INACTIVE',
+                lastSync: null,
+                domainCount: 0,
+                loading: true,
+                
+                async init() {
+                    try {
+                        const res = await fetch('/api/public/anablock-log');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.logs = data.logs;
+                            this.status = data.status;
+                            this.lastSync = data.lastSync;
+                            this.domainCount = data.domainCount;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao carregar log', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get statusText() {
+                    if (this.loading) return 'CARREGANDO';
+                    if (this.status === 'ACTIVE') return 'ACTIVE';
+                    if (this.status === 'DELAYED') return 'DELAYED (ALERTA)';
+                    return 'INACTIVE';
+                },
+                
+                get statusClass() {
+                    if (this.loading) return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+                    if (this.status === 'ACTIVE') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    if (this.status === 'DELAYED') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                },
+                
+                formatLog(line) {
+                    const match = line.match(/^\[(.*?)\] (.*)$/);
+                    if (!match) return line;
+                    const time = new Date(match[1]).toLocaleTimeString('pt-BR');
+                    let msg = match[2];
+                    
+                    let color = 'text-gray-300';
+                    if (msg.includes('ERROR') || msg.includes('Failed')) color = 'text-red-400 font-medium';
+                    else if (msg.includes('Success') || msg.includes('Syntax OK')) color = 'text-emerald-400';
+                    else if (msg.includes('Fetching') || msg.includes('Validating')) color = 'text-blue-400';
+                    
+                    return `<span class="text-blue-500/70 mr-2">[${time}]</span> <span class="${color}">${msg}</span>`;
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Nunca';
+                    return new Date(dateStr).toLocaleString('pt-BR');
+                }
+            }));
+        });
     </script>
 </body>
-
 </html>
