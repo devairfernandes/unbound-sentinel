@@ -6709,8 +6709,11 @@ async function syncAnaBlock() {
             return { success: true, warning: 'Unbound não instalado — lista baixada mas não aplicada' };
         }
     } catch (e) {
-        config.error = `Erro ao sincronizar AnaBlock: ${e.message}`;
-        logAnaBlock(config.error, true);
+        // Log interno: detalhe completo do erro (só visível via SSH/journalctl)
+        console.error('[AnaBlock] Sync error (internal):', e.message);
+        logAnaBlock(`Sync failed. See server logs for details.`, true);
+        // Mensagem pública: genérica, sem vazar estrutura de arquivos, versões ou permissões
+        config.error = 'Erro ao sincronizar a lista de bloqueios. Tentativa na próxima janela agendada.';
         saveAnaBlockConfig(config);
         return { success: false, error: config.error };
     }
