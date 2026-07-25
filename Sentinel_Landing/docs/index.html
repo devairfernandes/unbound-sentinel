@@ -12,21 +12,74 @@
 </head>
 <body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Navbar simplificada para Docs -->
-    <nav class="fixed w-full z-50 glass border-b border-[#1f2937]">
-        <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="../index.html" class="flex items-center gap-3">
-                    <img src="../Logo.webp" alt="Sentinel DNS Logo" class="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
-                    <span class="text-lg font-bold tracking-tight text-white">Sentinel DNS <span class="text-gray-500 font-normal ml-2">Docs</span></span>
+        <!-- Navigation -->
+    <nav :class="{ 'glass': (typeof scrolled !== 'undefined' && scrolled), 'bg-transparent border-transparent': !(typeof scrolled !== 'undefined' && scrolled) }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="/" class="flex items-center gap-3">
+                    <img src="/Logo.webp" alt="Sentinel DNS Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
                 </a>
-                <div class="flex items-center gap-4">
-                    <div class="relative hidden md:block">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                        <input type="text" placeholder="Buscar na documentação..." class="bg-gray-900 border border-gray-700 text-sm rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-blue-500 transition-colors">
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="/" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
+                    <a href="/arquitetura" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
+                    <a href="/seguranca" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Segurança</a>
+                    <a href="/comparativo" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
+                    <a href="/blog" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Blog</a>
+                    <a href="/docs" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
+                    <a href="/privacidade" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Privacidade</a>
+                    
+                    <div class="flex items-center gap-3 pl-4 border-l border-gray-800">
+                        <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors" title="Telegram">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </a>
+                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" class="text-gray-400 hover:text-white transition-colors" title="GitHub">
+                            <i data-lucide="github" class="w-5 h-5"></i>
+                        </a>
+                        <a href="/download" class="px-4 py-2 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
+                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+                        </a>
                     </div>
-                    <a href="../index.html" class="text-sm font-medium text-gray-400 hover:text-white ml-4">Voltar ao site</a>
                 </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-300 hover:text-white p-2">
+                        <i data-lucide="menu" x-show="!mobileMenuOpen"></i>
+                        <i data-lucide="x" x-show="mobileMenuOpen" x-cloak></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="md:hidden glass border-b border-gray-800 px-4 pt-2 pb-6 space-y-3"
+             x-cloak>
+            <a href="/" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Produto</a>
+            <a href="/arquitetura" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Arquitetura</a>
+            <a href="/seguranca" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Segurança</a>
+            <a href="/comparativo" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Comparativo</a>
+            <a href="/blog" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Blog</a>
+            <a href="/docs" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Docs</a>
+            <a href="/privacidade" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Privacidade</a>
+            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i> Telegram
+            </a>
+            <div class="pt-4 border-t border-gray-800 flex flex-col gap-3">
+                <a href="/download" class="w-full text-center px-4 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white">Download ISO</a>
+                <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="w-full text-center px-4 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i> Falar no WhatsApp
+                </a>
             </div>
         </div>
     </nav>
