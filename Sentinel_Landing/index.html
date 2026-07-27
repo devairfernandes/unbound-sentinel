@@ -476,7 +476,11 @@
                 
                 async init() {
                     try {
-                        const res = await fetch('/api/public/anablock-log');
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+                        const res = await fetch('/api/public/anablock-log', { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                        
                         if (res.ok) {
                             const data = await res.json();
                             this.logs = data.logs;
@@ -487,7 +491,7 @@
                             return;
                         }
                     } catch (e) {
-                        // Fallback silenciado
+                        // Fallback silenciado (inclui AbortError)
                     }
                     
                     // Fallback visual para a landing page estática
