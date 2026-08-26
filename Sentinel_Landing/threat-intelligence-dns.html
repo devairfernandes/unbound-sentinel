@@ -13,31 +13,33 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Threat Intelligence DNS e Segurança - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Impeça ataques antes que aconteçam. O Sentinel integra Threat Intelligence no DNS para bloquear Ransomware, Botnets e Phishing na raiz.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <meta name="keywords" content="Threat Intelligence DNS, DNS Security, proteção ransomware">
+    <link rel="canonical" href="https://sentineldns.net/threat-intelligence-dns.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/threat-intelligence-dns.html">
+    <meta property="og:title" content="Threat Intelligence via DNS | Sentinel DNS">
+    <meta property="og:description" content="Inteligência de ameaças integrada ao DNS recursivo. Feeds automáticos de IOCs, RPZ e bloqueio proativo de domínios maliciosos.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="Threat Intelligence via DNS | Sentinel DNS">
+    <meta name="twitter:description" content="Inteligência de ameaças integrada ao DNS recursivo. Feeds automáticos de IOCs, RPZ e bloqueio proativo de domínios maliciosos.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,12 +47,11 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "Threat Intelligence via DNS", "item": "https://sentineldns.net/threat-intelligence-dns.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,67 +122,51 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Threat Intelligence Integrada</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Transforme o DNS no pilar de segurança mais forte da sua infraestrutura corporativa.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
+        <div class="glass-card p-8 rounded-xl border border-gray-800 mb-16">
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <div class="flex-shrink-0 bg-gray-900 p-4 rounded-full border border-red-500/30">
+                    <i data-lucide="shield-alert" class="w-12 h-12 text-red-500"></i>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
+                    <h2 class="text-3xl font-bold text-white mb-4">Bloqueio Proativo de Ameaças</h2>
+                    <p class="text-gray-300 mb-4">Não espere o tráfego malicioso chegar ao seu Next-Generation Firewall (NGFW). 90% das infecções de malware e conexões Command & Control (C2) de ransomware dependem do DNS para localizar seus servidores externos.</p>
+                    <p class="text-gray-300 mb-6">Com o <a href="/dns-firewall.html" class="text-blue-400 hover:underline">motor RPZ</a> do Sentinel DNS alimentado por listas de Threat Intelligence, a requisição é interceptada antes da camada IP. Isso libera processamento nos seus firewalls, protege dispositivos IoT que não comportam antivírus, e corta o ciclo de vida do ataque (Kill Chain) no primeiro estágio.</p>
                 </div>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
         </div>
-    </main>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 border border-gray-800 rounded-xl bg-[#0a0a0a]">
+                <h3 class="text-xl font-bold text-white mb-2">Anti-Phishing</h3>
+                <p class="text-gray-400 text-sm">Protege os usuários contra links falsos recebidos por e-mail, bloqueando domínios recém-registrados e typosquatting.</p>
+            </div>
+            <div class="p-6 border border-gray-800 rounded-xl bg-[#0a0a0a]">
+                <h3 class="text-xl font-bold text-white mb-2">Ransomware & C2</h3>
+                <p class="text-gray-400 text-sm">Bloqueia a comunicação das máquinas já infectadas com o servidor de comando do atacante, impedindo o download da chave de criptografia.</p>
+            </div>
+            <div class="p-6 border border-gray-800 rounded-xl bg-[#0a0a0a]">
+                <h3 class="text-xl font-bold text-white mb-2">Cryptomining</h3>
+                <p class="text-gray-400 text-sm">Interrompe a atividade de botnets de mineração de criptomoedas, poupando CPU e banda da sua infraestrutura.</p>
+            </div>
+        </div>
+    
+
+                <h2 class="text-3xl font-bold mb-6 text-white mt-12">Integração Contínua com Bases Globais</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    O cenário de ameaças cibernéticas muda a cada segundo. Servidores DNS tradicionais resolvem qualquer domínio malicioso perfeitamente, servindo como veículo de infecção passivo.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Através da nossa funcionalidade de Threat Intelligence, o Sentinel DNS ingere dezenas de feeds de inteligência de ameaças (CTI) em tempo real. Phishing, botnets, domínios de ransomware e ataques zero-day são bloqueados na fonte, reduzindo drasticamente os incidentes no SOC e blindando todos os dispositivos conectados à rede.
+                </p>
+    
+</main>
 
     
     

@@ -13,42 +13,16 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentação Sentinel DNS | Guias, Instalação e API</title>
-    <meta name="description" content="Documentação oficial do Sentinel DNS: guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock, DoH/DoT e API REST. Para ISPs e datacenters.">
+    <title>Políticas RPZ - Sentinel DNS</title>
+    <meta name="description" content="Documentação oficial: Políticas RPZ. Acesse guias, tutoriais e manuais completos para configurar, otimizar e extrair o máximo de desempenho e segurança do Sentinel DNS.">
     <link rel="icon" type="image/webp" href="../Logo.webp">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/docs/">
+    <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/docs/politicas-rpz.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/docs/">
-    <meta property="og:title" content="Documentação Sentinel DNS | Guias, Instalação e API">
-    <meta property="og:description" content="Guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock e API REST para ISPs e datacenters.">
-    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
-    <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="Sentinel DNS">
-
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Documentação Sentinel DNS | Guias e API">
-    <meta name="twitter:description" content="Documentação oficial: instalação, RPZ, AnaBlock, DoH/DoT e API REST do Sentinel DNS.">
-    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
-    <!-- Schema.org: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Documentação", "item": "https://sentineldns.net/docs/"}
-      ]
-    }
-    </script>
 </head>
 <body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
@@ -151,154 +125,143 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 pt-8 pb-24 md:pl-10">
+        
+<main class="flex-1 pt-8 pb-24 md:pl-10">
+
             <div class="prose prose-invert max-w-3xl">
-                <h1 class="text-4xl font-bold mb-4">Introdução ao Sentinel DNS</h1>
-                <p class="text-xl text-gray-400 mb-8">Bem-vindo à documentação oficial. Aprenda a instalar, configurar e escalar seu cluster de DNS seguro.</p>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 text-xs font-semibold bg-indigo-500/20 text-indigo-400 rounded-full border border-indigo-500/30">Motor Core</span>
+                    <span class="px-3 py-1 text-xs font-mono bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">Unbound DNS</span>
+                </div>
                 
+                <h1 class="text-4xl font-bold mb-4">Políticas RPZ (Response Policy Zones)</h1>
+                <p class="text-xl text-gray-300 leading-relaxed mb-8">O mecanismo central de filtragem do Sentinel DNS, permitindo a modificação programática de respostas DNS para proteger redes, bloquear ameaças e garantir compliance judicial de forma transparente aos usuários.</p>
+
                 <hr class="border-gray-800 my-8">
+
+                <h2 class="text-2xl font-bold mb-4 text-white">1. O que é RPZ e como o Sentinel utiliza</h2>
+                <p class="text-gray-300 mb-4">Response Policy Zones (RPZ) é um padrão aberto que atua como um "DNS Firewall". Ele permite que um resolver DNS (como o Unbound, motor do Sentinel) modifique respostas DNS baseadas em políticas definidas localmente antes que sejam entregues ao cliente (usuário/dispositivo final).</p>
+                <p class="text-gray-300 mb-4">O Sentinel DNS utiliza RPZ em duas grandes frentes:</p>
+                <ul class="list-disc pl-6 space-y-2 text-gray-300 mb-6">
+                    <li><strong>Compliance Regulatório:</strong> Através do módulo <em>AnaBlock</em>, injeta domínios bloqueados judicialmente pela ANATEL direto na resolução de ISPs, inviabilizando acessos ilegais como pirataria ou apostas irregulares.</li>
+                    <li><strong>Cyber Segurança:</strong> Bloqueia consultas em tempo real de infraestruturas conhecidas de malware, phishing e botnets, extraídas via Threat Intelligence.</li>
+                </ul>
+
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">2. Tipos de Política Suportados</h2>
+                <p class="text-gray-300 mb-4">Ao construir uma zona RPZ, o Sentinel permite quatro comportamentos principais, que determinam como o tráfego interceptado é tratado:</p>
                 
-                <h2 class="text-2xl font-bold mb-4">O que é?</h2>
-                <p class="text-gray-300 leading-relaxed mb-6">O Sentinel DNS é um resolvedor recursivo de alta performance focado em ISPs, Datacenters e cenários corporativos críticos. Diferente de softwares generalistas, ele foi construído do zero com foco em <strong>segurança por design</strong> e <strong>eficiência I/O</strong>.</p>
-                
-                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-8">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5"></i>
-                        <p class="text-sm text-blue-100 m-0">Recomendamos sempre utilizar a versão LTS em ambientes de produção que exijam uptime de 99.999%.</p>
+                <div class="space-y-4 mb-6">
+                    <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">1. NXDOMAIN (Non-Existent Domain) <span class="ml-2 text-xs font-mono px-2 py-0.5 bg-gray-800 rounded text-gray-400">Recomendado</span></h4>
+                        <p class="text-sm text-gray-400">Retorna um erro afirmando que o domínio não existe. Os browsers exibem "Site não encontrado". É a abordagem mais comum e mais leve (menor tráfego gerado) para CTI e AnaBlock.</p>
+                    </div>
+                    <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">2. Redirecionamento Local (Walled Garden)</h4>
+                        <p class="text-sm text-gray-400">Responde à consulta DNS com um IP (A ou AAAA) controlado pelo provedor. Útil quando o ISP deseja redirecionar o usuário para uma página de aviso corporativa ("Acesso bloqueado por determinação judicial").</p>
+                    </div>
+                    <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">3. NODATA</h4>
+                        <p class="text-sm text-gray-400">Retorna uma resposta vazia sem nenhum registro A/AAAA, mas sem erro. Usado para bloquear um protocolo específico em ambientes de dupla pilha (IPv4/IPv6).</p>
+                    </div>
+                    <div class="bg-gray-900/60 p-4 rounded border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">4. Passthrough (Whitelist)</h4>
+                        <p class="text-sm text-gray-400">Força a resolução correta e ignora regras RPZ posteriores. Fundamental para implementar "Allow Lists" e mitigar rapidamente falsos positivos que poderiam quebrar aplicações vitais.</p>
                     </div>
                 </div>
 
-                <h2 class="text-2xl font-bold mb-4">Instalação via ISO (Recomendado)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel DNS é empacotado nativamente como um appliance em Rocky Linux. A forma mais rápida e segura de instalar é utilizando nossa ISO otimizada para Bare Metal ou Hypervisors (Proxmox, VMware):</p>
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">3. Criando uma Política RPZ</h2>
+                <p class="text-gray-300 mb-4">O motor Unbound do Sentinel lê zonas padrão de DNS formatadas para RPZ. A edição manual geralmente é feita na aba <strong>Custom RPZ</strong> do painel, mas internamente elas residem em <code>/etc/unbound/local.d/</code>.</p>
                 
-                <div class="space-y-4 mb-8">
-                    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                        <h3 class="font-semibold text-white mb-2">Passos para Instalação</h3>
-                        <ol class="list-decimal list-inside text-gray-400 space-y-2 text-sm">
-                            <li>Baixe a ISO mais recente na nossa <a href="../download.html" class="text-blue-400 hover:underline">página de downloads</a>.</li>
-                            <li>Faça o boot da ISO em uma máquina virtual (ex: Proxmox) ou grave em um pendrive (Rufus).</li>
-                            <li>Siga o assistente de instalação automatizado (detecta rede e discos automaticamente).</li>
-                            <li>Após o reboot, acesse o painel através do IP exibido na tela do terminal.</li>
-                        </ol>
+                <h3 class="text-lg font-semibold text-gray-200 mb-2 mt-4">Sintaxe Padrão de Arquivo de Zona</h3>
+                <div class="bg-[#1e1e1e] rounded-lg border border-gray-800 overflow-hidden mb-6">
+                    <div class="bg-gray-800/50 px-4 py-2 border-b border-gray-800 text-xs text-gray-400 font-mono">/etc/unbound/local.d/custom-rpz.zone</div>
+                    <div class="p-4 overflow-x-auto">
+<pre class="text-sm font-mono leading-relaxed"><span class="text-[#569cd6]">$TTL</span> <span class="text-[#b5cea8]">1h</span>
+@ IN SOA localhost. root.localhost. (
+    2026072501 ; Serial
+    1h         ; Refresh
+    15m        ; Retry
+    1w         ; Expire
+    1h         ; Minimum TTL
+)
+             IN NS localhost.
+
+<span class="text-gray-500">; Exemplo 1: Bloqueio de C2 via NXDOMAIN</span>
+dominiomalicioso.com    IN CNAME .
+*.dominiomalicioso.com  IN CNAME .
+
+<span class="text-gray-500">; Exemplo 2: Bloqueio Judicial com Walled Garden</span>
+betilegal.exemplo.br    IN A     192.168.10.100
+
+<span class="text-gray-500">; Exemplo 3: Passthrough (Bypass de segurança)</span>
+api.meubanco.com.br     IN CNAME rpz-passthrough.</pre>
                     </div>
                 </div>
 
-                <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 class="font-semibold text-white mb-2">Integração AnaBlock</h3>
-                    <ul class="list-disc list-inside text-gray-400 space-y-2 text-sm">
-                        <li><strong>Como Funciona:</strong> Quando habilitado, o Sentinel consome a API Judicial da AnaBlock (verificando os endpoints <code>domains/all</code>, <code>url/all</code>, <code>ipv4/block</code> e <code>ipv6/block</code>).</li>
-                        <li><strong>Frequência:</strong> A atualização ocorre de forma silenciosa e periódica. Se houver timeout ou erro de autorização IP, o sistema notifica nos logs do backend e preserva o cache pré-existente (sem causar downtime).</li>
-                    </ul>
-                </div>
-                
-                <hr class="border-gray-800 my-10">
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">4. Prioridade de Zonas e Execução</h2>
+                <p class="text-gray-300 mb-4">Como o Sentinel opera múltiplas fontes de bloqueio simultaneamente, a ordem de avaliação é rígida para garantir estabilidade operacional e priorizar exceções de segurança. A prioridade avalia o fluxo (o primeiro "match" vence):</p>
 
-                <h2 class="text-2xl font-bold mb-4" id="dimensionamento">Dimensionamento (Hardware)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel aproveita ao máximo os recursos disponíveis graças ao mecanismo nativo de Auto-Tuning. O hardware recomendado varia conforme o tamanho da rede:</p>
-                
-                <div class="overflow-x-auto mb-8">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="bg-gray-900 border-b border-gray-800">
+                <div class="overflow-hidden border border-gray-800 rounded-lg mb-6 bg-gray-900/30">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="border-b border-gray-800 bg-gray-900/60">
                             <tr>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Perfil de Rede</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Clientes Ativos</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">CPU</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">RAM</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Disco</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-gray-300">Prioridade</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-gray-300">Tipo de Zona</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-gray-300">Propósito</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800">
                             <tr>
-                                <td class="px-4 py-3 text-gray-400">Pequeno (Rede Local)</td>
-                                <td class="px-4 py-3 text-gray-400">Até 5.000</td>
-                                <td class="px-4 py-3 text-gray-400">2 a 4 vCPUs</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 GB</td>
-                                <td class="px-4 py-3 text-gray-400">30 GB SSD</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-bold">1 (Altíssima)</span></td>
+                                <td class="px-6 py-4 font-mono text-gray-300">Allow List Manual</td>
+                                <td class="px-6 py-4 text-gray-400">Domínios isentos pelo administrador local (Whitelists).</td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-3 text-gray-400">Médio (ISP)</td>
-                                <td class="px-4 py-3 text-gray-400">5.000 a 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 GB</td>
-                                <td class="px-4 py-3 text-gray-400">60 GB NVMe</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs font-bold">2 (Alta)</span></td>
+                                <td class="px-6 py-4 font-mono text-gray-300">AnaBlock (Anatel)</td>
+                                <td class="px-6 py-4 text-gray-400">Conformidade legal estrita (decisões não podem ser ignoradas).</td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-3 text-gray-400">Elite (Alto Tráfego)</td>
-                                <td class="px-4 py-3 text-gray-400">Acima de 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">16 a 32 GB</td>
-                                <td class="px-4 py-3 text-gray-400">100 GB NVMe Enterprise</td>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-bold">3 (Média)</span></td>
+                                <td class="px-6 py-4 font-mono text-gray-300">Threat Intel API</td>
+                                <td class="px-6 py-4 text-gray-400">Phishing, C2, ingeridos por feeds externos (ex: Abuse.ch).</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4"><span class="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs font-bold">4 (Normal)</span></td>
+                                <td class="px-6 py-4 font-mono text-gray-300">Resolução Pública</td>
+                                <td class="px-6 py-4 text-gray-400">Sem match em RPZ? Encaminha a query aos Root Servers nativos.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="bg-blue-900/10 border border-blue-500/20 rounded-lg p-5 mb-10">
-                    <h3 class="font-semibold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Dicas de Virtualização (Proxmox/KVM)</h3>
-                    <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
-                        <li><strong>Processador:</strong> Configure a CPU como <code>host</code> em vez de <code>kvm64</code> para acelerar cálculos do DNSSEC.</li>
-                        <li><strong>Rede:</strong> Utilize sempre a interface <code>VirtIO</code> para eliminar latências UDP.</li>
-                        <li><strong>Clock:</strong> Para DNS recursivo de alta concorrência, o clock do núcleo (GHz) importa mais que a quantidade.</li>
-                    </ul>
+                <h2 class="text-2xl font-bold mb-4 mt-10 text-white">5. Validação Automática (Anti-Crash)</h2>
+                <p class="text-gray-300 mb-4">Um dos maiores riscos na operação de grandes RPZs é a ingestão de caracteres inválidos em listas de terceiros, o que corrompe o arquivo de zona e impede a inicialização do Unbound (deixando o ISP offline).</p>
+                <div class="bg-emerald-900/20 p-5 rounded-xl border border-emerald-500/30 mb-6">
+                    <h4 class="flex items-center gap-2 font-bold text-emerald-400 mb-2">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i> Validador Sintático Integrado
+                    </h4>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Antes do Sentinel aplicar qualquer bloco via AnaBlock ou API (e antes de acionar um reload no Unbound), o daemon interno realiza uma validação rigorosa (Regex + RFC 1035) em todos os FQDNs. Se a linha contiver um espaço extra não escapado, caractere invisível, acentuação (IDN não-punycode) ou violar o padrão DNS, <strong>o domínio defeituoso é ignorado e apenas um erro é logado</strong>. A zona final sobe limpa, preservando a disponibilidade integral da resolução DNS.
+                    </p>
                 </div>
 
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="troubleshooting">Troubleshooting Comum & Sysadmin</h2>
-                
-                <div class="space-y-6 mb-10">
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Logs em Tempo Real (Journald)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Monitorar o tráfego e logs de erro do motor Unbound:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            journalctl -u unbound -f
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Validação de Configuração (Checkconf)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Sempre que alterar arquivos em <code>/etc/unbound/</code>, valide a sintaxe:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            unbound-checkconf
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Reprocessar Rede (Modo Emergência)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Para religar o prompt interativo em casos de falha crônica de rede ou mudança de gateway local:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            rm -f /root/.firstboot_done && /root/firstboot-network.sh
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="faq">FAQ Técnico</h2>
-                
-                <div class="space-y-6 mb-12">
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">O Unbound perde cache ao reiniciar?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não. O Sentinel utiliza <em>Persistent Cache</em> invocado no boot via systemd. Ele grava dump na memória antes de desligar e recarrega em milissegundos sem esbarrar no disco, evitando lentidão matinal na rede de ISPs.</p>
-                    </div>
-                    
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Por que algumas atualizações param no plano Vitalício?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">As plataformas PRO Lite possuem a licença de uso do DNS para sempre (nunca expiram), mas o consumo e curadoria de bandas pesadas de feeds de ameaças, malwares frescos e a base MaxMind GeoLite2 exigem custo contínuo de nuvem e inteligência. É preciso manter o <em>Add-on CTI</em> para que as queries à API não retornem limites.</p>
-                    </div>
-
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Posso criar regras de IPtables brutas?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não é recomendado contornar o <code>firewalld</code> no Rocky Linux do Sentinel. Use o módulo de Firewall embutido. Ao bloquear tráfego DNS para ranges específicos pelo Firewalld, o motor subjacente desvincula o serviço da zona automaticamente na camada kernel de forma limpa.</p>
-                    </div>
-                </div>
-                
             </div>
-        </main>
         
+
+
+                <h2 class="text-2xl font-bold mb-4 mt-8">Arquitetura de RPZ no Sentinel DNS</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Response Policy Zone (RPZ) é uma tecnologia avançada que permite modificar a resolução de nomes (DNS) utilizando zonas locais que sobrescrevem os dados oficiais. No Sentinel DNS, o RPZ é o motor que impulsiona os filtros de malware, a integração com Threat Intelligence e o AnaBlock.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Nossa implementação de RPZ é otimizada na camada de memória para suportar listas com mais de 5 milhões de regras ativas simultaneamente, sem causar atrasos de lookup (overhead &lt; 0.5ms). Você pode carregar políticas via arquivos estáticos, transferências de zona seguras ou utilizando nossas APIs JSON.
+                </p>
+    
+</main>
+
     </div>
 
-    
     <!-- Footer -->
     
         <!-- Footer -->
@@ -413,9 +376,71 @@
     </footer>
 
 
-    <!-- Initialize Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
     <script>
         lucide.createIcons();
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('anablockLog', () => ({
+                logs: [],
+                status: 'INACTIVE',
+                lastSync: null,
+                domainCount: 0,
+                loading: true,
+                
+                async init() {
+                    try {
+                        const res = await fetch('/api/public/anablock-log');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.logs = data.logs;
+                            this.status = data.status;
+                            this.lastSync = data.lastSync;
+                            this.domainCount = data.domainCount;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao carregar log', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get statusText() {
+                    if (this.loading) return 'CARREGANDO';
+                    if (this.status === 'ACTIVE') return 'ACTIVE';
+                    if (this.status === 'DELAYED') return 'DELAYED (ALERTA)';
+                    return 'INACTIVE';
+                },
+                
+                get statusClass() {
+                    if (this.loading) return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+                    if (this.status === 'ACTIVE') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    if (this.status === 'DELAYED') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                },
+                
+                formatLog(line) {
+                    const match = line.match(/^\[(.*?)\] (.*)$/);
+                    if (!match) return line;
+                    const time = new Date(match[1]).toLocaleTimeString('pt-BR');
+                    let msg = match[2];
+                    
+                    let color = 'text-gray-300';
+                    if (msg.includes('ERROR') || msg.includes('Failed')) color = 'text-red-400 font-medium';
+                    else if (msg.includes('Success') || msg.includes('Syntax OK')) color = 'text-emerald-400';
+                    else if (msg.includes('Fetching') || msg.includes('Validating')) color = 'text-blue-400';
+                    
+                    return `<span class="text-blue-500/70 mr-2">[${time}]</span> <span class="${color}">${msg}</span>`;
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Nunca';
+                    return new Date(dateStr).toLocaleString('pt-BR');
+                }
+            }));
+        });
     </script>
 </body>
 </html>

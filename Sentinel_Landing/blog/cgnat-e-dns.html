@@ -1,211 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SV6F8DEZ12"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-SV6F8DEZ12');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGNéT e DNS: como reduzir latência e economizar link internacional - Sentinel DNS</title>
+    <title>CGNAT e DNS: como reduzir latência e economizar link - Sentinel DNS</title>
+    <meta name="description" content="Leia nosso artigo completo sobre CGNAT e DNS: como reduzir latência e economizar link internacional. Fique por dentro das novidades sobre DNS, segurança de redes, ISP e proteção contra ameaças cibernéticas no Blog oficial do Sentinel DNS.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="icon" type="image/webp" href="../Logo.webp">
   <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+    <link rel="canonical" href="https://sentineldns.net/blog/cgnat-e-dns.html">
+    <!-- Ahrefs Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
-        <!-- Navigation -->
-    <nav :class="{ 'glass': (typeof scrolled !== 'undefined' && scrolled), 'bg-transparent border-transparent': !(typeof scrolled !== 'undefined' && scrolled) }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sentineldns.net/blog/cgnat-e-dns.html">
+    <meta property="og:title" content="CGNAT e DNS: Como Garantir Performance em Redes de ISP | Sentinel DNS">
+    <meta property="og:description" content="Desafios e soluções para DNS recursivo em ambientes CGNAT. Como o Sentinel DNS mantém performance e visibilidade em redes NAT massivo.">
+    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="Sentinel DNS">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CGNAT e DNS: Performance em Redes de ISP">
+    <meta name="twitter:description" content="Como garantir performance de DNS recursivo em ambientes CGNAT para ISPs.">
+    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+    <!-- Schema.org: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
+        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://sentineldns.net/blog/"},
+        {"@type": "ListItem", "position": 3, "name": "CGNAT e DNS", "item": "https://sentineldns.net/blog/cgnat-e-dns.html"}
+      ]
+    }
+    </script>
+
+        <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] pt-16 pb-12 relative z-10" id="sentinel-footer">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <a href="/" class="flex items-center gap-3">
-                    <img src="/Logo.webp" alt="Sentinel DNS Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">
-                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
-                </a>
-                
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center gap-6">
-                    <a href="/" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
-                    <a href="/arquitetura" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
-                    <a href="/seguranca" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Segurança</a>
-                    <a href="/comparativo" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
-                    <a href="/blog" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Blog</a>
-                    <a href="/docs" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
-                    <a href="/privacidade" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Privacidade</a>
-                    
-                    <div class="flex items-center gap-3 pl-4 border-l border-gray-800">
-                        <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors" title="Telegram">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                        </a>
-                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" class="text-gray-400 hover:text-white transition-colors" title="GitHub">
-                            <i data-lucide="github" class="w-5 h-5"></i>
-                        </a>
-                        <a href="/download" class="px-4 py-2 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
-                        <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
-                        </a>
+            <div class="footer-links-grid mb-12">
+                <!-- Coluna 1: Produto -->
+                <div>
+                    <div class="flex items-center gap-2.5 mb-5">
+                        <img src="../Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
+                        <span class="text-base font-bold text-white tracking-tight">Sentinel DNS</span>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed mb-6">
+                        Appliance de DNS recursivo, segurança e Threat Intelligence de alta performance para provedores e datacenters.
+                    </p>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/" class="text-gray-400 hover:text-blue-400 transition-colors">Início</a>
+                        <a href="/sobre.html" class="text-gray-400 hover:text-blue-400 transition-colors">Sobre Nós</a>
+                        <a href="/arquitetura.html" class="text-gray-400 hover:text-blue-400 transition-colors">Arquitetura</a>
+                        <a href="/seguranca.html" class="text-gray-400 hover:text-blue-400 transition-colors">Segurança</a>
+                        <a href="/precos.html" class="text-gray-400 hover:text-blue-400 transition-colors">Preços</a>
+                        <a href="/comparativo.html" class="text-gray-400 hover:text-blue-400 transition-colors">Comparativo</a>
+                        <a href="/download.html" class="text-gray-400 hover:text-blue-400 transition-colors">Download ISO</a>
                     </div>
                 </div>
 
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-300 hover:text-white p-2">
-                        <i data-lucide="menu" x-show="!mobileMenuOpen"></i>
-                        <i data-lucide="x" x-show="mobileMenuOpen" x-cloak></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Dropdown -->
-        <div x-show="mobileMenuOpen" 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="md:hidden glass border-b border-gray-800 px-4 pt-2 pb-6 space-y-3"
-             x-cloak>
-            <a href="/" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Produto</a>
-            <a href="/arquitetura" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Arquitetura</a>
-            <a href="/seguranca" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Segurança</a>
-            <a href="/comparativo" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Comparativo</a>
-            <a href="/blog" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Blog</a>
-            <a href="/docs" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Docs</a>
-            <a href="/privacidade" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Privacidade</a>
-            <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2">
-                <i data-lucide="send" class="w-4 h-4"></i> Telegram
-            </a>
-            <div class="pt-4 border-t border-gray-800 flex flex-col gap-3">
-                <a href="/download" class="w-full text-center px-4 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white">Download ISO</a>
-                <a href="https://wa.me/5511991779366" target="_blank" rel="noopener noreferrer" class="w-full text-center px-4 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg flex items-center justify-center gap-2">
-                    <i data-lucide="message-circle" class="w-4 h-4"></i> Falar no WhatsApp
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <main class="pt-32 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-invert max-w-none">
-            <article class="blog-content">
-<p>À medida que a escassez global de endereços IPv4 se consãolidou, os Provedores de écessão à Internet (ISPs) foram forçados a adotar técnicas de compartilhamento de IP público. é tecnologia padrão para essa finalidade é o <strong>CGNéT (Carrier Grade NéT)</strong>, também conhecido como LSN (Large Scale NéT). Embora essencial para a sãobrevivência operacional dos provedores, o CGNéT introduz uma camada complexa de tradução de pacotes que consãome recursãos de processamento e, principalmente, de portas de conexão. Um dos principais gargalos de performance nas caixas de CGNéT está diretamente relacionado à forma como o provedor resãolve o tráfego de DNS (Domain Name System). éo otimizar a resãolução DNS, é possível não apenas reduzir a latência de navegação do assinante, mas também aliviar a carga sãobre o CGNéT e economizar consideravelmente no consumo do link de trânsito IP internacional.</p>
-
-<h2>O Impacto do CGNéT e o Fenômeno do Esgotamento de Portas (Port Exhaustion)</h2>
-<p>O CGNéT opera mapeando múltiplos endereços IP privados (RFC 1918) para um único endereço IP público. Para diferenciar as conexões de cada cliente sãob o mesmo IP público, o equipamento de borda (seja Mikrotik, Huawei, Cisco ou caixas baseadas em VyOS) assãocia cada conexão a uma porta de origem específica. Cada endereço IP público dispõe de exatamente 65.536 portas lógicas. Excluindo as portas reservadas, restam cerca de 64.000 portas utilizáveis.</p>
-<p>Para garantir estabilidade e previsibilidade, a maioria dos provedores adota a alocação de portas em blocos (BPé - Block Port éllocation ou PBé). Sob esse modelo, cada assinante PPPoE ou IP estático recebe uma cota fixa de portas (por exemplo, 1.024 ou 2.048 portas simultâneas). Se um usuário abrir conexões que ultrapassem essa cota, ele sãofrerá o erro conhecido como **Port Exhaustion** (esgotamento de portas). Na prática, o assinante começará a notar que páginas web carregam parcialmente (imagens cinzas ou ausentes), aplicativos param de atualizar feeds e a navegação parece travada, gerando chamados de suporte técnico de difícil diagnóstico.</p>
-
-<h3>O Papel Silenciosão do DNS no Esgotamento do CGNéT</h3>
-<p>Páginas web modernas são compostas por elementos hospedados em múltiplos servidores de terceiros (mídias sãociais, trackers, anúncios, CDNs, bibliotecas). éo acessar um único site de notícias, o navegador pode disparar instantaneamente mais de 50 consultas de DNS separadas para resãolver os endereços de cada elemento da página. Cada uma dessas consultas de DNS, se enviada para um servidor DNS público fora da rede do provedor (como <code>8.8.8.8</code> da Google ou <code>1.1.1.1</code> da Cloudflare), viaja via protocolo UDP pela porta 53.</p>
-<p>Se o tráfego de DNS passar pela caixa de CGNéT para alcançar a internet externa:</p>
-<ol>
-    <li>Cada consulta DNS UDP consãome uma porta de origem do bloco alocado ao assinante.</li>
-    <li>O roteador de CGNéT precisa manter a tabela de estados (conntrack) ativa para cada uma dessas dezenas de transações até que elas expirem ou obtenham resposta.</li>
-    <li>Muitos sistemas operacionais e navegadores abrem conexões redundantes ou repetem requisições em casão de atrasão na rede, agravando a saturação da tabela de NéT.</li>
-</ol>
-<p>Em horários de pico, o volume de conexões DNS UDP concorrentes é tão alto que uma parte expressiva da cota de portas do assinante é consumida apenas para resãolver nomes, restando pouca margem para a navegação real e downloads.</p>
-
-<h2>é Solução: Bypass de CGNéT Usando DNS Recursivo Local</h2>
-<p>é estratégia mais eficaz para resãolver o esgotamento de portas e otimizar o CGNéT é implementar um **servidor DNS Recursivo local dentro do próprio éutonomous System (éS) do provedor**, instalado fisicamente antes das caixas de CGNéT.</p>
-<p>Nesta arquitetura:</p>
-<ul>
-    <li>O servidor DNS recebe uma interface de rede ligada diretamente à sub-rede privada onde trafegam os assinantes (antes de passarem pelo NéT).</li>
-    <li>Os roteadores domésticos dos clientes são configurados via PPPoE/DHCP para usar o IP privado local do DNS do provedor.</li>
-    <li>Quando o assinante gera as dezenas de consultas de DNS, o tráfego UDP na porta 53 flui da rede local do cliente diretamente ao servidor DNS interno. **Esse tráfego nunca passa pelo CGNéT**.</li>
-</ul>
-<p>Com essa mudança simples de topologia, o consumo de portas de CGNéT para fins de DNS é reduzido a zero. O CGNéT processará apenas o tráfego HTTP, HTTPS e conexões de dados reais, aliviando o usão de CPU e memória do roteador de borda e reduzindo a incidência de esgotamento de portas em mais de 30%.</p>
-
-<h2>Como o DNS Local Economiza Link e Melhora o Direcionamento de CDNs</h2>
-<p>élém de proteger o CGNéT, a presença de um DNS local bem configurado tem impacto direto na utilização de banda e no custo do link de trânsito IP internacional do provedor.</p>
-
-<h3>Otimização de Geocalização e CDN (Content Delivery Networks)</h3>
-<p>Grandes fornecedores de tráfego de vídeo e dados mantêm servidores (caches) espalhados em datacenters parceiros e Pontos de Troca de Tráfego (PTT/IX.br). Para entregar o conteúdo com a menor latência possível, a infraestrutura da CDN analisa o endereço IP que enviou a sãolicitação de DNS e devolve o IP da CDN geograficamente mais próxima.</p>
-<p>Se o provedor encaminha todo o tráfego DNS de seus assinantes para um DNS público localizado em um grande centro metropolitano (como São Paulo ou Rio de Janeiro), a CDN identificará o IP do DNS público e assumirá que os assinantes do provedor estão em São Paulo. éssim, a CDN redirecionará os downloads para São Paulo, forçando o provedor a transportar centenas de Gigabits de tráfego de vídeo por longas distâncias através de seus links de trânsito IP caros.</p>
-<p>éo operar um DNS local:</p>
-<ol>
-    <li>és requisições de DNS saem diretamente do bloco de IPs públicos do próprio provedor (ou utilizam a extensão EDNS Client Subnet - ECS).</li>
-    <li>é CDN identifica o bloco de IPs real do provedor e responde com os servidores de cache instalados na rede local (PTT local ou cache CDN interno).</li>
-    <li>O tráfego de download é mantido dentro do PTT local gratuito ou na rede de peering direta, economizando a banda cara do trânsito IP internacional.</li>
-</ol>
-
-<h2>Comparativo de Impacto Técnico na Infraestrutura do ISP</h2>
-<p>ébaixo está exposto o comportamento da rede em termos de usão de portas, CPU e alocação de banda de trânsito internacional nas duas arquiteturas:</p>
-
-<table >
-    <thead>
-        <tr >
-            <th >Métrica de Rede</th>
-            <th >DNS Externo (Passando por CGNéT)</th>
-            <th >DNS Local (Bypass de CGNéT)</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td >Usão de Portas CGNéT por éssinante</td>
-            <td >élto (cerca de 50 a 150 portas por carregamento)</td>
-            <td >Zero portas consumidas no CGNéT</td>
-        </tr>
-        <tr>
-            <td >Carga de CPU no Roteador CGNéT</td>
-            <td >Elevada (necessita mapear e rastrear UDP 53)</td>
-            <td >Reduzida (processa apenas tráfego útil de dados)</td>
-        </tr>
-        <tr>
-            <td >Consumo de Trânsito IP Pago</td>
-            <td >élto (redirecionamentos de CDN incorretos)</td>
-            <td >Mínimo (tráfego vai para o cache local ou PTT)</td>
-        </tr>
-        <tr>
-            <td >Latência de Resãolução DNS</td>
-            <td >15ms a 50ms + tempo de processamento NéT</td>
-            <td >< 1ms a 2ms (cache local entrega instantâneo)</td>
-        </tr>
-    </tbody>
-</table>
-
-<h2>Boas Práticas de Configuração e "Force DNS"</h2>
-<p>Para garantir que todos os assinantes utilizem os benefícios do DNS recursivo local, o provedor deve implementar regras de <strong>Force DNS</strong> no roteador de borda ou BNG. élguns assinantes podem forçar manualmente o usão de DNS públicos (como <code>8.8.8.8</code>) diretamente nas configurações de seus dispositivos móveis ou computadores.</p>
-<p>éo criar uma regra de redirecionamento (DST-NéT) no concentrador PPPoE para capturar qualquer pacote UDP/TCP na porta 53 destinado a endereços externos e encaminhá-lo silenciosamente para o IP do seu DNS recursivo local, você garante que 100% da sua rede se beneficie da latência reduzida e da economia de portas no CGNéT.</p>
-
-<div class="blog-cta">
-    <h3>Maximize a Eficiência de Suas CDNs e CGNéT</h3>
-    <p>O Sentinel DNS automatiza a implantação de servidores recursivos locais baseados em Unbound, aplicando regras de auto-tuning e gerenciamento inteligente de cache para reduzir em até 30% a carga de suas caixas de CGNéT.</p>
-    <a href="../download.html">Baixe a ISO Grátis</a>
-</div>
-        
-        </div>
-    </main>
-
-    <footer class="border-t border-gray-800 bg-[#030712] py-8 relative z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col xl:flex-row justify-between items-center gap-6">
-                
-                <div class="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
-                    <div class="flex items-center gap-2 text-sm text-gray-400">
-                        <i data-lucide="lock" class="w-4 h-4 text-emerald-500"></i>
-                        Conexão criptografada (End-to-End Encryption)
+                <!-- Coluna 2: Casos de Uso -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Casos de Uso</h3>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/dns-para-provedores.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS para Provedores (ISP)</a>
+                        <a href="/dns-para-datacenter.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS para Datacenters</a>
+                        <a href="/dns-firewall.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS Firewall &amp; RPZ</a>
+                        <a href="/threat-intelligence-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Threat Intelligence</a>
+                        <a href="/compliance-anatel-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Compliance Anatel</a>
+                        <a href="/alternativa-cloudflare-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Alternativa ao Cloudflare</a>
+                        <a href="/anycast-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Alta Disponibilidade Anycast</a>
                     </div>
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-                        <i data-lucide="github" class="w-4 h-4 text-blue-500"></i>
-                        GitHub
-                    </a>
                 </div>
 
-                <div class="text-sm text-gray-500">
-                    Sentinel DNS &copy; 2026 — Todos os direitos reservados
+                <!-- Coluna 3: Recursos -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Recursos &amp; Docs</h3>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/docs/index.html" class="text-gray-400 hover:text-blue-400 transition-colors">Documentação Técnica</a>
+                        <a href="/docs/instalacao-rapida.html" class="text-gray-400 hover:text-blue-400 transition-colors">Instalação Rápida</a>
+                        <a href="/docs/anablock.html" class="text-gray-400 hover:text-blue-400 transition-colors">Módulo AnaBlock</a>
+                        <a href="/blog/index.html" class="text-gray-400 hover:text-blue-400 transition-colors">Blog Oficial</a>
+                        <a href="/benchmarks.html" class="text-gray-400 hover:text-blue-400 transition-colors">Benchmarks &amp; QPS</a>
+                        <a href="/faq.html" class="text-gray-400 hover:text-blue-400 transition-colors">Perguntas Frequentes (FAQ)</a>
+                        <a href="/privacidade.html" class="text-gray-400 hover:text-blue-400 transition-colors">Privacidade &amp; Termos</a>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap justify-center gap-4 text-sm font-medium">
-                    <a href="../index.html" class="text-gray-400 hover:text-white transition-colors">Início</a>
-                    <a href="../docs/index.html" class="text-gray-400 hover:text-white transition-colors">Docs</a>
-                    <a href="../blog/index.html" class="text-gray-400 hover:text-white transition-colors">Blog</a>
-                    <a href="../download.html" class="text-gray-400 hover:text-white transition-colors">Download</a>
-                    <a href="../privacidade.html" class="text-gray-400 hover:text-white transition-colors">Privacidade</a>
-                    <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">Telegram</a>
-                    <a href="mailto:dnssentinel@sentineldns.net" class="text-gray-400 hover:text-white transition-colors">Suporte</a>
+                <!-- Coluna 4: Contato -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Comunidade &amp; Suporte</h3>
+                    <div class="flex flex-col space-y-3 text-sm">
+                        <a href="https://wa.me/5515991779366" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-emerald-400 transition-colors">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>WhatsApp Oficial</span>
+                        </a>
+                        <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-blue-400 transition-colors">
+                            <i data-lucide="send" class="w-4 h-4 text-blue-400"></i>
+                            <span>Grupo no Telegram</span>
+                        </a>
+                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-white transition-colors">
+                            <i data-lucide="github" class="w-4 h-4 text-gray-400"></i>
+                            <span>Código no GitHub</span>
+                        </a>
+                        <a href="mailto:dnssentinel@sentineldns.net" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-blue-400 transition-colors">
+                            <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
+                            <span>dnssentinel@sentineldns.net</span>
+                        </a>
+                    </div>
                 </div>
+            </div>
 
+            <!-- Bottom Sub-Footer -->
+            <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Infraestrutura auditável &bull; 100% Self-Hosted</span>
+                </div>
+                <div>Sentinel DNS &copy; 2026 — Todos os direitos reservados.</div>
+                <div class="flex items-center gap-1.5 text-gray-400">
+                    <img src="../assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
+                    <span>Desenvolvido no Brasil</span>
+                </div>
             </div>
         </div>
+
+        <style>
+            .footer-links-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            @media (min-width: 640px) {
+                .footer-links-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 2rem;
+                }
+            }
+            @media (min-width: 1024px) {
+                .footer-links-grid {
+                    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+                    gap: 2.5rem;
+                }
+            }
+        </style>
     </footer>
+
 
     <script>
         lucide.createIcons();

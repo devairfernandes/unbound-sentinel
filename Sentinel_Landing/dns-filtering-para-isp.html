@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SV6F8DEZ12"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SV6F8DEZ12');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS Filtering para Provedores de Internet | Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="./Logo.webp">
+    <meta name="description" content="Como funciona o DNS Filtering para ISPs: cache, RPZ, Threat Intelligence e bloqueio automatizado ANATEL integrados ao seu resolver Sentinel DNS.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/dns-filtering-para-isp.html">
+    <!-- Ahrefs Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sentineldns.net/dns-filtering-para-isp.html">
+    <meta property="og:title" content="DNS Filtering para Provedores de Internet | Sentinel DNS">
+    <meta property="og:description" content="Como funciona o DNS Filtering para ISPs: cache, RPZ, Threat Intelligence e bloqueio automatizado ANATEL integrados ao seu resolver Sentinel DNS.">
+    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="Sentinel DNS">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DNS Filtering para Provedores de Internet | Sentinel DNS">
+    <meta name="twitter:description" content="Como funciona o DNS Filtering para ISPs: cache, RPZ, Threat Intelligence e bloqueio automatizado ANATEL integrados ao seu resolver Sentinel DNS.">
+    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
+    <!-- Schema.org: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
+        {"@type": "ListItem", "position": 2, "name": "DNS Filtering para ISP", "item": "https://sentineldns.net/dns-filtering-para-isp.html"}
+      ]
+    }
+    </script>
+
+    <!-- Schema.org: WebPage / Article -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "DNS Filtering para Provedores de Internet",
+      "description": "Como funciona o DNS Filtering para ISPs: cache, RPZ, Threat Intelligence e bloqueio automatizado ANATEL integrados ao seu resolver Sentinel DNS.",
+      "url": "https://sentineldns.net/dns-filtering-para-isp.html",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Sentinel DNS",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://sentineldns.net/Logo.webp"
+        }
+      }
+    }
+    </script>
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-[#020408]/80 backdrop-blur-md border-b border-gray-800 transition-all duration-300" x-data="{ mobileMenuOpen: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <img src="/Logo.webp" alt="Sentinel DNS" width="40" height="40" class="drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Produto</a>
+                    <a href="/arquitetura.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Arquitetura</a>
+                    <a href="/seguranca.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Segurança</a>
+                    <a href="/precos.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Preços</a>
+                    <a href="/comparativo.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Comparativo</a>
+                    <a href="/docs/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Docs</a>
+                    <a href="/sobre.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Sobre Nós</a>
+                    <a href="/blog/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Blog</a>
+                    
+                    <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
+                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" aria-label="Acessar repositório no GitHub" class="text-gray-400 hover:text-white transition-colors">
+                            <i data-lucide="github" class="w-5 h-5"></i>
+                        </a>
+                        <a href="/download.html" class="px-5 py-2.5 text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-white">Download</a>
+                        <a href="https://wa.me/5515991779366" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.3)] flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp</a>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-300 hover:text-white">
+                        <i data-lucide="menu" x-show="!mobileMenuOpen"></i>
+                        <i data-lucide="x" x-show="mobileMenuOpen" x-cloak></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Mobile Menu Panel -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 -translate-y-4 scale-95"
+             x-cloak 
+             class="md:hidden bg-[#030712]/95 backdrop-blur-lg border-b border-gray-800 px-6 pt-4 pb-6 space-y-3">
+            <a href="/" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Produto</a>
+            <a href="/arquitetura.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Arquitetura</a>
+            <a href="/seguranca.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Segurança</a>
+            <a href="/precos.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Preços</a>
+            <a href="/comparativo.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Comparativo</a>
+            <a href="/docs/index.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Docs</a>
+            <a href="/sobre.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Sobre Nós</a>
+            <a href="/blog/index.html" class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">Blog</a>
+            
+            <div class="pt-4 mt-4 border-t border-gray-800 grid grid-cols-2 gap-4">
+                <a href="/download.html" class="flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-white/5 border border-white/10 rounded-lg text-white">Download</a>
+                <a href="https://wa.me/5515991779366" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg"><i data-lucide="message-circle" class="w-4 h-4 mr-2"></i> WhatsApp</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">DNS Filtering para Provedores de Internet</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+                O DNS Filtering (Filtragem DNS) é o processo de bloquear domínios maliciosos ou proibidos diretamente na camada de resolução de nomes. 
+                Para ISPs, isso permite proteger toda a rede antes mesmo do tráfego IP ser iniciado, sem a necessidade de adquirir hardware de firewall caro para interceptar pacotes.
+            </p>
+        </div>
+
+        <!-- Fluxo de Filtragem -->
+        <div class="glass-card p-8 rounded-xl border border-gray-800 mb-16">
+            <h2 class="text-3xl font-bold text-white mb-6">Como funciona o fluxo de filtragem</h2>
+            
+            <!-- Diagrama em CSS/HTML -->
+            <div class="hidden md:flex items-center justify-between mb-8 p-6 bg-black/40 rounded-lg border border-gray-800">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mb-2">
+                        <i data-lucide="laptop" class="text-blue-400"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-300">Cliente</span>
+                </div>
+                
+                <i data-lucide="arrow-right" class="text-gray-600"></i>
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                        <i data-lucide="router" class="text-gray-400"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-300">CGNAT/CPE</span>
+                </div>
+                
+                <i data-lucide="arrow-right" class="text-gray-600"></i>
+                
+                <div class="flex flex-col items-center relative">
+                    <div class="absolute -inset-4 bg-blue-500/10 rounded-xl blur-md"></div>
+                    <div class="w-32 py-4 bg-gradient-to-b from-gray-800 to-black rounded-lg border border-blue-500/50 flex flex-col items-center justify-center mb-2 relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                        <i data-lucide="shield-check" class="text-blue-400 mb-2"></i>
+                        <span class="text-xs font-bold text-white">Sentinel DNS</span>
+                    </div>
+                    <span class="text-xs text-gray-400 text-center relative z-10">RPZ / Cache / AnaBlock</span>
+                </div>
+                
+                <i data-lucide="arrow-right" class="text-gray-600"></i>
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-2">
+                        <i data-lucide="globe" class="text-emerald-400"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-300">Internet</span>
+                </div>
+            </div>
+
+            <div class="text-gray-300 space-y-4">
+                <p>O fluxo é simples e invisível para o usuário. Quando um cliente digita uma URL, a requisição passa pelo equipamento de borda (CPE/CGNAT) e chega ao Sentinel DNS.</p>
+                <p>O Sentinel analisa o domínio solicitado instantaneamente contra suas bases locais (Cache de resoluções anteriores, listas de Threat Intelligence, RPZ customizadas e o módulo AnaBlock). Se o domínio for malicioso ou bloqueado, a resposta é interceptada. Se for legítimo, é resolvido recursivamente na internet em milissegundos.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <!-- O que filtra -->
+            <div class="glass-card p-8 rounded-xl border border-gray-800">
+                <h2 class="text-2xl font-bold text-white mb-6">O que o Sentinel DNS filtra</h2>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="bug" class="w-5 h-5 text-red-400 mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white block">Ameaças (Malware, Phishing, Botnets)</strong>
+                            <p class="text-sm text-gray-400">Proteção proativa através de feeds de Threat Intelligence atualizados, impedindo o acesso a sites falsos ou servidores C2.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="gavel" class="w-5 h-5 text-blue-400 mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white block">Bloqueios judiciais (ANATEL)</strong>
+                            <p class="text-sm text-gray-400">O módulo <a href="/docs/anablock.html" class="text-blue-400 hover:underline">AnaBlock</a> sincroniza e aplica ordens de bloqueio da ANATEL automaticamente, evitando multas e processos manuais.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i data-lucide="sliders" class="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white block">Políticas Customizadas (RPZ)</strong>
+                            <p class="text-sm text-gray-400">Os administradores podem criar Response Policy Zones (RPZ) locais para bloquear domínios específicos ou aplicar redirecionamentos internos (Walled Garden).</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Por que no DNS -->
+            <div class="glass-card p-8 rounded-xl border border-gray-800">
+                <h2 class="text-2xl font-bold text-white mb-6">Por que filtrar no DNS?</h2>
+                <p class="text-gray-300 mb-4">
+                    Fazer filtragem na camada DNS é significativamente mais leve e barato do que em outros pontos da rede. Soluções como Next-Generation Firewalls (NGFW) ou Proxies precisam analisar o tráfego de pacotes inteiro (DPI), o que consome muita CPU e introduz gargalos de latência.
+                </p>
+                <p class="text-gray-300">
+                    O DNS Filtering, por outro lado, inspeciona apenas a requisição inicial do nome de domínio. Se bloqueado, o tráfego indesejado sequer inicia. Isso preserva a banda do link internacional do ISP e mantém a latência de resolução extremamente baixa (0.91ms a 2.32ms com o Sentinel DNS, com zero-drop de pacotes em carga máxima).
+                </p>
+            </div>
+        </div>
+
+        <!-- ISP Brasileiros -->
+        <div class="glass-card p-8 rounded-xl border border-gray-800 border-l-4 border-l-emerald-500 mb-16 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl"></div>
+            <h2 class="text-3xl font-bold text-white mb-4 relative z-10">Feito para ISPs Brasileiros</h2>
+            <p class="text-gray-300 relative z-10 leading-relaxed">
+                Muitas soluções de DNS Filtering do mercado são caixas pretas projetadas para o mercado corporativo americano ou europeu, com custos em dólar proibitivos. O Sentinel DNS foi arquitetado lidando com a realidade local: ambientes com uso massivo de CGNAT, exigências regulatórias estritas (como a ANATEL) e a necessidade de integração transparente com equipamentos comuns na infraestrutura de ISPs regionais, como MikroTik e Huawei. Não é uma adaptação; é a ferramenta certa para o trabalho.
+            </p>
+        </div>
+
+        <!-- FAQ -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-white mb-8 text-center">Perguntas Frequentes sobre Filtragem</h2>
+            
+            <div class="space-y-4 max-w-4xl mx-auto" x-data="{ activeAccordion: null }">
+                
+                <div class="glass-card border border-gray-800 rounded-lg overflow-hidden transition-all duration-200" :class="activeAccordion === 1 ? 'border-blue-500/50 bg-white/[0.02]' : 'hover:border-gray-700'">
+                    <button @click="activeAccordion = activeAccordion === 1 ? null : 1" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none">
+                        <span class="font-medium text-lg text-white">A filtragem de DNS aumenta a latência da internet?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="activeAccordion === 1 ? 'rotate-180 text-blue-400' : ''"></i>
+                    </button>
+                    <div x-show="activeAccordion === 1" x-collapse x-cloak>
+                        <div class="px-6 pb-5 text-gray-400 leading-relaxed border-t border-gray-800/50 pt-3">
+                            Pelo contrário. Como o Sentinel DNS mantém cache otimizado na borda da rede do provedor, ele resolve consultas mais rápido do que servidores públicos. A verificação do bloqueio ocorre em memória simultaneamente, resultando em respostas de ~1ms.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card border border-gray-800 rounded-lg overflow-hidden transition-all duration-200" :class="activeAccordion === 2 ? 'border-blue-500/50 bg-white/[0.02]' : 'hover:border-gray-700'">
+                    <button @click="activeAccordion = activeAccordion === 2 ? null : 2" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none">
+                        <span class="font-medium text-lg text-white">Como lidar com Falsos Positivos em listas de Threat Intelligence?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="activeAccordion === 2 ? 'rotate-180 text-blue-400' : ''"></i>
+                    </button>
+                    <div x-show="activeAccordion === 2" x-collapse x-cloak>
+                        <div class="px-6 pb-5 text-gray-400 leading-relaxed border-t border-gray-800/50 pt-3">
+                            O Sentinel DNS oferece um sistema de Whitelists globais. Se um domínio legítimo for bloqueado inadvertidamente por um feed de terceiros, o administrador do provedor pode adicionar uma exceção instantânea (bypass) através do painel, anulando a política de bloqueio para aquele domínio.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card border border-gray-800 rounded-lg overflow-hidden transition-all duration-200" :class="activeAccordion === 3 ? 'border-blue-500/50 bg-white/[0.02]' : 'hover:border-gray-700'">
+                    <button @click="activeAccordion = activeAccordion === 3 ? null : 3" class="w-full px-6 py-4 flex items-center justify-between text-left focus:outline-none">
+                        <span class="font-medium text-lg text-white">O módulo AnaBlock requer reiniciar o servidor para aplicar novos bloqueios?</span>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400 transition-transform duration-200" :class="activeAccordion === 3 ? 'rotate-180 text-blue-400' : ''"></i>
+                    </button>
+                    <div x-show="activeAccordion === 3" x-collapse x-cloak>
+                        <div class="px-6 pb-5 text-gray-400 leading-relaxed border-t border-gray-800/50 pt-3">
+                            Não. O AnaBlock foi desenvolvido com zero downtime em mente. Ao sincronizar novas listas judiciais da ANATEL, o sistema valida a configuração (unbound-checkconf) e realiza um "soft reload" no serviço, aplicando as novas políticas sem derrubar as conexões e consultas DNS ativas.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Schema.org FAQPage -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [{
+            "@type": "Question",
+            "name": "A filtragem de DNS aumenta a latência da internet?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Pelo contrário. Como o Sentinel DNS mantém cache otimizado na borda da rede do provedor, ele resolve consultas mais rápido do que servidores públicos. A verificação do bloqueio ocorre em memória simultaneamente, resultando em respostas de ~1ms."
+            }
+          },{
+            "@type": "Question",
+            "name": "Como lidar com Falsos Positivos em listas de Threat Intelligence?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "O Sentinel DNS oferece um sistema de Whitelists globais. Se um domínio legítimo for bloqueado inadvertidamente por um feed de terceiros, o administrador do provedor pode adicionar uma exceção instantânea (bypass) através do painel, anulando a política de bloqueio para aquele domínio."
+            }
+          },{
+            "@type": "Question",
+            "name": "O módulo AnaBlock requer reiniciar o servidor para aplicar novos bloqueios?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Não. O AnaBlock foi desenvolvido com zero downtime em mente. Ao sincronizar novas listas judiciais da ANATEL, o sistema valida a configuração (unbound-checkconf) e realiza um soft reload no serviço, aplicando as novas políticas sem derrubar as conexões e consultas DNS ativas."
+            }
+          }]
+        }
+        </script>
+
+        <!-- CTA -->
+        <div class="mt-16 text-center">
+            <h2 class="text-3xl font-bold text-white mb-6">Pronto para blindar a sua rede?</h2>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="https://wa.me/5515991779366" target="_blank" rel="noopener noreferrer" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                    <i data-lucide="message-circle" class="w-5 h-5"></i> Falar no WhatsApp
+                </a>
+                <a href="/docs/index.html" class="px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg border border-gray-700 transition-colors flex items-center justify-center gap-2">
+                    Ler a Documentação <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+        <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-[#030712] pt-16 pb-12 relative z-10" id="sentinel-footer">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="footer-links-grid mb-12">
+                <!-- Coluna 1: Produto -->
+                <div>
+                    <div class="flex items-center gap-2.5 mb-5">
+                        <img src="./Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
+                        <span class="text-base font-bold text-white tracking-tight">Sentinel DNS</span>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed mb-6">
+                        Appliance de DNS recursivo, segurança e Threat Intelligence de alta performance para provedores e datacenters.
+                    </p>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/" class="text-gray-400 hover:text-blue-400 transition-colors">Início</a>
+                        <a href="/sobre.html" class="text-gray-400 hover:text-blue-400 transition-colors">Sobre Nós</a>
+                        <a href="/arquitetura.html" class="text-gray-400 hover:text-blue-400 transition-colors">Arquitetura</a>
+                        <a href="/seguranca.html" class="text-gray-400 hover:text-blue-400 transition-colors">Segurança</a>
+                        <a href="/precos.html" class="text-gray-400 hover:text-blue-400 transition-colors">Preços</a>
+                        <a href="/comparativo.html" class="text-gray-400 hover:text-blue-400 transition-colors">Comparativo</a>
+                        <a href="/download.html" class="text-gray-400 hover:text-blue-400 transition-colors">Download ISO</a>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Casos de Uso -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Casos de Uso</h3>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/dns-para-provedores.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS para Provedores (ISP)</a>
+                        <a href="/dns-para-datacenter.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS para Datacenters</a>
+                        <a href="/dns-firewall.html" class="text-gray-400 hover:text-blue-400 transition-colors">DNS Firewall &amp; RPZ</a>
+                        <a href="/threat-intelligence-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Threat Intelligence</a>
+                        <a href="/compliance-anatel-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Compliance Anatel</a>
+                        <a href="/alternativa-cloudflare-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Alternativa ao Cloudflare</a>
+                        <a href="/anycast-dns.html" class="text-gray-400 hover:text-blue-400 transition-colors">Alta Disponibilidade Anycast</a>
+                    </div>
+                </div>
+
+                <!-- Coluna 3: Recursos -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Recursos &amp; Docs</h3>
+                    <div class="flex flex-col space-y-2.5 text-sm">
+                        <a href="/docs/index.html" class="text-gray-400 hover:text-blue-400 transition-colors">Documentação Técnica</a>
+                        <a href="/docs/instalacao-rapida.html" class="text-gray-400 hover:text-blue-400 transition-colors">Instalação Rápida</a>
+                        <a href="/docs/anablock.html" class="text-gray-400 hover:text-blue-400 transition-colors">Módulo AnaBlock</a>
+                        <a href="/blog/index.html" class="text-gray-400 hover:text-blue-400 transition-colors">Blog Oficial</a>
+                        <a href="/benchmarks.html" class="text-gray-400 hover:text-blue-400 transition-colors">Benchmarks &amp; QPS</a>
+                        <a href="/faq.html" class="text-gray-400 hover:text-blue-400 transition-colors">Perguntas Frequentes (FAQ)</a>
+                        <a href="/privacidade.html" class="text-gray-400 hover:text-blue-400 transition-colors">Privacidade &amp; Termos</a>
+                    </div>
+                </div>
+
+                <!-- Coluna 4: Contato -->
+                <div>
+                    <h3 class="text-white font-bold text-sm tracking-wide uppercase mb-5">Comunidade &amp; Suporte</h3>
+                    <div class="flex flex-col space-y-3 text-sm">
+                        <a href="https://wa.me/5515991779366" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-emerald-400 transition-colors">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>WhatsApp Oficial</span>
+                        </a>
+                        <a href="https://telegram.me/sentineldns" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-blue-400 transition-colors">
+                            <i data-lucide="send" class="w-4 h-4 text-blue-400"></i>
+                            <span>Grupo no Telegram</span>
+                        </a>
+                        <a href="https://github.com/devairfernandes/unbound-sentinel" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-white transition-colors">
+                            <i data-lucide="github" class="w-4 h-4 text-gray-400"></i>
+                            <span>Código no GitHub</span>
+                        </a>
+                        <a href="mailto:dnssentinel@sentineldns.net" class="inline-flex items-center gap-2.5 text-gray-300 hover:text-blue-400 transition-colors">
+                            <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
+                            <span>dnssentinel@sentineldns.net</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Sub-Footer -->
+            <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Infraestrutura auditável &bull; 100% Self-Hosted</span>
+                </div>
+                <div>Sentinel DNS &copy; 2026 — Todos os direitos reservados.</div>
+                <div class="flex items-center gap-1.5 text-gray-400">
+                    <img src="./assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
+                    <span>Desenvolvido no Brasil</span>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .footer-links-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            @media (min-width: 640px) {
+                .footer-links-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 2rem;
+                }
+            }
+            @media (min-width: 1024px) {
+                .footer-links-grid {
+                    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+                    gap: 2.5rem;
+                }
+            }
+        </style>
+    </footer>
+
+    <!-- Initialize Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

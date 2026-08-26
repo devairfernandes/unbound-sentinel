@@ -13,31 +13,33 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Alternativa ao Cisco Umbrella (OpenDNS) - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Buscando uma alternativa ao Cisco Umbrella? Compare custos, soberania de dados e flexibilidade com o Sentinel DNS on-premise.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <meta name="keywords" content="alternativa cisco umbrella, alternativa opendns, cisco umbrella">
+    <link rel="canonical" href="https://sentineldns.net/alternativa-cisco-umbrella.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/alternativa-cisco-umbrella.html">
+    <meta property="og:title" content="Alternativa ao Cisco Umbrella | Sentinel DNS">
+    <meta property="og:description" content="Sentinel DNS como alternativa Open Source ao Cisco Umbrella. Mesmas funcionalidades de DNS Firewall e Threat Intelligence, sem o custo enterprise.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="Alternativa ao Cisco Umbrella | Sentinel DNS">
+    <meta name="twitter:description" content="Sentinel DNS como alternativa Open Source ao Cisco Umbrella. Mesmas funcionalidades de DNS Firewall e Threat Intelligence, sem o custo enterprise.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,12 +47,11 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "Alternativa ao Cisco Umbrella", "item": "https://sentineldns.net/alternativa-cisco-umbrella.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,65 +122,35 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Sentinel DNS vs Cisco Umbrella</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Uma análise direta entre o líder corporativo de nuvem e a alternativa on-premise de alta performance.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
+        <div class="glass-card p-8 rounded-xl border border-gray-800 mb-16 text-gray-300">
+            <h2 class="text-2xl font-bold text-white mb-6">Visão Geral</h2>
+            <p class="mb-6">O Cisco Umbrella (anteriormente OpenDNS) é o padrão da indústria para segurança DNS em nuvem. Possui inteligência formidável (Talos) e protege dispositivos em qualquer lugar do mundo. Contudo, suas licenças são notoriamente onerosas, sendo faturadas por usuário, e o tráfego depende de servidores globais (cloud-delivered).</p>
+            <p class="mb-8">O <strong>Sentinel DNS</strong> ataca o problema por outro ângulo: trazendo a proteção de volta para dentro de casa (on-premise), o que reduz os custos de licenciamento massivamente e garante que o tráfego da rede principal seja resolvido na velocidade máxima do cabo LAN/Fibra local.</p>
+
+            <h3 class="text-xl font-bold text-white mb-4">Diferenças Arquiteturais Chave</h3>
+            <div class="space-y-4">
+                <div class="p-4 border border-gray-800 rounded-lg bg-[#0a0a0a]">
+                    <strong class="text-blue-400 block mb-1">Localização do Motor de Regras:</strong> 
+                    Enquanto o Umbrella exige encaminhar (forward) as queries para os data centers da Cisco para aplicar filtros, o Sentinel roda a engine RPZ e Threat Intel <a href="/dns-firewall.html" class="text-blue-500 hover:underline">localmente</a> na sua borda.
+                </div>
+                <div class="p-4 border border-gray-800 rounded-lg bg-[#0a0a0a]">
+                    <strong class="text-blue-400 block mb-1">Impacto Financeiro:</strong> 
+                    Soluções da Cisco exigem orçamentos robustos corporativos (Enterprise Agreements) complexos e precificação obscura sem consulta direta. O Sentinel possui estrutura de custos enxuta e clara, focada em instâncias.
+                </div>
+                <div class="p-4 border border-gray-800 rounded-lg bg-[#0a0a0a]">
+                    <strong class="text-blue-400 block mb-1">Telemetria e Privacidade:</strong> 
+                    No Umbrella, o log de navegação da sua empresa fica nos servidores da Cisco. Com o Sentinel, os relatórios e auditorias ficam 100% retidos nos discos do seu próprio Data Center.
+                </div>
+            </div>
             
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
+            <p class="mt-8 text-sm text-gray-500 italic">Nota: Marcas registradas como Cisco e Umbrella pertencem aos seus respectivos donos. O Sentinel DNS não possui filiação. Comparações baseadas em documentação pública das arquiteturas.</p>
         </div>
     </main>
 

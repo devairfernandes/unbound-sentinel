@@ -13,50 +13,20 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
-    <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <title>Logs & SIEM - Sentinel DNS</title>
+    <meta name="description" content="Documentação oficial: Logs & SIEM. Acesse guias, tutoriais e manuais completos para configurar, otimizar e extrair o máximo de desempenho e segurança do Sentinel DNS.">
+    <link rel="icon" type="image/webp" href="../Logo.webp">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/docs/logs-siem.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
-    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
-    <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="Sentinel DNS">
-
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
-    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
-    <!-- Schema.org: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
-      ]
-    }
-    </script>
 </head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
         <!-- Navigation -->
-    
-    
-    
-    
         <nav class="fixed w-full z-50 bg-[#020408]/80 backdrop-blur-md border-b border-gray-800 transition-all duration-300" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -121,73 +91,132 @@
         </div>
     </nav>
 
-    <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
-        </div>
+    <!-- Layout com Sidebar -->
+    <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 flex" style="padding-top: 128px;">
+        
+        <!-- Sidebar -->
+        <aside class="hidden md:block w-64 flex-shrink-0 border-r border-gray-800 pt-8 pr-6 sticky overflow-y-auto" style="top: 128px; height: calc(100vh - 128px);">
+            <nav class="space-y-6">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Começando</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/docs/" class="text-sm text-gray-400 hover:text-white block">Introdução</a></li>
+                        <li><a href="/docs/requisitos-de-sistema.html" class="text-sm text-gray-400 hover:text-white block">Requisitos de Sistema</a></li>
+                        <li><a href="/docs/instalacao-rapida.html" class="text-sm text-gray-400 hover:text-white block">Instalação Rápida</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Configuração (ISP)</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/docs/anablock.html" class="text-sm text-blue-400 font-medium block">AnaBlock</a></li>
+                        <li><a href="/docs/geoip.html" class="text-sm text-gray-400 hover:text-white block">GeoIP / MaxMind</a></li>
+                        <li><a href="/docs/geoblocking.html" class="text-sm text-gray-400 hover:text-white block">Geoblocking</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Segurança</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/docs/threat-intelligence-api.html" class="text-sm text-gray-400 hover:text-white block">Threat Intelligence API</a></li>
+                        <li><a href="/docs/politicas-rpz.html" class="text-sm text-gray-400 hover:text-white block">Políticas RPZ</a></li>
+                        <li><a href="/docs/logs-siem.html" class="text-sm text-gray-400 hover:text-white block">Logs & SIEM</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
+        <!-- Main Content -->
+        
+<main class="flex-1 pt-8 pb-24 md:pl-10">
+
             
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
+            <div class="prose prose-invert max-w-3xl">
+                <h1 class="text-4xl font-bold mb-8">Logs & Integração SIEM</h1>
+                <p class="text-lg text-gray-300">
+                        O Sentinel DNS gera logs estruturados e de alta performance de resolução DNS e eventos de segurança (bloqueios RPZ, tentativas de acesso a domínios maliciosos e ações do módulo AnaBlock). Estes logs são nativamente preparados para integração com plataformas de SIEM (Security Information and Event Management) e centros de operações de segurança (SOC/NOC).
+                    </p>
+
+                    <h2>1. Visão Geral do Sistema de Logging</h2>
+                    <p>
+                        Em um ambiente de operadora de telecomunicações (ISP) ou grande datacenter, o volume de logs de DNS pode chegar a milhares de EPS (Eventos Por Segundo). O Sentinel DNS otimiza isso em duas camadas:
+                    </p>
+                    <ul>
+                        <li><strong>Logs de Resolução (Trace):</strong> Apenas habilitados em modo de debug estrito devido ao alto volume.</li>
+                        <li><strong>Logs de Segurança (Action/Block):</strong> Registram especificamente ações do RPZ (NODATA, NXDOMAIN, passthrough), atualizações de feed de Threat Intelligence e bloqueios AnaBlock. Volume focado e ideal para consumo de SIEM.</li>
+                    </ul>
+
+                    <h2>2. Formatos de Exportação Suportados</h2>
+                    <p>Para garantir máxima compatibilidade com sistemas legados e modernos, o Sentinel DNS suporta nativamente:</p>
+                    <ul>
+                        <li><strong>Syslog Padrão (RFC 5424/3164):</strong> Enviado via UDP ou TCP, direto para o host de coleta local.</li>
+                        <li><strong>JSON Estruturado:</strong> Formato chave-valor ideal para parsing imediato (sem necessidade de Regex/Grok pesados).</li>
+                        <li><strong>Log em Disco Nativo:</strong> Utiliza o journalctl (systemd) ou arquivos físicos em <code>/var/log/unbound.log</code> para ingestão por agentes locais (ex: Filebeat, Fluentbit).</li>
+                    </ul>
+
+                    <h2>3. Integração com Soluções de SIEM</h2>
+                    <p>A ingestão recomendada em um ambiente de NOC/SOC é instalar um agente leve (shipper) na própria máquina do Sentinel DNS, que fará o forward para a ferramenta SIEM central. Exemplos comuns:</p>
+                    <ul>
+                        <li><strong>Elastic Stack (ELK):</strong> Utilizar o <code>Filebeat</code> lendo o arquivo <code>/var/log/unbound.log</code>. Módulo nativo disponível para parse de log unbound.</li>
+                        <li><strong>Splunk:</strong> Instalar o <code>Splunk Universal Forwarder</code> monitorando o diretório de log.</li>
+                        <li><strong>Graylog:</strong> Configurar um coletor Syslog UDP/TCP e apontar o Unbound para enviar os logs de segurança para a porta de ingestão.</li>
+                    </ul>
+
+                    <h2>4. Estrutura e Campos Disponíveis</h2>
+                    <p>Os logs estruturados do Sentinel DNS contém o contexto completo da transação bloqueada, permitindo fácil correlação:</p>
+                    <pre><code>{
+  "timestamp": "2026-07-25T14:32:01.455Z",
+  "client_ip": "192.168.45.12",
+  "query": "malicious-c2-domain.com",
+  "qtype": "A",
+  "action": "BLOCKED",
+  "reason": "RPZ_NXDOMAIN",
+  "policy_source": "Threat_Intel_API",
+  "category": "C2_Botnet"
+}</code></pre>
+                    <p><strong>Dicionário de Campos Principais:</strong></p>
+                    <ul>
+                        <li><code>client_ip</code>: Endereço IP do cliente/CPE que fez a requisição.</li>
+                        <li><code>action</code>: <code>ALLOWED</code>, <code>BLOCKED</code>, ou <code>REDIRECTED</code>.</li>
+                        <li><code>reason</code>: A regra específica do RPZ que engatilhou (ex: NODATA, NXDOMAIN).</li>
+                        <li><code>policy_source</code>: De onde veio a regra (AnaBlock_Judicial, Manual, Threat_Intel_API).</li>
+                    </ul>
+
+                    <h2>5. Retenção e Rotação (Logrotate)</h2>
+                    <p>Para evitar preenchimento de disco, o Sentinel DNS implanta automaticamente regras restritas de <code>logrotate</code> na instalação.</p>
+                    <ul>
+                        <li><strong>Frequência:</strong> Rotação Diária.</li>
+                        <li><strong>Retenção Local:</strong> 7 dias (padrão editável em <code>/etc/logrotate.d/unbound</code>).</li>
+                        <li><strong>Compressão:</strong> Arquivos antigos são comprimidos com <code>gzip</code> automaticamente.</li>
+                    </ul>
+                    <p>
+                        <em>Nota Operacional:</em> A retenção a longo prazo e o armazenamento para compliance legal devem ser realizados no SIEM ou Cold Storage externo, não no disco físico do Appliance DNS.
+                    </p>
+
+                    <h2>6. Exemplo de Dashboards e NOC</h2>
+                    <p>
+                        A estrutura de logs foi desenhada para correlacionar perfeitamente com os dashboards de Threat Hunting. Consultas típicas feitas no Elastic (KQL) ou Splunk:
+                    </p>
+                    <div class="bg-dark-800 p-4 rounded-lg border border-white/10 mb-4">
+                        <h4 class="text-sm font-medium text-white mb-2">Top IPs infectados na rede tentando contato com Botnets (KQL):</h4>
+                        <code class="text-sm text-brand-400">action: "BLOCKED" AND category: "C2_Botnet" | stats count by client_ip | sort -count</code>
+                    </div>
+                    <div class="bg-dark-800 p-4 rounded-lg border border-white/10">
+                        <h4 class="text-sm font-medium text-white mb-2">Pico de bloqueios Judiciais/AnaBlock (Splunk SPL):</h4>
+                        <code class="text-sm text-brand-400">sourcetype=sentinel_dns policy_source="AnaBlock_Judicial" | timechart span=1h count by query</code>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
+
+                <div class="mt-12 flex justify-between items-center pt-8 border-t border-white/10">
+                    <a href="politicas-rpz.html" class="flex items-center text-sm font-medium text-brand-500 hover:text-brand-400 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Políticas RPZ
+                    </a>
+                
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
+</main>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
+    </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    
-    
-    
-    
-    
     <!-- Footer -->
     
         <!-- Footer -->
@@ -197,7 +226,7 @@
                 <!-- Coluna 1: Produto -->
                 <div>
                     <div class="flex items-center gap-2.5 mb-5">
-                        <img src="./Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
+                        <img src="../Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
                         <span class="text-base font-bold text-white tracking-tight">Sentinel DNS</span>
                     </div>
                     <p class="text-xs text-gray-400 leading-relaxed mb-6">
@@ -274,7 +303,7 @@
                 </div>
                 <div>Sentinel DNS &copy; 2026 — Todos os direitos reservados.</div>
                 <div class="flex items-center gap-1.5 text-gray-400">
-                    <img src="./assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
+                    <img src="../assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
                     <span>Desenvolvido no Brasil</span>
                 </div>
             </div>
@@ -302,9 +331,71 @@
     </footer>
 
 
-    <!-- Initialize Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
     <script>
         lucide.createIcons();
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('anablockLog', () => ({
+                logs: [],
+                status: 'INACTIVE',
+                lastSync: null,
+                domainCount: 0,
+                loading: true,
+                
+                async init() {
+                    try {
+                        const res = await fetch('/api/public/anablock-log');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.logs = data.logs;
+                            this.status = data.status;
+                            this.lastSync = data.lastSync;
+                            this.domainCount = data.domainCount;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao carregar log', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get statusText() {
+                    if (this.loading) return 'CARREGANDO';
+                    if (this.status === 'ACTIVE') return 'ACTIVE';
+                    if (this.status === 'DELAYED') return 'DELAYED (ALERTA)';
+                    return 'INACTIVE';
+                },
+                
+                get statusClass() {
+                    if (this.loading) return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+                    if (this.status === 'ACTIVE') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    if (this.status === 'DELAYED') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                },
+                
+                formatLog(line) {
+                    const match = line.match(/^\[(.*?)\] (.*)$/);
+                    if (!match) return line;
+                    const time = new Date(match[1]).toLocaleTimeString('pt-BR');
+                    let msg = match[2];
+                    
+                    let color = 'text-gray-300';
+                    if (msg.includes('ERROR') || msg.includes('Failed')) color = 'text-red-400 font-medium';
+                    else if (msg.includes('Success') || msg.includes('Syntax OK')) color = 'text-emerald-400';
+                    else if (msg.includes('Fetching') || msg.includes('Validating')) color = 'text-blue-400';
+                    
+                    return `<span class="text-blue-500/70 mr-2">[${time}]</span> <span class="${color}">${msg}</span>`;
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Nunca';
+                    return new Date(dateStr).toLocaleString('pt-BR');
+                }
+            }));
+        });
     </script>
 </body>
 </html>

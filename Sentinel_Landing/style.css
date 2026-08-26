@@ -234,21 +234,21 @@
 
         .stat-card {
             background: var(--surface);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--surface-border);
             border-radius: 20px;
             padding: 2rem;
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 16px 36px -10px rgba(0,0,0,0.6), 0 0 20px -2px rgba(56, 189, 248, 0.15);
         }
 
         .stat-icon {
@@ -261,6 +261,11 @@
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(56, 189, 248, 0.2);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.05);
         }
 
         .stat-info h3 {
@@ -289,17 +294,21 @@
 
         .feature-card {
             background: linear-gradient(180deg, var(--surface) 0%, rgba(15, 23, 42, 0.2) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--surface-border);
             border-radius: 24px;
             padding: 3rem 2rem;
             position: relative;
             overflow: hidden;
-            transition: all 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease;
         }
 
         .feature-card:hover {
+            transform: translateY(-5px);
             border-color: rgba(129, 140, 248, 0.5);
             background: linear-gradient(180deg, var(--surface-hover) 0%, rgba(15, 23, 42, 0.4) 100%);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 25px -3px rgba(129, 140, 248, 0.2);
         }
 
         .feature-card::before {
@@ -925,6 +934,13 @@ html, body {
     background: rgba(56, 189, 248, 0.2) !important;
 }
 
-
-
-
+/* Universal 4-Column Footer Layout */
+@media (min-width: 1024px) {
+    .footer-grid-4,
+    .lg-grid-cols-4,
+    .lg\\:grid-cols-4,
+    #sentinel-footer .grid,
+    footer .lg\\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}

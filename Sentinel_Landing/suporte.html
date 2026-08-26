@@ -13,31 +13,32 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Suporte e SLA - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Compare o Sentinel DNS com outras soluções Enterprise e Open Source do mercado.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <link rel="canonical" href="https://sentineldns.net/suporte.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/suporte.html">
+    <meta property="og:title" content="Suporte Técnico | Sentinel DNS">
+    <meta property="og:description" content="Suporte técnico especializado para o Sentinel DNS. Atendimento para ISPs, provedores e datacenters via WhatsApp, e-mail e Telegram.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="Suporte Técnico | Sentinel DNS">
+    <meta name="twitter:description" content="Suporte técnico especializado para o Sentinel DNS. Atendimento para ISPs, provedores e datacenters via WhatsApp, e-mail e Telegram.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,7 +46,7 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "Suporte Técnico", "item": "https://sentineldns.net/suporte.html"}
       ]
     }
     </script>
@@ -121,67 +122,95 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Suporte & SLA</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Nosso compromisso com o tempo de atividade e a rápida resolução de incidentes para manter a sua rede funcionando.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div class="glass-card p-8 rounded-xl border border-gray-800 bg-[#0a192f]">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <i data-lucide="message-circle" class="text-emerald-400 w-6 h-6"></i> Canais Oficiais
+                </h2>
+                <div class="space-y-4">
+                    <a href="https://wa.me/5515991779366" target="_blank" class="flex items-center justify-between p-4 bg-[#112240] rounded-lg border border-gray-700 hover:border-emerald-500/50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-emerald-500/20 p-2 rounded-lg">
+                                <i data-lucide="message-circle" class="w-5 h-5 text-emerald-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">WhatsApp de Suporte</h4>
+                                <p class="text-xs text-gray-400">Atendimento primário e plantão</p>
+                            </div>
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
+                    </a>
+                    
+                    <a href="https://telegram.me/sentineldns" target="_blank" class="flex items-center justify-between p-4 bg-[#112240] rounded-lg border border-gray-700 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-500/20 p-2 rounded-lg">
+                                <i data-lucide="send" class="w-5 h-5 text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Comunidade Telegram</h4>
+                                <p class="text-xs text-gray-400">Avisos, updates e dúvidas</p>
+                            </div>
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-gray-500"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
+            <div class="glass-card p-8 rounded-xl border border-gray-800 bg-[#0a192f]">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <i data-lucide="activity" class="text-blue-400 w-6 h-6"></i> Garantia de Uptime
+                </h2>
+                <div class="text-center p-6 bg-[#112240] rounded-lg border border-gray-700 mb-6">
+                    <div class="text-4xl font-bold text-blue-400 mb-2">[SLA A CONFIRMAR]%</div>
+                    <p class="text-sm text-gray-400">Uptime garantido no Service Level Agreement</p>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
+                <p class="text-sm text-gray-400 leading-relaxed">
+                    O Sentinel DNS foi projetado para alta redundância através de Anycast e instâncias locais distribuídas. Os compromissos exatos de uptime dependem do modelo de deploy (Cloud gerida vs. Self-hosted).
+                </p>
             </div>
+        </div>
 
+        <div class="glass-card p-8 rounded-xl border border-gray-800 overflow-hidden">
+            <h2 class="text-2xl font-bold mb-6">Tempos de Resposta (SLA de Atendimento)</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-800">
+                    <thead class="bg-gray-900/50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">Severidade</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">Descrição</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">Tempo Máximo de Resposta</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800 bg-transparent">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-400 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div> Crítica</td>
+                            <td class="px-6 py-4 text-sm text-gray-300">Resolução DNS totalmente parada afetando toda a rede.</td>
+                            <td class="px-6 py-4 text-sm text-gray-300 font-mono bg-red-500/10">[SLA A CONFIRMAR] (Ex: 15min)</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-amber-400 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div> Alta</td>
+                            <td class="px-6 py-4 text-sm text-gray-300">Painel indisponível, mas resolução de DNS continua funcional.</td>
+                            <td class="px-6 py-4 text-sm text-gray-300 font-mono bg-amber-500/10">[SLA A CONFIRMAR] (Ex: 2 horas)</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-400 flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-500"></div> Normal</td>
+                            <td class="px-6 py-4 text-sm text-gray-300">Dúvidas gerais, configuração de políticas de bloqueio ou features.</td>
+                            <td class="px-6 py-4 text-sm text-gray-300 font-mono bg-emerald-500/10">[SLA A CONFIRMAR] (Ex: 1 dia útil)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-4 text-xs text-gray-500">* Os tempos acima são placeholders ilustrativos. Os valores definitivos serão preenchidos conforme os contratos vigentes.</p>
         </div>
     </main>
+
 
     
     

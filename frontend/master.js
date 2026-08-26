@@ -31,7 +31,9 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-function masterFetch(url, opts = {}) {
+window.serverClockOffset = 0;
+
+async function masterFetch(url, opts = {}) {
     opts.credentials = 'include';
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     
@@ -43,7 +45,21 @@ function masterFetch(url, opts = {}) {
         }
     }
     
-    return fetch(url, { ...opts, headers });
+    const res = await fetch(url, { ...opts, headers });
+    try {
+        const srvTime = res.headers.get('x-server-time') || res.headers.get('date');
+        if (srvTime) {
+            const parsed = !isNaN(srvTime) ? parseInt(srvTime, 10) : new Date(srvTime).getTime();
+            if (!isNaN(parsed) && parsed > 0) {
+                window.serverClockOffset = Date.now() - parsed;
+            }
+        }
+    } catch (e) {}
+    return res;
+}
+
+function getServerNow() {
+    return Date.now() - (window.serverClockOffset || 0);
 }
 
 function formatUptime(seconds) {
@@ -57,12 +73,18 @@ function formatUptime(seconds) {
 
 function formatRelativeTime(isoDate) {
     if (!isoDate) return '—';
-    const diff = Date.now() - new Date(isoDate).getTime();
+    const targetTime = typeof isoDate === 'number' ? isoDate : new Date(isoDate).getTime();
+    if (isNaN(targetTime) || targetTime <= 0) return '—';
+    
+    const serverNow = getServerNow();
+    const diff = Math.max(0, serverNow - targetTime);
     const s = Math.floor(diff / 1000);
-    if (s < 60)  return `${s}s atrás`;
-    if (s < 3600) return `${Math.floor(s/60)}min atrás`;
-    if (s < 86400) return `${Math.floor(s/3600)}h atrás`;
-    return new Date(isoDate).toLocaleDateString('pt-BR');
+    
+    if (s < 20)   return 'agora mesmo';
+    if (s < 60)   return `${s}s atrás`;
+    if (s < 3600) return `${Math.floor(s / 60)}min atrás`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h atrás`;
+    return new Date(targetTime).toLocaleDateString('pt-BR');
 }
 
 function formatDate(val) {
@@ -182,6 +204,7 @@ function showMasterSection(name, btn) {
     if (name === 'clients')  renderClientsPage();
     if (name === 'plans')    loadPlans();
     if (name === 'alerts')   loadAlerts();
+    if (name === 'config')   load2FAStatus();
 }
 
 // ===== TOAST =====
@@ -449,6 +472,8 @@ async function verifyMasterAndInit() {
         document.getElementById('cfg-platform').innerText = data.platform || '—';
         document.getElementById('cfg-uptime').innerText   = data.uptime ? formatUptime(data.uptime) : '—';
 
+        load2FAStatus();
+
         return true;
     } catch (e) {
         console.error('[Master] Erro ao verificar token master:', e);
@@ -542,8 +567,55 @@ async function loadMasterLicense() {
     } catch {}
 }
 
-// ===== CLIENTES ATIVOS =====
 let allClients = [];
+let currentOverviewFilter = 'all';
+
+function filterOverview(targetBtn) {
+    const filter = typeof targetBtn === 'string' ? targetBtn : (targetBtn.getAttribute('data-target') || 'all');
+    currentOverviewFilter = filter;
+    
+    document.querySelectorAll('.overview-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-target') === filter);
+    });
+
+    renderOverviewFilteredClients();
+}
+
+function renderOverviewFilteredClients() {
+    const serverNow = getServerNow();
+    let filtered = allClients;
+
+    if (currentOverviewFilter === 'online') {
+        filtered = allClients.filter(c => {
+            const lastSeenMs = typeof c.lastSeen === 'number' ? c.lastSeen : (c.lastSeen ? new Date(c.lastSeen).getTime() : 0);
+            return c.isOnline || (lastSeenMs > 0 && (serverNow - lastSeenMs < 5 * 60 * 1000));
+        });
+    } else if (currentOverviewFilter === 'pro') {
+        filtered = allClients.filter(c => {
+            const mainNode = c.nodes && c.nodes.length > 0 ? c.nodes[0] : null;
+            const status = mainNode ? mainNode.status : (Object.values(allLicenses).find(l => l.client_id === c.id)?.type || 'free');
+            return status === 'pro' || status === 'pro-lite';
+        });
+    } else if (currentOverviewFilter === 'free') {
+        filtered = allClients.filter(c => {
+            const mainNode = c.nodes && c.nodes.length > 0 ? c.nodes[0] : null;
+            const status = mainNode ? mainNode.status : (Object.values(allLicenses).find(l => l.client_id === c.id)?.type || 'free');
+            return !status || status === 'free' || status === 'pro-trial';
+        });
+    }
+
+    // Apply search filter if query exists
+    const q = (document.getElementById('client-search')?.value || '').toLowerCase().trim();
+    if (q) {
+        filtered = filtered.filter(c => 
+            (c.name || '').toLowerCase().includes(q) || 
+            (c.hostname || '').toLowerCase().includes(q) || 
+            (c.ip || '').toLowerCase().includes(q)
+        );
+    }
+
+    renderClientsTable('clients-tbody', filtered, true);
+}
 
 async function loadActiveSessions() {
     try {
@@ -565,7 +637,31 @@ async function loadActiveSessions() {
         } catch(e){}
 
         updateMetrics();
-        renderClientsTable('clients-tbody', allClients, true);
+
+        // Update tab badges
+        const serverNow = getServerNow();
+        const cntAll = allClients.length;
+        const cntOnline = allClients.filter(c => {
+            const lastSeenMs = typeof c.lastSeen === 'number' ? c.lastSeen : (c.lastSeen ? new Date(c.lastSeen).getTime() : 0);
+            return c.isOnline || (lastSeenMs > 0 && (serverNow - lastSeenMs < 5 * 60 * 1000));
+        }).length;
+        const cntPro = allClients.filter(c => {
+            const mainNode = c.nodes && c.nodes.length > 0 ? c.nodes[0] : null;
+            const status = mainNode ? mainNode.status : (Object.values(allLicenses).find(l => l.client_id === c.id)?.type || 'free');
+            return status === 'pro' || status === 'pro-lite';
+        }).length;
+        const cntFree = cntAll - cntPro;
+
+        const elAll = document.getElementById('tab-cnt-all');
+        const elOnline = document.getElementById('tab-cnt-online');
+        const elPro = document.getElementById('tab-cnt-pro');
+        const elFree = document.getElementById('tab-cnt-free');
+        if (elAll) elAll.innerText = cntAll;
+        if (elOnline) elOnline.innerText = cntOnline;
+        if (elPro) elPro.innerText = cntPro;
+        if (elFree) elFree.innerText = cntFree;
+
+        renderOverviewFilteredClients();
         renderClientsPage();
         updateDistribution();
         // Item 5: timestamp de atualização
@@ -578,7 +674,11 @@ async function loadActiveSessions() {
 
 function updateMetrics() {
     const total  = allSessions.length;
-    const online = allSessions.filter(s => Date.now() - new Date(s.lastSeen).getTime() < 5 * 60 * 1000).length;
+    const serverNow = getServerNow();
+    const online = allSessions.filter(s => {
+        const t = typeof s.lastSeen === 'number' ? s.lastSeen : new Date(s.lastSeen).getTime();
+        return (serverNow - t) < 5 * 60 * 1000;
+    }).length;
 
     // Receita e "Licenças PRO" baseadas em allLicenses
     const validLicenses = Object.values(allLicenses).filter(l => {
@@ -701,11 +801,11 @@ function renderSparklines(history) {
         const previous = values[values.length - 2];
         const diff = current - previous;
         if (diff === 0) {
-            deltaEl.innerHTML = `<span style="color:var(--text-muted);font-size:11px;">= Sem variação hoje</span>`;
+            deltaEl.innerHTML = `<span class="delta-chip neutral">= Estável</span>`;
         } else if (diff > 0) {
-            deltaEl.innerHTML = `<span style="color:var(--green-400);font-size:11px;">↑ +${diff} hoje</span>`;
+            deltaEl.innerHTML = `<span class="delta-chip up">↑ +${diff} hoje</span>`;
         } else {
-            deltaEl.innerHTML = `<span style="color:var(--red-400);font-size:11px;">↓ ${diff} hoje</span>`;
+            deltaEl.innerHTML = `<span class="delta-chip down">↓ ${diff} hoje</span>`;
         }
     };
 
@@ -714,19 +814,29 @@ function renderSparklines(history) {
     updateDelta('delta-online', onlines);
     updateDelta('delta-revenue', revenues);
 
-    const drawSpark = (canvasId, vals, colorStr) => {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) return;
+    const drawSpark = (canvasId, vals, colorStr, bgGradientStart) => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
         if (sparklineCharts[canvasId]) sparklineCharts[canvasId].destroy();
         
-        sparklineCharts[canvasId] = new Chart(ctx, {
+        let gradient = 'transparent';
+        if (ctx) {
+            gradient = ctx.createLinearGradient(0, 0, 0, 48);
+            gradient.addColorStop(0, bgGradientStart || 'rgba(167, 139, 250, 0.25)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        }
+
+        sparklineCharts[canvasId] = new Chart(canvas, {
             type: 'line',
             data: {
                 labels,
                 datasets: [{
                     data: vals,
                     borderColor: colorStr,
-                    borderWidth: 1.5,
+                    backgroundColor: gradient,
+                    fill: true,
+                    borderWidth: 2,
                     tension: 0.4,
                     pointRadius: 0
                 }]
@@ -744,10 +854,10 @@ function renderSparklines(history) {
         });
     };
 
-    drawSpark('spark-total', totals, '#a78bfa'); // violet
-    drawSpark('spark-pro', pros, '#a78bfa');
-    drawSpark('spark-online', onlines, '#34d399'); // green
-    drawSpark('spark-revenue', revenues, '#fbbf24'); // amber
+    drawSpark('spark-total', totals, '#a78bfa', 'rgba(167, 139, 250, 0.28)'); // violet
+    drawSpark('spark-pro', pros, '#38bdf8', 'rgba(56, 189, 248, 0.28)'); // cyan/blue
+    drawSpark('spark-online', onlines, '#34d399', 'rgba(52, 211, 153, 0.28)'); // green
+    drawSpark('spark-revenue', revenues, '#fbbf24', 'rgba(251, 191, 36, 0.28)'); // amber
 }
 
 function updateDistribution() {
@@ -799,9 +909,10 @@ function renderClientsTable(tbodyId, clients, compact = false) {
     }
 
     tbody.innerHTML = clients.map((c, idx) => {
-        const isOnline = c.isOnline;
+        const lastSeenMs = typeof c.lastSeen === 'number' ? c.lastSeen : (c.lastSeen ? new Date(c.lastSeen).getTime() : 0);
+        const isOnline = c.isOnline || (lastSeenMs > 0 && (getServerNow() - lastSeenMs < 5 * 60 * 1000));
         const dotClass = isOnline ? 'online' : 'offline';
-        const lastSeen = c.lastSeen ? formatRelativeTime(c.lastSeen) : 'Nunca';
+        const lastSeen = lastSeenMs > 0 ? formatRelativeTime(lastSeenMs) : 'Nunca';
         
         const mainNode = c.nodes && c.nodes.length > 0 ? c.nodes.sort((a,b) => b.lastSeen - a.lastSeen)[0] : null;
 
@@ -855,11 +966,13 @@ function renderClientsTable(tbodyId, clients, compact = false) {
             <td>${nameCell}</td>
             <td><span class="client-ip">${escH(displayIp||'—')}</span></td>
             <td>
-                <span style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${escH(displayVersion||'—')}</span>
-                ${versionBadge}
+                <div style="display:inline-flex;align-items:center;gap:4px;flex-wrap:nowrap;">
+                    <span style="font-family:monospace;font-size:11px;color:var(--text-secondary)">${escH(displayVersion||'—')}</span>
+                    ${versionBadge}
+                </div>
             </td>
             <td>${licBadgeHtml(displayStatus)}</td>
-            <td><span style="font-size:11px;color:var(--text-muted)">${lastSeen}</span></td>
+            <td><span style="font-size:11px;color:var(--text-muted);white-space:nowrap;">${lastSeen}</span></td>
             <td style="width:1%; white-space:nowrap;">${actions}</td>
         </tr>`;
     }).join('');
@@ -889,13 +1002,7 @@ function handleRevokeLicense(btn) {
 }
 
 function filterClients() {
-    const q = (document.getElementById('client-search')?.value || '').toLowerCase();
-    const filtered = allClients.filter(c =>
-        (c.name||'').toLowerCase().includes(q) ||
-        (c.hostname||'').toLowerCase().includes(q) ||
-        (c.ip||'').toLowerCase().includes(q)
-    );
-    renderClientsTable('clients-tbody', filtered, true);
+    renderOverviewFilteredClients();
 }
 
 function filterClientsPage() {
@@ -1493,16 +1600,40 @@ async function loadUsers() {
             return;
         }
         container.innerHTML = `<table class="clients-table">
-            <thead><tr><th>Usuário</th><th>Nome</th><th>Permissão</th><th>Ações</th></tr></thead>
-            <tbody>${entries.map(([uid, u]) => `<tr>
-                <td><strong>${escH(uid)}</strong></td>
-                <td>${escH(u.name||'—')}</td>
-                <td>${u.role === 'admin'
-                    ? '<span class="lic-badge pro">Admin</span>'
-                    : '<span class="lic-badge free">Operador</span>'}</td>
-                <td><button class="action-btn revoke" data-action="deleteUser" data-target="${escH(uid)}"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button></td>
-            </tr>`).join('')}</tbody>
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Nome</th>
+                    <th>Permissão</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>${entries.map(([uid, u]) => {
+                const initials = (u.name || uid).replace(/[^a-zA-Z0-9]/g, '').slice(0,2).toUpperCase() || 'U';
+                const roleBadge = u.role === 'admin'
+                    ? '<span class="lic-badge pro"><i data-lucide="shield" style="width:11px;height:11px;"></i> Admin</span>'
+                    : '<span class="lic-badge free"><i data-lucide="user" style="width:11px;height:11px;"></i> Operador</span>';
+                
+                return `<tr>
+                    <td>
+                        <div class="client-name-wrap">
+                            <span class="client-avatar" style="background:#7c3aed;color:#c4b5fd;">${escH(initials)}</span>
+                            <div>
+                                <div class="client-name">${escH(uid)}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><strong>${escH(u.name || '—')}</strong></td>
+                    <td>${roleBadge}</td>
+                    <td>
+                        <button class="action-btn revoke" data-action="deleteUser" data-target="${escH(uid)}" title="Remover Usuário">
+                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Remover
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('')}</tbody>
         </table>`;
+        setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 10);
     } catch (e) {
         container.innerHTML = `<div class="empty-state"><p>Erro: ${escH(e.message)}</p></div>`;
     }
@@ -1701,111 +1832,318 @@ function startPromoCountdown(endDateStr) {
 }
 
 // ===== TELA DE LOGIN EMBUTIDA =====
-function showLoginScreen(errorMsg = '') {
-    // Se o overlay já existe, apenas atualiza o estado para não apagar a senha do usuário
-    const existing = document.getElementById('master-login-overlay');
-    if (existing) {
-        const errorDiv = document.getElementById('login-error-msg');
-        if (errorDiv) {
-            if (errorMsg) {
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = escH(errorMsg);
-            } else {
-                errorDiv.style.display = 'none';
-                errorDiv.innerHTML = '';
-            }
-        }
-        const btn = document.getElementById('login-btn');
-        if (btn) {
-            btn.innerText = 'Entrar no Master HQ';
-            btn.disabled = false;
-        }
-        return;
+let masterPending2FAUser = null;
+let loginCanvasAnimationId = null;
+let reactorAnimationId = null;
+let reactorSpeed = 0.28;
+
+function showLoginScreen(errorMsg = '', is2FA = false) {
+    let overlay = document.getElementById('master-login-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'master-login-overlay';
+        overlay.className = 'master-login-backdrop';
+        document.body.appendChild(overlay);
+    } else {
+        overlay.className = 'master-login-backdrop';
     }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'master-login-overlay';
-    overlay.style.cssText = `
-        position: fixed; inset: 0; z-index: 9999;
-        display: flex; align-items: center; justify-content: center;
-        background: var(--bg-void);
-    `;
+    // Gerar 48 barras radiais perfeitamente integradas ao perímetro do círculo
+    let reactorBarsSVG = '';
+    const barCount = 48;
+    for (let i = 0; i < barCount; i++) {
+        const angle = (i * 360) / barCount;
+        reactorBarsSVG += `<rect id="reactor-bar-${i}" class="reactor-bar" x="276.75" y="14" width="6.5" height="32" rx="3.25" transform="rotate(${angle} 280 280)" fill="rgba(56, 189, 248, 0.12)" opacity="0.25" />`;
+    }
+
     overlay.innerHTML = `
-        <div style="
-            background: var(--bg-card);
-            border: 1px solid var(--border-active);
-            border-radius: 20px;
-            width: 380px;
-            max-width: 95vw;
-            overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(124,58,237,0.2);
-            animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-        ">
-            <div style="
-                padding: 28px 28px 20px;
-                background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(245,158,11,0.05));
-                border-bottom: 1px solid var(--border-subtle);
-                text-align: center;
-            ">
-                <div style="
-                    width: 52px; height: 52px;
-                    background: linear-gradient(135deg, var(--violet-600), var(--violet-800));
-                    border-radius: 14px;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 24px; margin: 0 auto 14px;
-                    box-shadow: 0 0 30px rgba(124,58,237,0.4);
-                ">⬡</div>
-                <div style="font-size:18px;font-weight:800;color:var(--text-primary)">SENTINEL</div>
-                <div style="
-                    display:inline-flex;align-items:center;gap:5px;
-                    margin-top:6px;padding:3px 12px;
-                    background:rgba(245,158,11,0.15);
-                    border:1px solid var(--border-amber);
-                    border-radius:20px;font-size:10px;font-weight:700;
-                    color:var(--amber-400);letter-spacing:1px;
-                ">🔐 MASTER HQ</div>
-            </div>
-            <div style="padding: 24px 28px;">
-                <div id="login-error-msg" style="
-                    display: ${errorMsg ? 'block' : 'none'};
-                    margin-bottom:16px;padding:10px 14px;
-                    background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);
-                    border-radius:8px;font-size:12px;color:#f87171;
-                ">${errorMsg ? escH(errorMsg) : ''}</div>
-                <div style="margin-bottom:14px;">
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Usuário</label>
-                    <input id="login-user" type="text" autocomplete="username" placeholder="Seu usuário" style="
-                        width:100%;background:var(--bg-surface);border:1px solid var(--border-subtle);
-                        border-radius:8px;padding:10px 14px;color:var(--text-primary);
-                        font-size:13px;font-family:inherit;outline:none;
-                        transition:border-color 0.2s;
-                    "  >
+        <canvas id="master-login-canvas"></canvas>
+
+        <div class="master-reactor-wrap">
+            <svg class="master-reactor-svg" viewBox="0 0 560 560" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <radialGradient id="reactorCoreGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="55%" stop-color="rgba(124, 58, 237, 0.06)" />
+                        <stop offset="85%" stop-color="rgba(56, 189, 248, 0.18)" />
+                        <stop offset="100%" stop-color="transparent" />
+                    </radialGradient>
+                </defs>
+                <circle cx="280" cy="280" r="226" fill="url(#reactorCoreGlow)" stroke="rgba(56, 189, 248, 0.25)" stroke-width="1.5" stroke-dasharray="4 6" />
+                <circle cx="280" cy="280" r="268" fill="none" stroke="rgba(124, 58, 237, 0.18)" stroke-width="1" />
+                ${reactorBarsSVG}
+            </svg>
+
+            <div class="master-circular-core">
+                <div class="master-core-header">
+                    <div class="master-emblem-container">
+                        <div class="master-orbit-outer"></div>
+                        <div class="master-login-emblem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="master-login-title">Sentinel</div>
+                    <div class="master-login-badge ${is2FA ? 'badge-2fa' : ''}">
+                        <span class="master-login-dot ${is2FA ? 'dot-2fa' : ''}"></span>
+                        <span>${is2FA ? 'VERIFICAÇÃO TOTP 2FA' : 'CENTRAL DE CONTROLE'}</span>
+                    </div>
                 </div>
-                <div style="margin-bottom:20px;">
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Senha</label>
-                    <input id="login-pass" type="password" autocomplete="current-password" placeholder="Sua senha" style="
-                        width:100%;background:var(--bg-surface);border:1px solid var(--border-subtle);
-                        border-radius:8px;padding:10px 14px;color:var(--text-primary);
-                        font-size:13px;font-family:inherit;outline:none;
-                        transition:border-color 0.2s;
-                    "  
-                    data-action-key="Enter-doMasterLogin">
+
+                <div class="master-login-body-core">
+                    <div id="login-error-msg" class="master-login-error" style="display: ${errorMsg ? 'flex' : 'none'};">
+                        <i data-lucide="alert-circle" style="width:14px;height:14px;flex-shrink:0;"></i>
+                        <span>${errorMsg ? escH(errorMsg) : ''}</span>
+                    </div>
+                    
+                    ${is2FA ? `
+                        <div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:11.5px;line-height:1.3;">
+                            Digite o código de 6 dígitos do <strong>Authenticator</strong>:
+                        </div>
+
+                        <div class="master-input-group" style="margin-bottom:14px;">
+                            <input id="login-totp" class="master-totp-field" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="000 000" data-action-key="Enter-doMaster2FALogin">
+                        </div>
+
+                        <button id="login-2fa-btn" class="master-login-btn" data-action="doMaster2FALogin">
+                            <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+                            <span>Verificar &amp; Acessar</span>
+                        </button>
+
+                        <div style="text-align:center;margin-top:10px;">
+                            <button class="btn-master" data-action="backToMasterLogin" style="background:transparent;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:color 0.2s;">
+                                ← Voltar ao login
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="master-input-group">
+                            <div class="master-input-wrap">
+                                <input id="login-user" class="master-input-field" type="text" autocomplete="username" placeholder="Digite seu usuário">
+                                <i data-lucide="user" class="master-input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="master-input-group" style="margin-bottom:16px;">
+                            <div class="master-input-wrap">
+                                <input id="login-pass" class="master-input-field" type="password" autocomplete="current-password" placeholder="Digite sua senha" data-action-key="Enter-doMasterLogin">
+                                <i data-lucide="lock" class="master-input-icon"></i>
+                                <button type="button" class="master-input-toggle" data-action="toggleMasterPassVisibility" title="Mostrar/Ocultar Senha">
+                                    <i id="login-pass-toggle-icon" data-lucide="eye" style="width:15px;height:15px;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button id="login-btn" class="master-login-btn" data-action="doMasterLogin">
+                            <i data-lucide="log-in" style="width:16px;height:16px;"></i>
+                            <span>Acessar Painel Central</span>
+                        </button>
+                    `}
+
+                    <div class="master-login-footer">
+                        <i data-lucide="shield" style="width:12px;height:12px;opacity:0.75;"></i>
+                        <span>Sessão Blindada &bull; Sentinel Core v2.9.41</span>
+                    </div>
                 </div>
-                <button id="login-btn" data-action="doMasterLogin" style="
-                    width:100%;padding:11px;background:var(--violet-600);
-                    border:1px solid var(--violet-500);border-radius:8px;
-                    color:#fff;font-size:13px;font-weight:700;
-                    cursor:pointer;font-family:inherit;
-                    box-shadow:0 0 20px rgba(124,58,237,0.3);
-                    transition:all 0.2s;
-                " data-hover-bg="var(--violet-500)" data-out-bg="var(--violet-600)">
-                    Entrar no Master HQ
-                </button>
             </div>
         </div>
     `;
-    document.body.appendChild(overlay);
-    setTimeout(() => { const u = document.getElementById('login-user'); if (u) u.focus(); }, 100);
+
+    if (window.lucide) lucide.createIcons();
+    initLoginInteractiveParticles();
+    initReactorHaloAnimation(barCount);
+
+    // Speed up reactor when user interacts with inputs
+    const inputs = overlay.querySelectorAll('input');
+    inputs.forEach(inp => {
+        inp.addEventListener('input', () => { reactorSpeed = 0.8; });
+        inp.addEventListener('blur', () => { setTimeout(() => { reactorSpeed = 0.32; }, 500); });
+    });
+
+    setTimeout(() => { 
+        if (is2FA) {
+            const totp = document.getElementById('login-totp');
+            if (totp) totp.focus();
+        } else {
+            const u = document.getElementById('login-user');
+            if (u) u.focus();
+        }
+    }, 100);
+}
+
+function initReactorHaloAnimation(barCount = 48) {
+    if (reactorAnimationId) cancelAnimationFrame(reactorAnimationId);
+    let head = 0;
+    const tailLength = 16;
+
+    function frame() {
+        const svg = document.querySelector('.master-reactor-svg');
+        if (!svg) return;
+
+        head = (head + reactorSpeed) % barCount;
+
+        for (let i = 0; i < barCount; i++) {
+            const bar = document.getElementById(`reactor-bar-${i}`);
+            if (!bar) continue;
+
+            const dist = (head - i + barCount) % barCount;
+
+            if (dist < tailLength) {
+                const ratio = 1 - (dist / tailLength); // 1 at head, 0 at end of tail
+                
+                let r, g, b;
+                if (ratio > 0.65) {
+                    // Incandescent electric cyan-white spark head
+                    const t = (ratio - 0.65) / 0.35;
+                    r = Math.round(56 + (224 - 56) * t);
+                    g = Math.round(189 + (242 - 189) * t);
+                    b = Math.round(248 + (254 - 248) * t);
+                } else if (ratio > 0.25) {
+                    // Electric Cyan to Violet
+                    const t = (ratio - 0.25) / 0.4;
+                    r = Math.round(124 + (56 - 124) * t);
+                    g = Math.round(58 + (189 - 58) * t);
+                    b = Math.round(237 + (248 - 237) * t);
+                } else {
+                    // Deep Ultraviolet tail
+                    const t = ratio / 0.25;
+                    r = Math.round(109 * t);
+                    g = Math.round(40 * t);
+                    b = Math.round(217 * t);
+                }
+
+                bar.setAttribute('fill', `rgb(${r}, ${g}, ${b})`);
+                bar.style.opacity = Math.max(0.3, ratio * 1).toFixed(2);
+                if (ratio > 0.35) {
+                    bar.style.filter = `drop-shadow(0 0 ${(ratio * 8.5).toFixed(1)}px rgba(56, 189, 248, 0.95))`;
+                } else {
+                    bar.style.filter = 'none';
+                }
+            } else {
+                bar.setAttribute('fill', 'rgba(56, 189, 248, 0.12)');
+                bar.style.opacity = '0.22';
+                bar.style.filter = 'none';
+            }
+        }
+
+        reactorAnimationId = requestAnimationFrame(frame);
+    }
+
+    frame();
+}
+
+function initLoginInteractiveParticles() {
+    const canvas = document.getElementById('master-login-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const resize = () => {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+    const count = Math.min(80, Math.max(35, Math.floor(window.innerWidth / 20)));
+    const colors = ['rgba(139, 92, 246, ', 'rgba(99, 102, 241, ', 'rgba(245, 158, 11, ', 'rgba(56, 189, 248, '];
+
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            r: Math.random() * 1.8 + 0.6,
+            color: colors[Math.floor(Math.random() * colors.length)]
+        });
+    }
+
+    let mouse = { x: null, y: null, radius: 140 };
+    const onMouseMove = (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    if (loginCanvasAnimationId) cancelAnimationFrame(loginCanvasAnimationId);
+
+    function animate() {
+        const activeCanvas = document.getElementById('master-login-canvas');
+        if (!activeCanvas) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+            // Mouse interaction
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - p.x;
+                const dy = mouse.y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < mouse.radius) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.strokeStyle = `rgba(167, 139, 250, ${0.28 * (1 - dist / mouse.radius)})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color + '0.75)';
+            ctx.fill();
+        }
+
+        // Draw connections between nodes
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(124, 58, 237, ${0.18 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.6;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        loginCanvasAnimationId = requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+function toggleMasterPassVisibility() {
+    const inp = document.getElementById('login-pass');
+    const icon = document.getElementById('login-pass-toggle-icon');
+    if (!inp) return;
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+    } else {
+        inp.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+function backToMasterLogin() {
+    masterPending2FAUser = null;
+    showLoginScreen();
 }
 
 function showNotMasterError() {
@@ -1821,12 +2159,31 @@ function showNotMasterError() {
     document.body.appendChild(overlay);
 }
 
+async function doMasterLogout() {
+    try {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+        await masterFetch(`${MASTER_API}/logout`, {
+            method: 'POST'
+        });
+    } catch (e) {
+        console.error('Erro ao efetuar logout:', e);
+    }
+    document.cookie = 'sentinel_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    document.cookie = 'sentinel_csrf=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+    masterPending2FAUser = null;
+    showLoginScreen('Você encerrou a sessão com sucesso.');
+}
+
 async function doMasterLogin() {
     const user = document.getElementById('login-user')?.value.trim();
     const pass = document.getElementById('login-pass')?.value;
     const btn  = document.getElementById('login-btn');
     if (!user || !pass) { showLoginScreen('Preencha usuário e senha.'); return; }
 
+    reactorSpeed = 1.8;
     if (btn) { btn.innerText = 'Verificando...'; btn.disabled = true; }
 
     try {
@@ -1844,6 +2201,14 @@ async function doMasterLogin() {
         });
         
         if (res.ok) {
+            const data = await res.json();
+            if (data.require2fa) {
+                masterPending2FAUser = user;
+                reactorSpeed = 0.28;
+                showLoginScreen(null, true);
+                return;
+            }
+
             const ok = await verifyMasterAndInit();
             if (ok) {
                 // Login bem-sucedido — carrega o dashboard
@@ -1851,13 +2216,63 @@ async function doMasterLogin() {
                 await Promise.all([loadVersion(), loadMasterLicense(), loadActiveSessions(), loadBlacklist()]);
                 pollInterval = setInterval(loadActiveSessions, 15000);
             } else {
+                reactorSpeed = 0.28;
                 showLoginScreen('Você não tem permissões Master.');
             }
         } else {
+            reactorSpeed = 0.28;
             showLoginScreen('Usuário ou senha inválidos.');
         }
     } catch (e) {
+        reactorSpeed = 0.28;
         showLoginScreen('Erro de conexão com o servidor.');
+    }
+}
+
+async function doMaster2FALogin() {
+    const token = (document.getElementById('login-totp')?.value || '').replace(/\s/g, '');
+    const btn  = document.getElementById('login-2fa-btn');
+    const errEl = document.getElementById('login-error-msg');
+
+    if (token.length !== 6) {
+        if (errEl) {
+            errEl.textContent = 'O código deve ter 6 dígitos.';
+            errEl.style.display = 'block';
+        }
+        return;
+    }
+
+    reactorSpeed = 2.0;
+    if (btn) { btn.innerText = 'Verificando...'; btn.disabled = true; }
+
+    try {
+        const res = await fetch(`${MASTER_API}/auth/totp-verify`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: masterPending2FAUser, token })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            const ok = await verifyMasterAndInit();
+            if (ok) {
+                await loadPricingData();
+                await Promise.all([loadVersion(), loadMasterLicense(), loadActiveSessions(), loadBlacklist()]);
+                pollInterval = setInterval(loadActiveSessions, 15000);
+            } else {
+                reactorSpeed = 0.28;
+                showLoginScreen('Você não tem permissões Master.');
+            }
+        } else {
+            reactorSpeed = 0.28;
+            showLoginScreen(data.error || 'Código inválido.', true);
+            const inp = document.getElementById('login-totp');
+            if (inp) { inp.value = ''; inp.focus(); }
+        }
+    } catch (e) {
+        reactorSpeed = 0.28;
+        showLoginScreen('Erro de conexão.', true);
     }
 }
 
@@ -1981,6 +2396,10 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'executeDeleteClient': if (typeof executeDeleteClient === 'function') executeDeleteClient(); break;
             case 'openAddLicenseToClientModal': if (typeof openAddLicenseToClientModal === 'function') openAddLicenseToClientModal(); break;
             case 'doMasterLogin': if (typeof doMasterLogin === 'function') doMasterLogin(); break;
+            case 'doMaster2FALogin': if (typeof doMaster2FALogin === 'function') doMaster2FALogin(); break;
+            case 'doMasterLogout': if (typeof doMasterLogout === 'function') doMasterLogout(); break;
+            case 'backToMasterLogin': if (typeof backToMasterLogin === 'function') backToMasterLogin(); break;
+            case 'toggleMasterPassVisibility': if (typeof toggleMasterPassVisibility === 'function') toggleMasterPassVisibility(); break;
             case 'handleManageClient': if (typeof handleManageClient === 'function') handleManageClient(btn); break;
             case 'openTransferHWIDModal': 
                 if (typeof openTransferHWIDModal === 'function') openTransferHWIDModal(btn.getAttribute('data-arg1'), btn.getAttribute('data-arg2')); 
@@ -1996,6 +2415,10 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'handleRevokeLicense': if (typeof handleRevokeLicense === 'function') handleRevokeLicense(btn); break;
             case 'deleteUser': if (typeof deleteUser === 'function') deleteUser(target); break;
             case 'unbanClient': if (typeof unbanClient === 'function') unbanClient(btn.getAttribute('data-hwid')); break;
+            case 'start2FASetup': if (typeof start2FASetup === 'function') start2FASetup(); break;
+            case 'cancel2FASetup': if (typeof cancel2FASetup === 'function') cancel2FASetup(); break;
+            case 'confirm2FASetup': if (typeof confirm2FASetup === 'function') confirm2FASetup(); break;
+            case 'disable2FA': if (typeof disable2FA === 'function') disable2FA(); break;
         }
     });
 
@@ -2015,8 +2438,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.body.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            const target = e.target.closest('[data-action-key="Enter-doMasterLogin"]');
-            if (target && typeof doMasterLogin === 'function') doMasterLogin();
+            const targetLogin = e.target.closest('[data-action-key="Enter-doMasterLogin"]');
+            if (targetLogin && typeof doMasterLogin === 'function') doMasterLogin();
+
+            const target2FA = e.target.closest('[data-action-key="Enter-doMaster2FALogin"]');
+            if (target2FA && typeof doMaster2FALogin === 'function') doMaster2FALogin();
         }
     });
 
@@ -2046,3 +2472,117 @@ document.addEventListener('DOMContentLoaded', () => {
     const manageClientPhone = document.getElementById('manage-client-phone');
     if (manageClientPhone) manageClientPhone.addEventListener('input', (e) => { if (typeof maskPhone === 'function') maskPhone(e.target); });
 });
+
+// ===== 2FA — TOTP =====
+
+async function load2FAStatus() {
+    try {
+        const res = await masterFetch('/api/master/2fa-status');
+        if (!res.ok) { set2FAView('disabled'); return; }
+        const { enabled } = await res.json();
+        set2FAView(enabled ? 'enabled' : 'disabled');
+    } catch (e) {
+        set2FAView('disabled');
+    }
+}
+
+function set2FAView(state) {
+    const badge = document.getElementById('badge-2fa-status');
+    const dView = document.getElementById('twofa-disabled-view');
+    const sView = document.getElementById('twofa-setup-view');
+    const eView = document.getElementById('twofa-enabled-view');
+
+    if (dView) dView.style.display = state === 'disabled' ? '' : 'none';
+    if (sView) sView.style.display = state === 'setup'    ? '' : 'none';
+    if (eView) eView.style.display = state === 'enabled'  ? '' : 'none';
+
+    if (badge) {
+        badge.textContent = state === 'enabled' ? '✅ Ativo' : (state === 'setup' ? 'Configurando...' : '⚠️ Inativo');
+        badge.style.background = state === 'enabled' ? 'rgba(74,222,128,0.15)' : (state === 'setup' ? 'rgba(96,165,250,0.15)' : 'rgba(251,191,36,0.15)');
+        badge.style.color = state === 'enabled' ? '#4ade80' : (state === 'setup' ? '#60a5fa' : '#fbbf24');
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function start2FASetup() {
+    try {
+        const res = await masterFetch('/api/master/2fa-setup');
+        if (!res.ok) { showToast('Erro ao iniciar setup do 2FA.', 'error'); return; }
+        const { qr } = await res.json();
+        document.getElementById('twofa-qr-img').src = qr;
+        document.getElementById('twofa-confirm-token').value = '';
+        document.getElementById('twofa-setup-error').textContent = '';
+        set2FAView('setup');
+        const inp = document.getElementById('twofa-confirm-token');
+        if (inp) inp.focus();
+    } catch (e) {
+        showToast('Erro de conexão ao iniciar 2FA.', 'error');
+    }
+}
+
+function cancel2FASetup() {
+    set2FAView('disabled');
+}
+
+async function confirm2FASetup() {
+    const token = (document.getElementById('twofa-confirm-token')?.value || '').replace(/\s/g, '');
+    const errEl = document.getElementById('twofa-setup-error');
+    if (errEl) errEl.textContent = '';
+
+    if (token.length !== 6) { 
+        if (errEl) errEl.textContent = 'O código deve ter 6 dígitos.'; 
+        return; 
+    }
+
+    try {
+        const res = await masterFetch('/api/master/2fa-confirm', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            set2FAView('enabled');
+            showToast('2FA ativado com sucesso!', 'success');
+        } else {
+            if (errEl) errEl.textContent = data.error || 'Código inválido.';
+            const inp = document.getElementById('twofa-confirm-token');
+            if (inp) { inp.value = ''; inp.focus(); }
+        }
+    } catch (e) {
+        if (errEl) errEl.textContent = 'Erro de conexão.';
+    }
+}
+
+async function disable2FA() {
+    const token = (document.getElementById('twofa-disable-token')?.value || '').replace(/\s/g, '');
+    const errEl = document.getElementById('twofa-disable-error');
+    if (errEl) errEl.textContent = '';
+
+    if (token.length !== 6) { 
+        if (errEl) errEl.textContent = 'O código deve ter 6 dígitos.'; 
+        return; 
+    }
+
+    try {
+        const res = await masterFetch('/api/master/2fa-disable', {
+            method: 'POST',
+            body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            const inp = document.getElementById('twofa-disable-token');
+            if (inp) inp.value = '';
+            set2FAView('disabled');
+            showToast('2FA desativado.', 'info');
+        } else {
+            if (errEl) errEl.textContent = data.error || 'Código inválido.';
+            const inp = document.getElementById('twofa-disable-token');
+            if (inp) { inp.value = ''; inp.focus(); }
+        }
+    } catch (e) {
+        if (errEl) errEl.textContent = 'Erro de conexão.';
+    }
+}
+

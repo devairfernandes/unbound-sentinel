@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel Master HQ</title>
+    <title>Sentinel Core — Central de Controle</title>
     <meta name="description" content="Sentinel DNS — Painel Central Master. Gestão de clientes, licenças e receita.">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="/master.css?v=3">
+    <link rel="stylesheet" href="/master.css?v=2.9.51">
     <!-- Lucide Icons (pinned v0.460.0 + SRI) -->
     <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" integrity="sha384-ieG+IKD0d/ZPXyCBTMVAbqsQdns8QGJR/e26WMw7M4fkaI/rHcS/YIoi+ah9WGge" crossorigin="anonymous"></script>
     <!-- Chart.js (pinned v4.4.0 + SRI) -->
@@ -63,7 +63,7 @@
             <div class="master-logo-icon">⬡</div>
             <div class="master-logo-text">
                 <span class="brand">SENTINEL</span>
-                <span class="role-badge">MASTER HQ</span>
+                <span class="role-badge">CORE</span>
             </div>
         </div>
 
@@ -130,6 +130,11 @@
                 <i data-lucide="arrow-left"></i>
                 Voltar ao DNS
             </button>
+
+            <button class="master-nav-item master-nav-logout" data-action="doMasterLogout" title="Fazer Logoff">
+                <i data-lucide="log-out"></i>
+                Sair
+            </button>
         </nav>
 
         <div class="master-sidebar-footer">
@@ -161,7 +166,7 @@
         <header class="master-header">
             <div class="header-title">
                 <h1 id="section-title">Visão Geral</h1>
-                <span class="subtitle" id="section-subtitle">Painel central de gestão — Sentinel Master HQ</span>
+                <span class="subtitle" id="section-subtitle">Painel central de gestão — Sentinel Core</span>
             </div>
 
             <div class="header-spacer"></div>
@@ -182,6 +187,12 @@
             <button class="btn-master ghost" data-action="toggleNOCMode" title="Ativar Modo TV (Tela Cheia)" style="margin-left: 10px; padding: 6px; color: var(--text-secondary);">
                 <i data-lucide="maximize" style="width:18px;height:18px;"></i>
             </button>
+
+            <!-- Botão Logoff Topbar -->
+            <button class="btn-logout-top" data-action="doMasterLogout" title="Fazer Logoff (Sair)">
+                <i data-lucide="log-out" style="width:14px;height:14px;"></i>
+                <span>Sair</span>
+            </button>
         </header>
 
         <!-- Content -->
@@ -189,6 +200,31 @@
 
             <!-- ========== SEÇÃO: VISÃO GERAL ========== -->
             <section class="master-section active" id="section-overview">
+
+                <!-- Hero Status Bar -->
+                <div class="overview-hero-bar">
+                    <div class="hero-status-pill">
+                        <span class="pulse-led online"></span>
+                        <div class="hero-status-text">
+                            <strong>Cluster Sentinel Core</strong>
+                            <span>Telemetria em tempo real • 100% Operacional</span>
+                        </div>
+                    </div>
+                    <div class="hero-stats-quick">
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-label">Sincronização</span>
+                            <strong class="hero-stat-val text-emerald">Ativa (NTP Sync)</strong>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-label">Servidor Master</span>
+                            <strong class="hero-stat-val">192.168.1.10</strong>
+                        </div>
+                        <div class="hero-stat-item">
+                            <span class="hero-stat-label">Última Atualização</span>
+                            <strong class="hero-stat-val text-muted" id="clients-last-update">aguardando...</strong>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Métricas principais -->
                 <div class="metrics-grid">
@@ -257,20 +293,33 @@
                         <div class="panel-header">
                             <div class="panel-title">
                                 <i data-lucide="activity"></i>
-                                Clientes Online — Tempo Real
+                                Clientes Online — NOC Master
                             </div>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <span class="panel-last-update" id="clients-last-update">aguardando...</span>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <div class="overview-filter-tabs">
+                                    <button class="overview-tab-btn active" data-action="filterOverview" data-target="all">
+                                        Todos <span class="overview-tab-badge" id="tab-cnt-all">0</span>
+                                    </button>
+                                    <button class="overview-tab-btn" data-action="filterOverview" data-target="online">
+                                        🟢 Online <span class="overview-tab-badge" id="tab-cnt-online">0</span>
+                                    </button>
+                                    <button class="overview-tab-btn" data-action="filterOverview" data-target="pro">
+                                        👑 PRO <span class="overview-tab-badge" id="tab-cnt-pro">0</span>
+                                    </button>
+                                    <button class="overview-tab-btn" data-action="filterOverview" data-target="free">
+                                        ⚡ FREE <span class="overview-tab-badge" id="tab-cnt-free">0</span>
+                                    </button>
+                                </div>
                                 <div class="master-search">
                                     <i data-lucide="search"></i>
                                     <input type="text" id="client-search" placeholder="Buscar cliente...">
                                 </div>
-                                <button class="btn-master ghost" data-action="loadActiveSessions">
+                                <button class="btn-master ghost" data-action="loadActiveSessions" title="Atualizar Sessões">
                                     <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
                                 </button>
                             </div>
                         </div>
-                        <div style="overflow-x:auto; max-height:340px; overflow-y:auto;">
+                        <div class="clients-table-container">
                             <table class="clients-table">
                                 <thead>
                                     <tr>
@@ -296,7 +345,7 @@
                         </div>
                     </div>
 
-                    <!-- Painel lateral de distribuição -->
+                    <!-- Painel lateral de distribuição & Ações Rápidas -->
                     <div style="display:flex; flex-direction:column; gap:16px;">
 
                         <!-- Distribuição de licenças -->
@@ -304,29 +353,29 @@
                             <div class="panel-header">
                                 <div class="panel-title">
                                     <i data-lucide="pie-chart"></i>
-                                    Distribuição
+                                    Distribuição de Licenças
                                 </div>
                             </div>
                             <div class="panel-body">
                                 <div class="stat-list" id="license-dist">
                                     <div class="stat-item">
                                         <div class="stat-item-header">
-                                            <span>PRO</span>
-                                            <span id="dist-pro-pct">0%</span>
+                                            <span>PRO Elite</span>
+                                            <span class="stat-pct-badge" id="dist-pro-pct">0%</span>
                                         </div>
                                         <div class="stat-bar"><div class="stat-bar-fill violet" id="dist-pro-bar" style="width:0%"></div></div>
                                     </div>
                                     <div class="stat-item">
                                         <div class="stat-item-header">
                                             <span>PRO Lite</span>
-                                            <span id="dist-lite-pct">0%</span>
+                                            <span class="stat-pct-badge" id="dist-lite-pct">0%</span>
                                         </div>
                                         <div class="stat-bar"><div class="stat-bar-fill amber" id="dist-lite-bar" style="width:0%"></div></div>
                                     </div>
                                     <div class="stat-item">
                                         <div class="stat-item-header">
-                                            <span>FREE</span>
-                                            <span id="dist-free-pct">0%</span>
+                                            <span>FREE / Trial</span>
+                                            <span class="stat-pct-badge" id="dist-free-pct">0%</span>
                                         </div>
                                         <div class="stat-bar"><div class="stat-bar-fill green" id="dist-free-bar" style="width:0%"></div></div>
                                     </div>
@@ -339,7 +388,7 @@
                             <div class="panel-header">
                                 <div class="panel-title">
                                     <i data-lucide="zap"></i>
-                                    Ações Rápidas
+                                    Hub de Ações Rápidas
                                 </div>
                             </div>
                             <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;">
@@ -351,9 +400,9 @@
                                     <i data-lucide="key-round" style="width:13px;height:13px;"></i>
                                     Gerir Licenças
                                 </button>
-                                <button class="btn-master ghost" style="width:100%;justify-content:center;" data-action="loadActiveSessions">
-                                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
-                                    Atualizar Dados
+                                <button class="btn-master ghost" style="width:100%;justify-content:center;" data-action="openCreateClientModal">
+                                    <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
+                                    Novo Cliente
                                 </button>
                             </div>
                         </div>
@@ -366,13 +415,13 @@
             <section class="master-section" id="section-clients">
                 <div class="section-topbar">
                     <div class="section-heading">
-                        Clientes
-                        <small>Todos os servidores Sentinel registrados</small>
+                        Servidores Clientes
+                        <small>Monitoramento e gestão de todos os nós Sentinel DNS registrados</small>
                     </div>
-                    <div style="display:flex;gap:8px;">
+                    <div style="display:flex;gap:10px;align-items:center;">
                         <div class="master-search">
                             <i data-lucide="search"></i>
-                            <input type="text" id="clients-search2" placeholder="Buscar...">
+                            <input type="text" id="clients-search2" placeholder="Buscar por nome, IP ou HWID...">
                         </div>
                         <button class="btn-master outline" data-action="openCreateClientModal">
                             <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
@@ -384,23 +433,25 @@
                         </button>
                     </div>
                 </div>
-                <div class="full-panel">
-                    <table class="clients-table" style="min-width:700px;">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Cliente / Hostname</th>
-                                <th>IP</th>
-                                <th>Versão</th>
-                                <th>Licença</th>
-                                <th>Último Sinal</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-full-tbody">
-                            <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
-                        </tbody>
-                    </table>
+                <div class="panel">
+                    <div class="clients-table-container">
+                        <table class="clients-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Cliente / Hostname</th>
+                                    <th>IP</th>
+                                    <th>Versão</th>
+                                    <th>Licença</th>
+                                    <th>Último Sinal</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-full-tbody">
+                                <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -408,31 +459,39 @@
             <section class="master-section" id="section-licenses">
                 <div class="section-topbar">
                     <div class="section-heading">
-                        Licenças
-                        <small>Gestão de chaves de ativação e planos</small>
+                        Gestão de Licenças
+                        <small>Controle de chaves criptográficas de ativação e planos vinculados</small>
                     </div>
-                    <button class="btn-master primary" data-action="openAddLicenseModal">
-                        <i data-lucide="plus" style="width:13px;height:13px;"></i>
-                        Criar Licença
-                    </button>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button class="btn-master ghost" data-action="loadLicenses">
+                            <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                            Recarregar
+                        </button>
+                        <button class="btn-master primary" data-action="openAddLicenseModal">
+                            <i data-lucide="plus" style="width:13px;height:13px;"></i>
+                            Criar Licença
+                        </button>
+                    </div>
                 </div>
-                <div class="full-panel">
-                    <table class="clients-table" style="min-width:700px;">
-                        <thead>
-                            <tr>
-                                <th>Chave</th>
-                                <th>Cliente</th>
-                                <th>Plano</th>
-                                <th>HWID</th>
-                                <th>Vencimento</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="licenses-tbody">
-                            <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
-                        </tbody>
-                    </table>
+                <div class="panel">
+                    <div class="clients-table-container">
+                        <table class="clients-table">
+                            <thead>
+                                <tr>
+                                    <th>Chave</th>
+                                    <th>Cliente</th>
+                                    <th>Plano</th>
+                                    <th>HWID Vinculado</th>
+                                    <th>Vencimento</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="licenses-tbody">
+                                <tr><td colspan="7"><div class="empty-state"><div class="master-spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -440,47 +499,48 @@
             <section class="master-section" id="section-revenue">
                 <div class="section-topbar">
                     <div class="section-heading">
-                        Receita
-                        <small>Estimativa baseada em licenças ativas</small>
+                        Telemetria Financeira &amp; Receita
+                        <small>Estimativas em tempo real baseadas no portfólio de licenças ativas</small>
                     </div>
                 </div>
                 <div class="revenue-summary">
                     <div class="rev-card">
                         <div class="rev-card-label">MRR Estimado</div>
-                        <div class="rev-card-value" id="rev-mrr">R$ 0,00</div>
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Somente pagantes</div>
+                        <div class="rev-card-value" id="rev-mrr" style="color:#a78bfa;">R$ 0,00</div>
+                        <div class="rev-card-sub">Assinaturas recorrentes</div>
                     </div>
                     <div class="rev-card">
                         <div class="rev-card-label">ARR Estimado</div>
-                        <div class="rev-card-value" id="rev-arr">R$ 0,00</div>
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Somente pagantes</div>
+                        <div class="rev-card-value" id="rev-arr" style="color:#38bdf8;">R$ 0,00</div>
+                        <div class="rev-card-sub">Projeção anualizada</div>
                     </div>
-                    <div class="rev-card" style="border-left: 2px solid var(--amber-400);">
+                    <div class="rev-card" style="border-color:rgba(245,158,11,0.4);">
                         <div class="rev-card-label">Receita Vitalícia Acumulada</div>
-                        <div class="rev-card-value" id="rev-lifetime" style="color:var(--amber-400)">R$ 0,00</div>
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Vendas únicas</div>
+                        <div class="rev-card-value" id="rev-lifetime" style="color:#fbbf24;">R$ 0,00</div>
+                        <div class="rev-card-sub">Doações e vendas únicas</div>
                     </div>
                     <div class="rev-card">
                         <div class="rev-card-label">Clientes PRO</div>
-                        <div class="rev-card-value" id="rev-pro-count" style="color:var(--violet-400)">0</div>
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Pagantes ativos</div>
+                        <div class="rev-card-value" id="rev-pro-count" style="color:#34d399;">0</div>
+                        <div class="rev-card-sub">Nós pagantes ativos</div>
                     </div>
                     <div class="rev-card">
-                        <div class="rev-card-label">Em Trial</div>
-                        <div class="rev-card-value" id="rev-trial-count" style="color:var(--sky-400)">0</div>
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Não conta no MRR</div>
+                        <div class="rev-card-label">Em Período Trial</div>
+                        <div class="rev-card-value" id="rev-trial-count" style="color:#60a5fa;">0</div>
+                        <div class="rev-card-sub">Potencial de conversão</div>
                     </div>
                     <div class="rev-card">
                         <div class="rev-card-label">Clientes FREE</div>
-                        <div class="rev-card-value" id="rev-free-count" style="color:var(--text-secondary)">0</div>
+                        <div class="rev-card-value" id="rev-free-count" style="color:#94a3b8;">0</div>
+                        <div class="rev-card-sub">Comunidade Sentinel</div>
                     </div>
                 </div>
-                <div class="panel">
+                <div class="panel" style="margin-top:20px;">
                     <div class="panel-header">
-                        <div class="panel-title"><i data-lucide="bar-chart-2"></i> Licenças por Plano</div>
+                        <div class="panel-title"><i data-lucide="bar-chart-2"></i> Distribuição de Licenças por Plano</div>
                     </div>
                     <div class="panel-body">
-                        <div class="chart-wrap">
+                        <div class="chart-wrap" style="height:260px;">
                             <canvas id="revenue-chart"></canvas>
                         </div>
                     </div>
@@ -491,17 +551,17 @@
             <section class="master-section" id="section-users">
                 <div class="section-topbar">
                     <div class="section-heading">
-                        Usuários do Dashboard
-                        <small>Contas com acesso ao painel</small>
+                        Usuários do Painel Master
+                        <small>Contas de administradores e operadores autorizados</small>
                     </div>
                     <button class="btn-master primary" data-action="openAddUserModal">
                         <i data-lucide="user-plus" style="width:13px;height:13px;"></i>
                         Adicionar Usuário
                     </button>
                 </div>
-                <div class="full-panel">
-                    <div class="panel-body">
-                        <div id="users-list"><div class="empty-state"><div class="master-spinner"></div></div></div>
+                <div class="panel">
+                    <div class="clients-table-container" id="users-list">
+                        <div class="empty-state"><div class="master-spinner"></div></div>
                     </div>
                 </div>
             </section>
@@ -509,13 +569,16 @@
             <!-- ========== SEÇÃO: ALERTAS ========== -->
             <section class="master-section" id="section-alerts">
                 <div class="section-topbar">
-                    <div class="section-heading">Alertas</div>
+                    <div class="section-heading">
+                        Central de Alertas &amp; Notificações
+                        <small>Histórico de eventos críticos e disparos do sistema</small>
+                    </div>
                 </div>
-                <div class="full-panel">
+                <div class="panel">
                     <div class="panel-body" id="alerts-list">
                         <div class="empty-state">
                             <i data-lucide="bell-off"></i>
-                            <p>Nenhum alerta no momento.</p>
+                            <p>Nenhum alerta crítico registrado no momento.</p>
                         </div>
                     </div>
                 </div>
@@ -525,10 +588,10 @@
             <section class="master-section" id="section-plans">
                 <div class="section-topbar">
                     <div class="section-heading">
-                        Planos &amp; Promoção
-                        <small>Preços e promoções exibidos para os clientes</small>
+                        Gestão de Planos &amp; Promoções
+                        <small>Configure a precificação das assinaturas, licenças vitalícias e campanhas ativas</small>
                     </div>
-                    <div style="display:flex;gap:8px;">
+                    <div style="display:flex;gap:10px;">
                         <button class="btn-master ghost" data-action="loadPlans">
                             <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
                             Recarregar
@@ -541,104 +604,218 @@
                 </div>
 
                 <div class="plans-grid">
-                    <!-- PRO -->
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">
-                                <i data-lucide="crown" style="color:var(--violet-400)"></i>
-                                Plano PRO Elite
+                    <!-- PRO Elite -->
+                    <div class="plan-card">
+                        <div class="plan-card-header">
+                            <div class="plan-card-title">
+                                <div class="metric-icon violet" style="margin-bottom:0;width:34px;height:34px;">
+                                    <i data-lucide="crown" style="width:17px;height:17px;"></i>
+                                </div>
+                                <div>
+                                    <h3>Plano PRO Elite</h3>
+                                    <p>Assinatura Recorrente Mensal</p>
+                                </div>
                             </div>
                             <span class="lic-badge pro">PRO</span>
                         </div>
-                        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
-                            <div class="modal-field">
-                                <label>Preço exibido (ex: R$ 50,00)</label>
-                                <input type="text" id="plan-pro-price" placeholder="R$ 50,00">
+                        <div class="plan-card-body">
+                            <div class="input-label-row">
+                                <label>Preço Exibido</label>
+                                <span class="input-label-hint">Ex: R$ 80,00</span>
                             </div>
-                            <div class="modal-field">
-                                <label>Preço Stripe em centavos (5000 = R$50)</label>
-                                <input type="number" id="plan-pro-stripe" placeholder="5000" min="0">
+                            <div class="modal-field" style="margin-bottom:8px;">
+                                <input type="text" id="plan-pro-price" placeholder="R$ 80,00">
                             </div>
+
+                            <div class="input-label-row">
+                                <label>Valor Stripe (em Centavos)</label>
+                                <span class="input-label-hint">8000 = R$ 80,00</span>
+                            </div>
+                            <div class="modal-field" style="margin-bottom:0;">
+                                <input type="number" id="plan-pro-stripe" placeholder="8000" min="0">
+                            </div>
+                        </div>
+                        <div class="plan-card-footer">
+                            <i data-lucide="shield-check" style="width:13px;height:13px;color:#34d399;"></i>
+                            <span>Inclui CTI, Telemetria e Suporte Master</span>
                         </div>
                     </div>
 
                     <!-- PRO Lite -->
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">
-                                <i data-lucide="heart" style="color:var(--amber-400)"></i>
-                                Plano PRO Lite (Doação)
+                    <div class="plan-card">
+                        <div class="plan-card-header">
+                            <div class="plan-card-title">
+                                <div class="metric-icon amber" style="margin-bottom:0;width:34px;height:34px;">
+                                    <i data-lucide="heart" style="width:17px;height:17px;"></i>
+                                </div>
+                                <div>
+                                    <h3>Plano PRO Lite (Doação / Vitalício)</h3>
+                                    <p>Pagamento Único ou Doação PIX</p>
+                                </div>
                             </div>
-                            <span class="lic-badge pro-lite">PRO Lite</span>
+                            <span class="lic-badge pro-lite">PRO LITE</span>
                         </div>
-                        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
-                            <div class="modal-field">
-                                <label>Preço exibido (ex: R$ 49,90)</label>
-                                <input type="text" id="plan-lite-price" placeholder="R$ 49,90">
+                        <div class="plan-card-body">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div>
+                                    <div class="input-label-row">
+                                        <label>Preço Exibido</label>
+                                        <span class="input-label-hint">Ex: R$ 1.997,00</span>
+                                    </div>
+                                    <div class="modal-field" style="margin-bottom:0;">
+                                        <input type="text" id="plan-lite-price" placeholder="R$ 1.997,00">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="input-label-row">
+                                        <label>Stripe (Centavos)</label>
+                                        <span class="input-label-hint">4990 = R$ 49,90</span>
+                                    </div>
+                                    <div class="modal-field" style="margin-bottom:0;">
+                                        <input type="number" id="plan-lite-stripe" placeholder="4990" min="0">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="modal-field">
-                                <label>Preço Stripe em centavos</label>
-                                <input type="number" id="plan-lite-stripe" placeholder="4990" min="0">
+
+                            <div style="margin-top:8px;">
+                                <div class="input-label-row">
+                                    <label>Texto do Botão de Ação</label>
+                                    <span class="input-label-hint">Chamada para Ação</span>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="text" id="plan-lite-btn" placeholder="Baixar e Ativar Vitalícia">
+                                </div>
                             </div>
-                            <div class="modal-field">
-                                <label>Texto do botão de doação</label>
-                                <input type="text" id="plan-lite-btn" placeholder="❤ FAZER DOAÇÃO (PIX)">
+                        </div>
+                        <div class="plan-card-footer">
+                            <i data-lucide="zap" style="width:13px;height:13px;color:#fbbf24;"></i>
+                            <span>Liberação de chave permanente para nós licenciados</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promoção Ativa -->
+                <div class="promo-panel">
+                    <div class="plan-card-header" style="background:rgba(245,158,11,0.06);border-bottom:1px solid rgba(245,158,11,0.25);">
+                        <div class="plan-card-title">
+                            <div class="metric-icon amber" style="margin-bottom:0;width:34px;height:34px;">
+                                <i data-lucide="sparkles" style="width:17px;height:17px;"></i>
+                            </div>
+                            <div>
+                                <h3 style="color:#fbbf24;">Campanha Promocional Ativa</h3>
+                                <p>Ofertas sazonais e descontos por tempo limitado</p>
+                            </div>
+                        </div>
+                        <div id="promo-countdown" style="font-size:12px;color:#fbbf24;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(245,158,11,0.15);padding:5px 12px;border-radius:12px;border:1px solid rgba(245,158,11,0.4);box-shadow:0 0 12px rgba(245,158,11,0.2);"></div>
+                    </div>
+
+                    <div class="promo-grid">
+                        <!-- Coluna 1: Oferta & Destaque -->
+                        <div class="promo-col">
+                            <div class="promo-col-title">
+                                <i data-lucide="tag" style="width:13px;height:13px;"></i>
+                                Destaque da Oferta
+                            </div>
+                            
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Badge Promocional</label>
+                                    <span class="input-label-hint">Ex: -60% OFF</span>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="text" id="promo-badge" placeholder="-60% OFF">
+                                </div>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <div>
+                                    <div class="input-label-row">
+                                        <label>Preço "De"</label>
+                                    </div>
+                                    <div class="modal-field" style="margin-bottom:0;">
+                                        <input type="text" id="promo-old-price" placeholder="De R$ 80,00">
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="input-label-row">
+                                        <label>Preço "Por"</label>
+                                    </div>
+                                    <div class="modal-field" style="margin-bottom:0;">
+                                        <input type="text" id="promo-new-price" placeholder="R$ 32,00">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Encerramento / Contador</label>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="datetime-local" id="promo-end-date">
+                                    <small style="color:#7b789e;font-size:10px;display:block;margin-top:3px;">Deixe vazio para promoção contínua sem contador</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Plano Mensal Promo -->
+                        <div class="promo-col">
+                            <div class="promo-col-title">
+                                <i data-lucide="calendar" style="width:13px;height:13px;"></i>
+                                Oferta Mensal
+                            </div>
+
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Texto do Botão Mensal</label>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="text" id="promo-monthly-btn" placeholder="MENSAL (R$ 32,00)">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Stripe Mensal (Centavos)</label>
+                                    <span class="input-label-hint">3200 = R$ 32,00</span>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="number" id="promo-monthly-stripe" placeholder="3200" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 3: Plano Anual Promo -->
+                        <div class="promo-col">
+                            <div class="promo-col-title">
+                                <i data-lucide="award" style="width:13px;height:13px;"></i>
+                                Oferta Anual
+                            </div>
+
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Texto do Botão Anual</label>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="text" id="promo-annual-btn" placeholder="ANUAL (R$ 349,90)">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="input-label-row">
+                                    <label>Stripe Anual (Centavos)</label>
+                                    <span class="input-label-hint">34990 = R$ 349,90</span>
+                                </div>
+                                <div class="modal-field" style="margin-bottom:0;">
+                                    <input type="number" id="promo-annual-stripe" placeholder="34990" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Promoção -->
-                <div class="panel" style="margin-top:16px;">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <i data-lucide="zap" style="color:var(--amber-400)"></i>
-                            Promoção Ativa
-                        </div>
-                        <div id="promo-countdown" style="font-size:12px;color:var(--amber-400);font-weight:700;font-family:monospace;"></div>
-                    </div>
-                    <div class="panel-body">
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
-                            <div class="modal-field">
-                                <label>Badge da Promoção</label>
-                                <input type="text" id="promo-badge" placeholder="-40% OFF">
-                            </div>
-                            <div class="modal-field">
-                                <label>Preço antigo (texto)</label>
-                                <input type="text" id="promo-old-price" placeholder="De R$ 50,00">
-                            </div>
-                            <div class="modal-field">
-                                <label>Preço novo (texto)</label>
-                                <input type="text" id="promo-new-price" placeholder="Por apenas R$ 29,90">
-                            </div>
-                            <div class="modal-field">
-                                <label>Texto botão mensal</label>
-                                <input type="text" id="promo-monthly-btn" placeholder="MENSAL (R$ 29,90)">
-                            </div>
-                            <div class="modal-field">
-                                <label>Preço mensal Stripe (centavos)</label>
-                                <input type="number" id="promo-monthly-stripe" placeholder="2990" min="0">
-                            </div>
-                            <div class="modal-field">
-                                <label>Texto botão anual</label>
-                                <input type="text" id="promo-annual-btn" placeholder="ANUAL (R$ 349,90)">
-                            </div>
-                            <div class="modal-field">
-                                <label>Preço anual Stripe (centavos)</label>
-                                <input type="number" id="promo-annual-stripe" placeholder="34990" min="0">
-                            </div>
-                            <div class="modal-field">
-                                <label>Encerramento da promo</label>
-                                <input type="datetime-local" id="promo-end-date">
-                                <small style="color:var(--text-muted);font-size:10px;">Deixe vazio = sem contador</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display:flex;justify-content:flex-end;margin-top:16px;">
-                    <button class="btn-master primary" data-action="savePlans" style="padding:12px 32px;">
-                        <i data-lucide="save" style="width:13px;height:13px;"></i>
+                <div style="display:flex;justify-content:flex-end;margin-top:16px;margin-bottom:80px;">
+                    <button class="btn-master primary" data-action="savePlans" style="padding:12px 36px;font-size:13px;">
+                        <i data-lucide="save" style="width:14px;height:14px;"></i>
                         Salvar Todas as Alterações
                     </button>
                 </div>
@@ -675,6 +852,55 @@
                                     ⚠️ O MASTER_TOKEN é gerado automaticamente pelo HWID desta máquina. 
                                     Copiar o .env para outro servidor invalidará o acesso master.
                                 </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel" id="panel-2fa">
+                        <div class="panel-header">
+                            <div class="panel-title"><i data-lucide="shield-check"></i> Autenticação em Duas Etapas (2FA)</div>
+                            <span id="badge-2fa-status" style="font-size:11px;padding:2px 8px;border-radius:10px;background:#374151;color:#9ca3af;">Verificando...</span>
+                        </div>
+                        <div class="panel-body">
+                            <!-- Estado: desativado -->
+                            <div id="twofa-disabled-view">
+                                <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px;line-height:1.5;">
+                                    O 2FA não está ativo. Ative para exigir um código do Google Authenticator em todo login.
+                                </p>
+                                <button class="btn-master primary" data-action="start2FASetup">
+                                    <i data-lucide="shield-check" style="width:14px;height:14px;margin-right:6px;"></i> Ativar 2FA
+                                </button>
+                            </div>
+
+                            <!-- Estado: configurando (mostra QR) -->
+                            <div id="twofa-setup-view" style="display:none">
+                                <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.5;">
+                                    Escaneie o QR code com o Google Authenticator ou Authy, depois insira o código gerado para confirmar.
+                                </p>
+                                <div style="text-align:center;margin-bottom:14px;background:#fff;padding:12px;border-radius:8px;display:inline-block;">
+                                    <img id="twofa-qr-img" src="" alt="QR Code 2FA" style="width:180px;height:180px;display:block;">
+                                </div>
+                                <div class="modal-field" style="margin-top:10px;">
+                                    <label>Código de Confirmação (6 dígitos)</label>
+                                    <input type="text" id="twofa-confirm-token" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="font-size:16px;letter-spacing:2px;text-align:center;">
+                                </div>
+                                <div id="twofa-setup-error" style="color:var(--rose-400, #f87171);font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+                                <div style="display:flex;gap:8px;">
+                                    <button class="btn-master primary" data-action="confirm2FASetup">Confirmar e Ativar</button>
+                                    <button class="btn-master" data-action="cancel2FASetup">Cancelar</button>
+                                </div>
+                            </div>
+
+                            <!-- Estado: ativado -->
+                            <div id="twofa-enabled-view" style="display:none">
+                                <p style="color:var(--emerald-400, #4ade80);font-size:13px;margin-bottom:14px;font-weight:500;">
+                                    ✅ 2FA ativo — o login exige o código do Authenticator.
+                                </p>
+                                <div class="modal-field">
+                                    <label>Código atual para desativar</label>
+                                    <input type="text" id="twofa-disable-token" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="font-size:16px;letter-spacing:2px;text-align:center;">
+                                </div>
+                                <div id="twofa-disable-error" style="color:var(--rose-400, #f87171);font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+                                <button class="btn-master" data-action="disable2FA" style="background:var(--danger, #ef4444); border-color:var(--danger, #ef4444); color:#fff;">Desativar 2FA</button>
                             </div>
                         </div>
                     </div>
@@ -1074,7 +1300,7 @@
 <script>
     lucide.createIcons();
 </script>
-<script src="master.js?v=2.9.32"></script>
+<script src="master.js?v=2.9.51"></script>
 <!-- Modal: Confirmação de Exclusão de Cliente -->
 <div class="master-modal-overlay" id="modal-delete-client" style="display:none;" data-modal-overlay="modal-delete-client">
     <div class="master-modal" style="max-width:480px;">

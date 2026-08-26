@@ -13,44 +13,22 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNS Firewall vs DNS comum: qual a diferença na prática - Sentinel DNS</title>
-    <meta name="description" content="Leia nosso artigo completo sobre DNS Firewall vs DNS comum: qual a diferença na prática. Fique por dentro das novidades sobre DNS, segurança de redes, ISP e proteção contra ameaças cibernéticas no Blog oficial do Sentinel DNS.">
+    <title>DNS Recursivo para Data Centers - Sentinel DNS</title>
+    <link rel="icon" type="image/webp" href="./Logo.webp">
+    <meta name="description" content="Desempenho extremo e baixa latência. Servidor DNS self-hosted robusto para ambientes de Data Center e infraestruturas críticas.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/webp" href="../Logo.webp">
-  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/blog/dns-firewall-vs-dns-comum.html">
-    <!-- Ahrefs Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/blog/dns-firewall-vs-dns-comum.html">
-    <meta property="og:title" content="DNS Firewall vs DNS Comum: Qual a Diferença? | Sentinel DNS">
-    <meta property="og:description" content="Entenda as diferenças entre um DNS Firewall com RPZ e um DNS recursivo comum. Por que ISPs precisam de proteção ativa na camada DNS.">
-    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
-    <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="Sentinel DNS">
-
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="DNS Firewall vs DNS Comum: Qual a Diferença?">
-    <meta name="twitter:description" content="Diferenças entre DNS Firewall com RPZ e DNS recursivo comum para ISPs.">
-    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
-    <!-- Schema.org: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://sentineldns.net/blog/"},
-        {"@type": "ListItem", "position": 3, "name": "DNS Firewall vs DNS Comum", "item": "https://sentineldns.net/blog/dns-firewall-vs-dns-comum.html"}
-      ]
-    }
+    <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {}
+        }
+      }
     </script>
-
         <!-- Footer -->
     <footer class="border-t border-gray-800 bg-[#030712] pt-16 pb-12 relative z-10" id="sentinel-footer">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,7 +36,7 @@
                 <!-- Coluna 1: Produto -->
                 <div>
                     <div class="flex items-center gap-2.5 mb-5">
-                        <img src="../Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
+                        <img src="./Logo.webp" alt="Sentinel DNS Logo" width="28" height="28" class="w-7 h-7 object-contain">
                         <span class="text-base font-bold text-white tracking-tight">Sentinel DNS</span>
                     </div>
                     <p class="text-xs text-gray-400 leading-relaxed mb-6">
@@ -135,7 +113,7 @@
                 </div>
                 <div>Sentinel DNS &copy; 2026 — Todos os direitos reservados.</div>
                 <div class="flex items-center gap-1.5 text-gray-400">
-                    <img src="../assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
+                    <img src="./assets/brazil.svg" alt="Brasil" width="16" height="12" class="w-4 h-3 inline-block" onerror="this.style.display='none'">
                     <span>Desenvolvido no Brasil</span>
                 </div>
             </div>
@@ -163,6 +141,7 @@
     </footer>
 
 
+    <!-- Initialize Icons -->
     <script>
         lucide.createIcons();
     </script>

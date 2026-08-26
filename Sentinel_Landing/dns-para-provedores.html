@@ -13,31 +13,33 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>DNS para Provedores (ISP) - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Servidor DNS recursivo desenvolvido para provedores de internet (ISP) e operadoras. Reduza latência, bloqueie ameaças e integre via Anycast.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <meta name="keywords" content="DNS para provedores, DNS para ISP, DNS para operadoras">
+    <link rel="canonical" href="https://sentineldns.net/dns-para-provedores.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/dns-para-provedores.html">
+    <meta property="og:title" content="DNS para Provedores (ISP) | Sentinel DNS">
+    <meta property="og:description" content="Solução de DNS recursivo focada em provedores de internet brasileiros. Anycast, bloqueio ANATEL, RPZ e painel de controle integrado.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="DNS para Provedores (ISP) | Sentinel DNS">
+    <meta name="twitter:description" content="Solução de DNS recursivo focada em provedores de internet brasileiros. Anycast, bloqueio ANATEL, RPZ e painel de controle integrado.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,12 +47,11 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "DNS para Provedores (ISP)", "item": "https://sentineldns.net/dns-para-provedores.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,67 +122,68 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">DNS para Provedores e ISPs</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">O motor de resolução projetado especificamente para as demandas de provedores de internet regionais e operadoras de telecom.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div class="glass-card p-8 rounded-xl border border-gray-800">
+                <i data-lucide="zap" class="w-8 h-8 text-blue-500 mb-4"></i>
+                <h3 class="text-2xl font-bold text-white mb-4">Latência Zero na Borda</h3>
+                <p class="text-gray-400">Implemente o Sentinel DNS diretamente na borda da sua rede. Com processamento de pacotes otimizado, o tempo de resposta aos seus assinantes cai drasticamente se comparado a DNS públicos ou soluções legadas (como BIND9 sem tuning).</p>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
+            <div class="glass-card p-8 rounded-xl border border-gray-800">
+                <i data-lucide="network" class="w-8 h-8 text-emerald-500 mb-4"></i>
+                <h3 class="text-2xl font-bold text-white mb-4">Arquitetura Anycast Nativa</h3>
+                <p class="text-gray-400">Dimensione sua operação distribuindo nós de resolução com Anycast BGP. O Sentinel integra-se de forma transparente à topologia do provedor, garantindo alta disponibilidade e tolerância a falhas massivas de backbone.</p>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
         </div>
-    </main>
+
+        <div class="glass-card p-8 rounded-xl border border-gray-800 mb-16">
+            <h2 class="text-3xl font-bold text-white mb-6">Por que um ISP precisa de DNS próprio?</h2>
+            <div class="space-y-6 text-gray-300">
+                <p>Muitos provedores começam delegando a resolução de nomes para DNS públicos ou mantêm infraestruturas frágeis (Pi-hole, BIND9 mal configurado). À medida que a base de clientes cresce, o DNS torna-se o gargalo silencioso da rede: páginas demoram a carregar (mesmo com banda sobrando) e o suporte fica saturado de reclamações de "internet lenta".</p>
+                <p>O <strong>Sentinel DNS</strong> foi construído do zero para o cenário ISP. Ele suporta picos de milhares de consultas por segundo (QPS) em hardware modesto, não depende de nuvem externa e fornece métricas em tempo real para o NOC. Seus assinantes notam a internet mais rápida, e o seu provedor ganha soberania sobre os dados de navegação.</p>
+                <a href="/comparativo.html" class="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors mt-4 font-medium">Veja o comparativo de latência vs Concorrentes <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i></a>
+            </div>
+        </div>
+        
+        <script>
+        fetch('/api/public/pricing').then(res => res.json()).then(data => {
+            const priceValue = (data.pro && data.pro.price) 
+                ? data.pro.price.replace(/[^\d.,]/g, '').replace(',', '.') 
+                : "0";
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.text = JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Sentinel DNS para ISP",
+              "operatingSystem": "Linux",
+              "applicationCategory": "SecurityApplication",
+              "description": "Servidor DNS recursivo self-hosted para provedores de internet.",
+              "offers": {
+                "@type": "Offer",
+                "price": priceValue,
+                "priceCurrency": "BRL"
+              }
+            });
+            document.head.appendChild(script);
+        }).catch(err => console.error("Erro ao carregar schema de precos:", err));
+        </script>
+
+                <h2 class="text-3xl font-bold mb-6 text-white mt-12">Por que o ISP precisa de um DNS próprio?</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    A resolução de DNS é o primeiro passo para qualquer conexão na internet. Provedores de internet (ISPs) que dependem de servidores DNS públicos (como Google ou Cloudflare) enfrentam latência maior, aumento no consumo do link internacional e perdem o controle sobre a navegação de seus clientes.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Com o Sentinel DNS rodando localmente na sua rede, todas as requisições são resolvidas em milissegundos e cacheadas diretamente na borda do ISP. Isso significa navegação incrivelmente mais rápida, menor dependência de links externos e conformidade total com as normas da Anatel através do módulo AnaBlock.
+                </p>
+    
+</main>
 
     
     

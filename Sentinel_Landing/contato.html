@@ -13,31 +13,32 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Contato - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Compare o Sentinel DNS com outras soluções Enterprise e Open Source do mercado.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <link rel="canonical" href="https://sentineldns.net/contato.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/contato.html">
+    <meta property="og:title" content="Contato | Sentinel DNS">
+    <meta property="og:description" content="Entre em contato com a equipe do Sentinel DNS. Suporte técnico, vendas e parcerias para provedores e datacenters.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="Contato | Sentinel DNS">
+    <meta name="twitter:description" content="Entre em contato com a equipe do Sentinel DNS. Suporte técnico, vendas e parcerias para provedores e datacenters.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,7 +46,7 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "Contato", "item": "https://sentineldns.net/contato.html"}
       ]
     }
     </script>
@@ -121,67 +122,129 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+        <div class="max-w-2xl mx-auto text-center mb-12">
+            <h1 class="text-4xl font-bold tracking-tight mb-4">Fale com Especialistas</h1>
+            <p class="text-gray-400">Preencha o formulário abaixo para entender como o Sentinel DNS pode reduzir a latência e aumentar a segurança da sua rede.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
+        <div class="max-w-2xl mx-auto glass-card p-8 rounded-xl border border-gray-800 bg-[#0a192f]">
+            <form id="lead-form" class="space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-300">Nome completo</label>
+                        <input type="text" name="name" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-300">E-mail corporativo</label>
+                        <input type="email" name="email" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
-            </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-300">Empresa / Nome do ISP</label>
+                    <input type="text" name="company" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-300">Porte da empresa</label>
+                        <select name="size" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="pequeno">Pequeno ISP</option>
+                            <option value="medio">Médio ISP</option>
+                            <option value="grande">Grande Operadora</option>
+                            <option value="datacenter">Datacenter</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-300">Número de assinantes</label>
+                        <select name="subscribers" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="0-1k">Até 1.000</option>
+                            <option value="1k-5k">1.000 a 5.000</option>
+                            <option value="5k-20k">5.000 a 20.000</option>
+                            <option value="20k+">Mais de 20.000</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-300">Desafio atual com DNS</label>
+                    <select name="challenge" required class="w-full bg-[#112240] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none">
+                        <option value="" disabled selected>Qual seu maior foco hoje?</option>
+                        <option value="performance">Reduzir latência / melhorar performance</option>
+                        <option value="security">Proteção contra Malware, DDoS e Phishing</option>
+                        <option value="compliance">Compliance ANATEL (AnaBlock)</option>
+                        <option value="cost">Redução de Custos / Licenciamento</option>
+                    </select>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
+                <div class="pt-4">
+                    <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-5 h-5"></i> Solicitar Contato
+                    </button>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
+                
+                <div id="form-feedback" class="hidden mt-4 p-4 rounded-lg text-sm text-center"></div>
+            </form>
         </div>
     </main>
+
+    <script>
+        document.getElementById('lead-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const feedback = document.getElementById('form-feedback');
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Construir a mensagem do WhatsApp
+            let text = `*Novo Lead - Sentinel DNS* 🚀\n\n`;
+            text += `*Nome:* ${data.name || 'Não informado'}\n`;
+            text += `*E-mail:* ${data.email || 'Não informado'}\n`;
+            text += `*Empresa:* ${data.company || 'Não informado'}\n`;
+            text += `*Porte:* ${data.size || 'Não informado'}\n`;
+            text += `*Assinantes:* ${data.subscribers || 'Não informado'}\n`;
+            text += `*Desafio:* ${data.challenge || 'Não informado'}\n`;
+
+            const phone = "5515991779366";
+            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Processando...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                // Tenta salvar no backend silenciosamente
+                await fetch('/api/public/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).catch(() => {}); // ignora erros de rede se o backend estiver fora
+            } catch (err) {
+                // Ignora
+            }
+
+            // Redireciona para o WhatsApp
+            window.open(waUrl, '_blank');
+
+            feedback.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            feedback.innerHTML = 'Conectando ao WhatsApp... Se a janela não abrir, <a href="' + waUrl + '" target="_blank" class="underline font-bold text-white">clique aqui</a>.';
+            feedback.classList.remove('hidden');
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i> Solicitar Contato';
+                btn.disabled = false;
+                lucide.createIcons();
+                e.target.reset();
+            }, 3000);
+        });
+    </script>
+
 
     
     

@@ -13,31 +13,33 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>DNS com RPZ (Response Policy Zone) - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Controle o tráfego da sua rede utilizando DNS RPZ. Filtre domínios maliciosos, bloqueie malware e implemente políticas corporativas.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <meta name="keywords" content="RPZ DNS, DNS com RPZ, Response Policy Zone, filtragem DNS">
+    <link rel="canonical" href="https://sentineldns.net/dns-firewall.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/dns-firewall.html">
+    <meta property="og:title" content="DNS Firewall e RPZ | Sentinel DNS">
+    <meta property="og:description" content="Proteja sua rede com DNS Firewall baseado em RPZ. Bloqueio de malware, botnets, phishing e C2 na camada DNS com o Sentinel DNS.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="DNS Firewall e RPZ | Sentinel DNS">
+    <meta name="twitter:description" content="Proteja sua rede com DNS Firewall baseado em RPZ. Bloqueio de malware, botnets, phishing e C2 na camada DNS com o Sentinel DNS.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,12 +47,11 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "DNS Firewall e RPZ", "item": "https://sentineldns.net/dns-firewall.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,67 +122,51 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Motor RPZ (Response Policy Zone)</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Filtragem de DNS em tempo real, bloqueio cirúrgico de ameaças e aplicação de políticas com precisão corporativa.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-6">Firewall a Nível de DNS</h2>
+                <p class="text-gray-300 mb-4">O Response Policy Zone (RPZ) atua como um firewall invisível antes mesmo da conexão IP ser estabelecida. Quando um dispositivo solicita acesso a um domínio conhecido por hospedar phishing, botnets ou ransomware, o Sentinel DNS intercepta a resposta na camada de resolução.</p>
+                <p class="text-gray-300 mb-6">Em vez de devolver o IP real do servidor criminoso, o Sentinel pode descartar a requisição (NXDOMAIN) ou redirecioná-la para uma página de bloqueio seguro corporativa (Sinkholing).</p>
+                
+                <h3 class="text-xl font-bold text-white mb-3">Vantagens do Sentinel RPZ:</h3>
+                <ul class="space-y-2 text-gray-400">
+                    <li>- Suporte a feeds gigantes (milhões de regras) na memória RAM</li>
+                    <li>- Atualização a quente (hot-reload) sem derrubar consultas</li>
+                    <li>- Integração com módulo <a href="/anatel-compliance.html" class="text-blue-400 hover:underline">AnaBlock</a> para feeds regulatórios</li>
+                    <li>- Whitelists granulares para evitar falsos positivos</li>
+                </ul>
+            </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800 flex flex-col justify-center">
+                <div class="bg-[#0a0a0a] p-4 rounded-lg font-mono text-sm text-green-400 shadow-inner overflow-hidden relative">
+                    <div class="absolute top-0 right-0 bg-gray-800 text-xs px-2 py-1 rounded-bl-lg text-gray-400">RPZ Log</div>
+                    <p class="opacity-50"># Tail log - Sentinel RPZ Engine</p>
+                    <p class="mt-2 text-gray-300">query: <span class="text-red-400">secure-login-paypal.com.br</span> IN A</p>
+                    <p>action: NXDOMAIN (match zone: malware-feed)</p>
+                    <p class="mt-2 text-gray-300">query: <span class="text-red-400">c2.cobaltstrike.net</span> IN A</p>
+                    <p>action: SINKHOLE (match zone: threat-intel)</p>
+                    <p class="mt-2 text-gray-300">query: <span class="text-blue-400">google.com</span> IN A</p>
+                    <p class="text-gray-500">action: PASS (resolved in 1ms)</p>
                 </div>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
         </div>
-    </main>
+    
+
+                <h2 class="text-3xl font-bold mb-6 text-white mt-12">Proteção na Camada de DNS (Layer 7)</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Um DNS Firewall atua inspecionando e interceptando consultas (queries) na rede. Ao contrário de firewalls tradicionais de Layer 3/4 que bloqueiam IPs (podendo gerar falsos positivos em hospedagens compartilhadas), o Sentinel atua no Layer 7.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Isso permite regras baseadas inteiramente no FQDN solicitado. Você pode criar blocklists personalizadas, definir regras de exceção e inspecionar logs minuciosos para entender padrões de comportamento anômalo em dispositivos que possam estar infectados internamente (movimentação lateral).
+                </p>
+    
+</main>
 
     
     

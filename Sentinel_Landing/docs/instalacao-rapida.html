@@ -13,42 +13,16 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentação Sentinel DNS | Guias, Instalação e API</title>
-    <meta name="description" content="Documentação oficial do Sentinel DNS: guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock, DoH/DoT e API REST. Para ISPs e datacenters.">
+    <title>Instalação Rápida - Sentinel DNS Docs</title>
+    <meta name="description" content="Documentação oficial: Instalação Rápida Docs. Acesse guias, tutoriais e manuais completos para configurar, otimizar e extrair o máximo de desempenho e segurança do Sentinel DNS.">
     <link rel="icon" type="image/webp" href="../Logo.webp">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/docs/">
+    <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/docs/instalacao-rapida.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/docs/">
-    <meta property="og:title" content="Documentação Sentinel DNS | Guias, Instalação e API">
-    <meta property="og:description" content="Guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock e API REST para ISPs e datacenters.">
-    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
-    <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="Sentinel DNS">
-
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Documentação Sentinel DNS | Guias e API">
-    <meta name="twitter:description" content="Documentação oficial: instalação, RPZ, AnaBlock, DoH/DoT e API REST do Sentinel DNS.">
-    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
-    <!-- Schema.org: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Documentação", "item": "https://sentineldns.net/docs/"}
-      ]
-    }
-    </script>
 </head>
 <body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
@@ -117,6 +91,8 @@
         </div>
     </nav>
 
+    
+
     <!-- Layout com Sidebar -->
     <div class="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 flex" style="padding-top: 128px;">
         
@@ -153,152 +129,204 @@
         <!-- Main Content -->
         <main class="flex-1 pt-8 pb-24 md:pl-10">
             <div class="prose prose-invert max-w-3xl">
-                <h1 class="text-4xl font-bold mb-4">Introdução ao Sentinel DNS</h1>
-                <p class="text-xl text-gray-400 mb-8">Bem-vindo à documentação oficial. Aprenda a instalar, configurar e escalar seu cluster de DNS seguro.</p>
+                <h1 class="text-4xl font-bold mb-4">Instalação Rápida</h1>
+                <p class="text-xl text-gray-400 mb-8">Guia completo com a sequência real do assistente de instalação e primeiro acesso ao Sentinel DNS.</p>
                 
                 <hr class="border-gray-800 my-8">
-                
-                <h2 class="text-2xl font-bold mb-4">O que é?</h2>
-                <p class="text-gray-300 leading-relaxed mb-6">O Sentinel DNS é um resolvedor recursivo de alta performance focado em ISPs, Datacenters e cenários corporativos críticos. Diferente de softwares generalistas, ele foi construído do zero com foco em <strong>segurança por design</strong> e <strong>eficiência I/O</strong>.</p>
-                
-                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-8">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5"></i>
-                        <p class="text-sm text-blue-100 m-0">Recomendamos sempre utilizar a versão LTS em ambientes de produção que exijam uptime de 99.999%.</p>
+
+                <!-- 9-step installation guide -->
+                <div class="space-y-10">
+
+                    <!-- Step 1 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Boot pela ISO</h3>
+                            <p class="text-gray-300 leading-relaxed">Inicie a máquina (física ou virtual) a partir da imagem ISO do Sentinel DNS. O instalador Anaconda (baseado em Rocky Linux) inicia automaticamente.</p>
+                        </div>
                     </div>
-                </div>
 
-                <h2 class="text-2xl font-bold mb-4">Instalação via ISO (Recomendado)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel DNS é empacotado nativamente como um appliance em Rocky Linux. A forma mais rápida e segura de instalar é utilizando nossa ISO otimizada para Bare Metal ou Hypervisors (Proxmox, VMware):</p>
-                
-                <div class="space-y-4 mb-8">
-                    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                        <h3 class="font-semibold text-white mb-2">Passos para Instalação</h3>
-                        <ol class="list-decimal list-inside text-gray-400 space-y-2 text-sm">
-                            <li>Baixe a ISO mais recente na nossa <a href="../download.html" class="text-blue-400 hover:underline">página de downloads</a>.</li>
-                            <li>Faça o boot da ISO em uma máquina virtual (ex: Proxmox) ou grave em um pendrive (Rufus).</li>
-                            <li>Siga o assistente de instalação automatizado (detecta rede e discos automaticamente).</li>
-                            <li>Após o reboot, acesse o painel através do IP exibido na tela do terminal.</li>
-                        </ol>
+                    <!-- Step 2 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Particionamento e Instalação Automática (Kickstart)</h3>
+                            <p class="text-gray-300 leading-relaxed">A instalação roda em modo automatizado (unattended/kickstart) - prepara o disco, cria as partições necessárias e instala os pacotes base sem exigir interação manual.</p>
+                        </div>
                     </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Reinicialização</h3>
+                            <p class="text-gray-300 leading-relaxed">Após a instalação base, o servidor reinicia automaticamente para iniciar o assistente de primeiro boot direto no terminal.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            4
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Configuração de Rede</h3>
+                            <p class="text-gray-300 leading-relaxed">Escolha entre <strong>IP Estático</strong> (recomendado para provedores) ou <strong>IP Dinâmico via DHCP</strong>. Se optar por DHCP, o sistema confirma a ativação e exibe o IP obtido (ex: <code>"DHCP Mantido. (IP: 192.168.175.128)"</code>).</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            5
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Configuração de Hostname</h3>
+                            <p class="text-gray-300 leading-relaxed">O assistente detecta o hostname atual do servidor e permite digitar um novo nome (ex: <code>sentinel.dns.security</code>), ou pressionar <code>ENTER</code> para manter o padrão detectado.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 6 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            6
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Alteração de Senhas Padrão (Recomendado)</h3>
+                            <p class="text-gray-300 leading-relaxed mb-3">O assistente de terminal pergunta em sequência:</p>
+                            <ul class="list-disc list-inside text-gray-300 text-sm space-y-1 mb-4">
+                                <li><code>"Deseja alterar a senha de acesso ROOT (SSH)? [S/n]"</code></li>
+                                <li><code>"Deseja alterar a senha de acesso ao PAINEL WEB (admin)? [S/n]"</code></li>
+                            </ul>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-4">Se responder <code>"n"</code> (ou pressionar Enter caso <code>"n"</code> seja o padrão), as senhas padrão são mantidas nesta etapa. No entanto, o sistema ainda exige a troca obrigatória de senha no primeiro login web.</p>
+                            
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4">
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="shield-check" class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-sm text-blue-100 m-0 leading-relaxed"><strong>Recomendação de segurança:</strong> Responda <code>"S"</code> (sim) para alterar <strong>AMBAS</strong> as senhas já durante a instalação no terminal, em vez de deixar para depois.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 7 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            7
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Controle de Acesso DNS - Blocos de IP Permitidos</h3>
+                            <p class="text-gray-300 leading-relaxed mb-3">Esta configuração ocorre diretamente no assistente do terminal durante o primeiro boot:</p>
+                            <blockquote class="border-l-4 border-blue-500 pl-4 py-1 text-gray-400 text-sm italic mb-4">
+                                "Por padrão, o servidor responde a consultas DNS de qualquer IP. Você pode restringir o acesso apenas a blocos de rede específicos (ex: rede da sua operadora, clientes, VPN)."
+                            </blockquote>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-3">O assistente pergunta: <code>"Deseja restringir o DNS apenas a blocos de IP autorizados? [s/N]"</code></p>
+                            <p class="text-gray-300 text-sm leading-relaxed mb-4">Ao responder <code>"s"</code> (sim):</p>
+                            <ul class="list-disc list-inside text-gray-300 text-sm space-y-1.5 mb-4">
+                                <li>O sistema detecta automaticamente a subnet local (ex: <code>"Auto-detectado subnet local: 192.168.175.0/24"</code>).</li>
+                                <li>Você digita blocos CIDR adicionais autorizados, um por linha (ex: <code>200.100.0.0/20</code>, <code>10.0.0.0/8</code>, <code>192.168.1.0/24</code>).</li>
+                                <li>Pressione <code>ENTER</code> em uma linha vazia para finalizar a lista.</li>
+                            </ul>
+
+                            <div class="bg-red-900/20 border border-red-500/40 rounded-xl p-5">
+                                <div class="flex items-start gap-3">
+                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-400 mt-0.5 flex-shrink-0"></i>
+                                    <div>
+                                        <h4 class="font-bold text-red-400 text-base mb-1">Aviso Crítico de Segurança</h4>
+                                        <p class="text-sm text-red-200 m-0 leading-relaxed">Certifique-se de incluir o bloco de IP da sua própria rede administrativa/operadora nesta lista. Não incluir seu próprio range pode bloquear seu acesso às consultas DNS do servidor logo após a instalação.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 8 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            8
+                        </div>
+                        <div class="w-full">
+                            <h3 class="text-xl font-bold text-white mb-2">Tela de Resumo da Instalação</h3>
+                            <p class="text-gray-300 leading-relaxed mb-4">Ao final do assistente no terminal, um banner exibe as informações essenciais de acesso:</p>
+                            
+                            <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 font-mono text-sm text-emerald-400 overflow-x-auto shadow-inner">
+<pre class="m-0 leading-relaxed">====================================================================
+               SENTINEL DNS - INSTALAÇÃO CONCLUÍDA                  
+====================================================================
+ - Painel Web:              http://&lt;SEU_IP&gt;:3300
+ - Login Padrão:            admin / admin123
+ - Acesso SSH:              ssh root@&lt;SEU_IP&gt; -p 51386
+ - Porta Unbound:           53 (DNS Otimizado &amp; Anti-DDoS)
+ - DNS-over-TLS:            porta 853 (Criptografada)
+ - Validação DNSSEC:        Ativa (100% Criptografado)
+ - Arquivo de Configuração: /opt/unbound-dashboard/.env
+ - Status do Serviço:       systemctl status unbound-dashboard
+====================================================================</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 9 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg flex-shrink-0">
+                            9
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Primeiro Acesso e Ajustes Pós-Instalação</h3>
+                            <p class="text-gray-300 leading-relaxed mb-3">Acesse <code>http://&lt;SEU_IP&gt;:3300</code> pelo seu navegador e faça login com suas credenciais. Se mantidas as senhas padrão, a troca de senha será exigida na primeira tela de login.</p>
+                            <p class="text-gray-400 text-sm leading-relaxed"><em>Nota: Se precisar ajustar ou adicionar novos blocos de IP autorizados no futuro, essas regras também podem ser gerenciadas normalmente pelo Painel Web em <strong>Configurações &gt; Controle de Acesso / ACL</strong>.</em></p>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 class="font-semibold text-white mb-2">Integração AnaBlock</h3>
-                    <ul class="list-disc list-inside text-gray-400 space-y-2 text-sm">
-                        <li><strong>Como Funciona:</strong> Quando habilitado, o Sentinel consome a API Judicial da AnaBlock (verificando os endpoints <code>domains/all</code>, <code>url/all</code>, <code>ipv4/block</code> e <code>ipv6/block</code>).</li>
-                        <li><strong>Frequência:</strong> A atualização ocorre de forma silenciosa e periódica. Se houver timeout ou erro de autorização IP, o sistema notifica nos logs do backend e preserva o cache pré-existente (sem causar downtime).</li>
-                    </ul>
-                </div>
-                
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="dimensionamento">Dimensionamento (Hardware)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel aproveita ao máximo os recursos disponíveis graças ao mecanismo nativo de Auto-Tuning. O hardware recomendado varia conforme o tamanho da rede:</p>
-                
-                <div class="overflow-x-auto mb-8">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="bg-gray-900 border-b border-gray-800">
-                            <tr>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Perfil de Rede</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Clientes Ativos</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">CPU</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">RAM</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Disco</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-800">
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Pequeno (Rede Local)</td>
-                                <td class="px-4 py-3 text-gray-400">Até 5.000</td>
-                                <td class="px-4 py-3 text-gray-400">2 a 4 vCPUs</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 GB</td>
-                                <td class="px-4 py-3 text-gray-400">30 GB SSD</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Médio (ISP)</td>
-                                <td class="px-4 py-3 text-gray-400">5.000 a 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 GB</td>
-                                <td class="px-4 py-3 text-gray-400">60 GB NVMe</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Elite (Alto Tráfego)</td>
-                                <td class="px-4 py-3 text-gray-400">Acima de 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">16 a 32 GB</td>
-                                <td class="px-4 py-3 text-gray-400">100 GB NVMe Enterprise</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="bg-blue-900/10 border border-blue-500/20 rounded-lg p-5 mb-10">
-                    <h3 class="font-semibold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Dicas de Virtualização (Proxmox/KVM)</h3>
-                    <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
-                        <li><strong>Processador:</strong> Configure a CPU como <code>host</code> em vez de <code>kvm64</code> para acelerar cálculos do DNSSEC.</li>
-                        <li><strong>Rede:</strong> Utilize sempre a interface <code>VirtIO</code> para eliminar latências UDP.</li>
-                        <li><strong>Clock:</strong> Para DNS recursivo de alta concorrência, o clock do núcleo (GHz) importa mais que a quantidade.</li>
-                    </ul>
-                </div>
-
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="troubleshooting">Troubleshooting Comum & Sysadmin</h2>
-                
-                <div class="space-y-6 mb-10">
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Logs em Tempo Real (Journald)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Monitorar o tráfego e logs de erro do motor Unbound:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            journalctl -u unbound -f
+                <!-- Video Demonstration Section -->
+                <div class="mt-12 pt-8 border-t border-gray-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2.5 bg-blue-900/30 rounded-xl border border-blue-500/30">
+                            <i data-lucide="video" class="w-6 h-6 text-blue-400"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white m-0">Veja o Processo Completo em Vídeo</h2>
+                            <p class="text-sm text-gray-400 m-0 mt-0.5">Acompanhe a instalação e o primeiro boot do Sentinel DNS em tempo real.</p>
                         </div>
                     </div>
                     
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Validação de Configuração (Checkconf)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Sempre que alterar arquivos em <code>/etc/unbound/</code>, valide a sintaxe:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            unbound-checkconf
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Reprocessar Rede (Modo Emergência)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Para religar o prompt interativo em casos de falha crônica de rede ou mudança de gateway local:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            rm -f /root/.firstboot_done && /root/firstboot-network.sh
-                        </div>
+                    <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden mt-6">
+                        <video controls preload="metadata" class="w-full rounded-xl aspect-video bg-black object-contain">
+                            <source src="../videos/instalacao-rapida.mp4" type="video/mp4">
+                            Seu navegador não suporta a exibição de vídeos HTML5.
+                        </video>
                     </div>
                 </div>
 
                 <hr class="border-gray-800 my-10">
 
-                <h2 class="text-2xl font-bold mb-4" id="faq">FAQ Técnico</h2>
-                
-                <div class="space-y-6 mb-12">
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">O Unbound perde cache ao reiniciar?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não. O Sentinel utiliza <em>Persistent Cache</em> invocado no boot via systemd. Ele grava dump na memória antes de desligar e recarrega em milissegundos sem esbarrar no disco, evitando lentidão matinal na rede de ISPs.</p>
-                    </div>
-                    
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Por que algumas atualizações param no plano Vitalício?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">As plataformas PRO Lite possuem a licença de uso do DNS para sempre (nunca expiram), mas o consumo e curadoria de bandas pesadas de feeds de ameaças, malwares frescos e a base MaxMind GeoLite2 exigem custo contínuo de nuvem e inteligência. É preciso manter o <em>Add-on CTI</em> para que as queries à API não retornem limites.</p>
-                    </div>
-
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Posso criar regras de IPtables brutas?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não é recomendado contornar o <code>firewalld</code> no Rocky Linux do Sentinel. Use o módulo de Firewall embutido. Ao bloquear tráfego DNS para ranges específicos pelo Firewalld, o motor subjacente desvincula o serviço da zona automaticamente na camada kernel de forma limpa.</p>
+                <!-- Related Documentation Links -->
+                <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                    <h3 class="font-semibold text-white mb-2 text-lg">Próximos Passos Recomendados</h3>
+                    <p class="text-gray-400 text-sm mb-4">Após a instalação inicial, confira as outras seções da documentação:</p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="/docs/requisitos-de-sistema.html" class="text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5">
+                            <i data-lucide="cpu" class="w-4 h-4"></i> Requisitos de Sistema
+                        </a>
+                        <a href="/docs/" class="text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1.5">
+                            <i data-lucide="book-open" class="w-4 h-4"></i> Introdução ao Sentinel DNS
+                        </a>
                     </div>
                 </div>
-                
+
             </div>
         </main>
         
     </div>
 
-    
     <!-- Footer -->
     
         <!-- Footer -->

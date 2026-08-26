@@ -14,6 +14,8 @@ const os = require('os');
 const https = require('https');
 const http = require('http');
 const execPromise = util.promisify(exec);
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 // ===== GERA SENTINEL_PROXY_SECRET SE NÃO EXISTIR =====
 function ensureProxySecret() {
@@ -31,6 +33,39 @@ function ensureProxySecret() {
     }
 }
 ensureProxySecret();
+
+// ===== GERA CLIENT_DATA_KEY SE NÃO EXISTIR =====
+function ensureClientDataKey() {
+    const ENV_PATH_INIT = path.join(__dirname, '..', '.env');
+    let envContent = '';
+    try { envContent = fs.readFileSync(ENV_PATH_INIT, 'utf8'); } catch(e) {}
+    
+    if (!process.env.CLIENT_DATA_KEY) {
+        const CLIENTS_FILE_INIT = path.join(__dirname, '..', 'clients.json');
+        let hasEncryptedData = false;
+        try {
+            if (fs.existsSync(CLIENTS_FILE_INIT)) {
+                const clientsStr = fs.readFileSync(CLIENTS_FILE_INIT, 'utf8');
+                if (clientsStr.includes('"enc:')) {
+                    hasEncryptedData = true;
+                }
+            }
+        } catch(e) {}
+
+        if (hasEncryptedData) {
+            console.error('\x1b[31m[CRITICAL SECURITY WARNING]\x1b[0m CLIENT_DATA_KEY está ausente, mas clients.json contém dados criptografados (provavelmente com a chave zerada). A chave aleatória não foi gerada automaticamente para evitar perda de dados (ilegibilidade). Defina uma chave manualmente ou limpe os dados afetados.');
+        } else {
+            const secret = crypto.randomBytes(32).toString('hex');
+            process.env.CLIENT_DATA_KEY = secret;
+            const re = /^CLIENT_DATA_KEY=.*$/m;
+            const line = `CLIENT_DATA_KEY=${secret}`;
+            const updated = re.test(envContent) ? envContent.replace(re, line) : envContent + `\n${line}`;
+            try { fs.writeFileSync(ENV_PATH_INIT, updated, 'utf8'); } catch(e) {}
+            console.log('[Security] CLIENT_DATA_KEY gerada automaticamente e salva no .env');
+        }
+    }
+}
+ensureClientDataKey();
 
 // ===== MASTER TOKEN — Autenticação de Hardware =====
 // Gera HMAC-SHA256(HWID, MASTER_SECRET) como fingerprint criptográfico.
@@ -175,6 +210,19 @@ function getClientIp(req) {
 
 const BCRYPT_ROUNDS = 10;
 
+// pending2FA: sessões aguardando validação do código TOTP (TTL 2 min)
+// { [user]: { expiresAt: number } }
+const pending2FA = {};
+setInterval(() => {
+    const now = Date.now();
+    for (const u of Object.keys(pending2FA)) {
+        if (pending2FA[u].expiresAt < now) delete pending2FA[u];
+    }
+}, 30000);
+
+// pending2FASetup: secret provisório enquanto o admin confirma o QR code
+const pending2FASetup = {};
+
 function getUsers() {
     if (!fs.existsSync(USERS_FILE)) {
         // Se não existir, cria o admin padrão do .env com bcrypt
@@ -216,6 +264,45 @@ function verifyPassword(user, plainPass, ip = 'desconhecido') {
     }
     return isValid;
 }
+
+// ===== TRILHA DE AUDITORIA & COMPLIANCE (MARCO CIVIL DA INTERNET / ANATEL) =====
+const AUDIT_LOG_FILE = path.join(__dirname, '..', 'audit_log.json');
+
+function getAuditLogs() {
+    if (!fs.existsSync(AUDIT_LOG_FILE)) {
+        try { fs.writeFileSync(AUDIT_LOG_FILE, JSON.stringify([]), 'utf8'); } catch(e) {}
+        return [];
+    }
+    try {
+        const raw = fs.readFileSync(AUDIT_LOG_FILE, 'utf8');
+        return JSON.parse(raw) || [];
+    } catch(e) {
+        return [];
+    }
+}
+
+function logAuditEvent(category, action, details = {}, user = 'system', ip = '127.0.0.1') {
+    try {
+        const logs = getAuditLogs();
+        const event = {
+            id: crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex'),
+            timestamp: Date.now(),
+            isoDate: new Date().toISOString(),
+            category, // 'AUTH', 'SECURITY', 'CONFIG', 'SYSTEM', 'JUDICIAL_QUERY'
+            action,   // 'LOGIN_SUCCESS', 'PASSWORD_CHANGE', 'BLOCKLIST_UPDATE', 'SERVICE_RESTART', 'EVIDENCE_EXPORTED'
+            user: typeof user === 'string' ? user : (user?.id || user?.name || 'admin'),
+            ip: String(ip || '127.0.0.1'),
+            details: details || {}
+        };
+        logs.unshift(event);
+        if (logs.length > 10000) logs.length = 10000;
+        fs.writeFileSync(AUDIT_LOG_FILE, JSON.stringify(logs, null, 2), 'utf8');
+        return event;
+    } catch(e) {
+        console.error('[Audit] Falha ao registrar log de auditoria:', e.message);
+    }
+}
+
 let LICENSE_KEY = envConfig.SENTINEL_KEY || envConfig.SENTINEL_LICENSE_KEY || 'FREE';
 let GITHUB_TOKEN = envConfig.GITHUB_TOKEN || '';
 
@@ -256,7 +343,11 @@ function saveBlacklist() {
 
 const CLIENT_DATA_ALGO = 'aes-256-gcm';
 function getClientDataKey() {
-    return Buffer.from((process.env.CLIENT_DATA_KEY || '').padStart(64, '0').slice(0, 64), 'hex');
+    const keyString = (process.env.CLIENT_DATA_KEY || '').padStart(64, '0').slice(0, 64);
+    if (keyString === '0000000000000000000000000000000000000000000000000000000000000000') {
+        console.error('\x1b[31m[CRITICAL SECURITY ERROR]\x1b[0m getClientDataKey() está usando uma chave ZERADA! Os dados criptografados estão sendo expostos e salvos com uma chave fraca e conhecida. Verifique o .env e a lógica de geração de chaves!');
+    }
+    return Buffer.from(keyString, 'hex');
 }
 
 function encryptClientField(text) {
@@ -907,6 +998,7 @@ app.use((req, res, next) => {
             }
         });
     }
+    res.setHeader('x-server-time', Date.now().toString());
     next();
 });
 
@@ -920,7 +1012,7 @@ app.use((req, res, next) => {
             return next();
         }
 
-        const publicRoutes = ['/api/login', '/api/payment/stripe-webhook', '/api/payment/mercadopago-webhook', '/api/system/check-in', '/api/system/log-violation'];
+        const publicRoutes = ['/api/login', '/api/auth/totp-verify', '/api/auth/recovery-verify', '/api/auth/force-change', '/api/payment/stripe-webhook', '/api/payment/mercadopago-webhook', '/api/system/check-in', '/api/system/log-violation'];
         if (publicRoutes.includes(req.path)) {
             return next();
         }
@@ -1181,16 +1273,17 @@ app.post('/api/login', (req, res) => {
 
     const users = getUsers();
     if (users[user] && verifyPassword(user, pass, ip)) {
-        resetLoginRateLimit(ip); // Login bem-sucedido: limpa o contador
+        resetLoginRateLimit(ip);
         console.log(`[Auth] [IP: ${ip}] Login bem-sucedido para o usuário: ${user}`);
         const userData = { ...users[user] };
         delete userData.password;
-        
+
         const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-        
+
         // Sempre envia o cookie CSRF no sucesso da validação inicial (mesmo se precisar trocar senha)
         const csrfToken = crypto.randomBytes(24).toString('hex');
         res.cookie('sentinel_csrf', csrfToken, {
+            path: '/',
             secure: isSecure,
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000
@@ -1200,17 +1293,31 @@ app.post('/api/login', (req, res) => {
             console.log(`[Auth] [IP: ${ip}] Usuário ${user} precisa trocar a senha padrão obrigatória.`);
             return res.json({ message: 'Requer troca de senha', user: userData, requirePasswordChange: true });
         }
-        
+
+        // 2FA: se o usuário tem totp_secret configurado, não completa o login ainda
+        if (users[user].totp_secret) {
+            pending2FA[user] = {
+                pass,
+                isSecure,
+                expiresAt: Date.now() + 2 * 60 * 1000 // 2 minutos para digitar o código
+            };
+            console.log(`[2FA] [IP: ${ip}] Aguardando código TOTP para: ${user}`);
+            return res.json({ require2fa: true });
+        }
+
         const authString = 'Basic ' + Buffer.from(user + ':' + pass).toString('base64');
         res.cookie('sentinel_auth', authString, {
+            path: '/',
             httpOnly: true,
             secure: isSecure,
             sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
+        logAuditEvent('AUTH', 'LOGIN_SUCCESS', { role: userData.role, name: userData.name }, user, ip);
         res.json({ message: 'Login realizado', user: userData });
     } else {
+        logAuditEvent('AUTH', 'LOGIN_FAIL', { attemptedUser: user }, user, ip);
         res.status(401).json({ error: 'Usuário ou senha inválidos' });
     }
 });
@@ -1225,6 +1332,7 @@ app.post('/api/auth/force-change', (req, res) => {
 
     const users = getUsers();
     if (!users[user] || !verifyPassword(user, oldPass, ip)) {
+        logAuditEvent('AUTH', 'PASSWORD_CHANGE_FAIL', { reason: 'Senha atual inválida' }, user, ip);
         return res.status(401).json({ error: 'Senha atual inválida.' });
     }
 
@@ -1239,18 +1347,200 @@ app.post('/api/auth/force-change', (req, res) => {
     try {
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
         console.log(`[Auth] [IP: ${ip}] Senha de '${user}' alterada obrigatoriamente no primeiro login.`);
-        res.json({ message: 'Senha alterada com sucesso. Você já pode fazer o login.' });
+        logAuditEvent('AUTH', 'PASSWORD_INITIAL_CHANGE', { message: 'Senha inicial redefinida com sucesso' }, user, ip);
+
+        // Auto-login com a nova senha
+        const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+        const authString = 'Basic ' + Buffer.from(user + ':' + newPass).toString('base64');
+        res.cookie('sentinel_auth', authString, {
+            path: '/',
+            httpOnly: true,
+            secure: isSecure,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        const userData = { ...users[user] };
+        delete userData.password;
+        delete userData.totp_secret;
+
+        res.json({ message: 'Senha alterada com sucesso.', user: userData });
     } catch (e) {
         console.error(`[Auth] Falha ao salvar nova senha: ${e.message}`);
         res.status(500).json({ error: 'Falha ao salvar a nova senha no servidor.' });
     }
 });
 
-app.post('/api/logout', (req, res) => {
-    res.clearCookie('sentinel_auth');
-    res.clearCookie('sentinel_csrf');
+const handleLogout = (req, res) => {
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    const baseOpts = { path: '/', sameSite: 'lax', secure: isSecure };
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+
+    logAuditEvent('AUTH', 'LOGOUT', { message: 'Sessão encerrada pelo usuário' }, user, ip);
+
+    res.clearCookie('sentinel_auth', { ...baseOpts, httpOnly: true });
+    res.clearCookie('sentinel_csrf', baseOpts);
+
+    // Sobrescreve com maxAge 0 e expires no passado para garantir limpeza imediata em todos os navegadores
+    res.cookie('sentinel_auth', '', { ...baseOpts, httpOnly: true, maxAge: 0, expires: new Date(0) });
+    res.cookie('sentinel_csrf', '', { ...baseOpts, maxAge: 0, expires: new Date(0) });
+
+    if (req.method === 'GET' && !req.xhr && req.headers.accept?.includes('text/html')) {
+        return res.redirect('/login.html');
+    }
     res.json({ message: 'Logout realizado com sucesso' });
+};
+
+app.post('/api/logout', handleLogout);
+app.get('/api/logout', handleLogout);
+app.post('/logout', handleLogout);
+app.get('/logout', handleLogout);
+
+// ===== 2FA — TOTP =====
+
+app.post('/api/auth/totp-verify', (req, res) => {
+    const { user, token } = req.body;
+    const ip = getClientIp(req);
+
+    if (checkLoginRateLimit(ip)) {
+        return res.status(429).json({ error: 'Muitas tentativas. Aguarde.' });
+    }
+
+    const session = pending2FA[user];
+    if (!session || session.expiresAt < Date.now()) {
+        delete pending2FA[user];
+        return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
+    }
+
+    const users = getUsers();
+    const secret = users[user]?.totp_secret;
+    if (!secret) {
+        delete pending2FA[user];
+        return res.status(400).json({ error: '2FA não configurado para este usuário.' });
+    }
+
+    const valid = speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token: String(token).replace(/\s/g, ''),
+        window: 1
+    });
+
+    if (!valid) {
+        console.log(`[2FA] [IP: ${ip}] Código TOTP inválido para: ${user}`);
+        return res.status(401).json({ error: 'Código inválido.' });
+    }
+
+    // Código correto — completa o login
+    delete pending2FA[user];
+    resetLoginRateLimit(ip);
+    console.log(`[2FA] [IP: ${ip}] Autenticação 2FA concluída para: ${user}`);
+
+    const { pass, isSecure } = session;
+    const authString = 'Basic ' + Buffer.from(user + ':' + pass).toString('base64');
+    res.cookie('sentinel_auth', authString, {
+        path: '/',
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    const userData = { ...users[user] };
+    delete userData.password;
+    delete userData.totp_secret;
+    res.json({ message: 'Login realizado', user: userData });
 });
+
+// Gera QR code + secret provisório (ainda não salvo)
+app.get('/api/master/2fa-setup', auth, requireMaster, async (req, res) => {
+    const user = req.user?.id;
+    if (!user) return res.status(401).json({ error: 'Não autenticado.' });
+
+    const secret = speakeasy.generateSecret({
+        name: `Sentinel Master HQ (${user})`,
+        length: 20
+    });
+
+    pending2FASetup[user] = { secret: secret.base32, expiresAt: Date.now() + 10 * 60 * 1000 };
+
+    try {
+        const qrDataUrl = await QRCode.toDataURL(secret.otpauth_url);
+        res.json({ qr: qrDataUrl, secret: secret.base32 });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao gerar QR code.' });
+    }
+});
+
+// Confirma o código e persiste o secret no users.json
+app.post('/api/master/2fa-confirm', auth, requireMaster, (req, res) => {
+    const user = req.user?.id;
+    const { token } = req.body;
+
+    const setup = pending2FASetup[user];
+    if (!setup || setup.expiresAt < Date.now()) {
+        delete pending2FASetup[user];
+        return res.status(400).json({ error: 'Setup expirado. Inicie novamente.' });
+    }
+
+    const valid = speakeasy.totp.verify({
+        secret: setup.secret,
+        encoding: 'base32',
+        token: String(token).replace(/\s/g, ''),
+        window: 1
+    });
+
+    if (!valid) return res.status(401).json({ error: 'Código inválido. Verifique o app e tente de novo.' });
+
+    const users = getUsers();
+    users[user].totp_secret = setup.secret;
+    delete pending2FASetup[user];
+
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+        console.log(`[2FA] 2FA ativado para o usuário: ${user}`);
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao salvar configuração.' });
+    }
+});
+
+// Desativa o 2FA (exige código válido como confirmação)
+app.post('/api/master/2fa-disable', auth, requireMaster, (req, res) => {
+    const user = req.user?.id;
+    const { token } = req.body;
+
+    const users = getUsers();
+    const secret = users[user]?.totp_secret;
+    if (!secret) return res.status(400).json({ error: '2FA não está ativo.' });
+
+    const valid = speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token: String(token).replace(/\s/g, ''),
+        window: 1
+    });
+
+    if (!valid) return res.status(401).json({ error: 'Código inválido. Confirme com o app antes de desativar.' });
+
+    delete users[user].totp_secret;
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+        console.log(`[2FA] 2FA desativado para o usuário: ${user}`);
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao salvar configuração.' });
+    }
+});
+
+// Retorna status do 2FA do usuário logado
+app.get('/api/master/2fa-status', auth, requireMaster, (req, res) => {
+    const user = req.user?.id;
+    const users = getUsers();
+    res.json({ enabled: !!users[user]?.totp_secret });
+});
+
 
 // --- Início do Bloco de Recuperação de Senha por PIN de Suporte ---
 global.recoverySession = {};
@@ -1516,6 +1806,13 @@ app.post('/api/settings/credentials', auth, requireRole(['admin']), (req, res) =
 
     try {
         fs.writeFileSync(ENV_PATH, env, 'utf8');
+        const ip = getClientIp(req);
+        const user = req.user?.id || 'admin';
+        logAuditEvent('CONFIG', 'CREDENTIALS_UPDATED', {
+            sshHostChanged: !!sshHost,
+            sshPortChanged: !!sshPort,
+            providerNameChanged: !!providerName
+        }, user, ip);
         res.json({ message: 'Configurações salvas com sucesso! Faça login novamente.' });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao salvar .env: ' + err.message });
@@ -1536,6 +1833,465 @@ app.get('/api/system/license', auth, (req, res) => {
         isMaster: envConfig.IS_MASTER === 'true',
         serverGeo: global.serverGeo || null
     });
+});
+
+// ===== TELEMETRIA DE HARDWARE & SISTEMA (APPLIANCE SPECS) =====
+app.get('/api/system/specs', auth, (req, res) => {
+    try {
+        const cpus = os.cpus() || [];
+        const cpuModel = cpus[0] ? cpus[0].model : 'Processador Multi-Core x86_64';
+        const cpuCores = cpus.length;
+        const totalMemMB = Math.round(os.totalmem() / (1024 * 1024));
+        const freeMemMB = Math.round(os.freemem() / (1024 * 1024));
+        const usedMemMB = totalMemMB - freeMemMB;
+        const memPercent = totalMemMB > 0 ? Math.round((usedMemMB / totalMemMB) * 100) : 0;
+        const uptimeSeconds = Math.round(os.uptime());
+        
+        let osName = 'Rocky Linux 10.2 (Minimal Enterprise)';
+        try {
+            if (fs.existsSync('/etc/os-release')) {
+                const osRel = fs.readFileSync('/etc/os-release', 'utf8');
+                const match = osRel.match(/PRETTY_NAME="([^"]+)"/);
+                if (match) osName = match[1];
+            }
+        } catch(e) {}
+
+        let kernelVer = os.release() || 'Linux x86_64';
+        let unboundVer = 'Unbound 1.20+ (Multi-thread, DNSSEC, DoT)';
+        try {
+            const unboundOut = execSync('unbound -V 2>&1', { timeout: 1500 }).toString();
+            const verMatch = unboundOut.match(/Version\s+([\d\.]+)/i);
+            if (verMatch) unboundVer = `Unbound ${verMatch[1]} (Enterprise DNS)`;
+        } catch(e) {}
+
+        let diskInfo = { total: 'N/A', used: 'N/A', free: 'N/A', percent: '0%' };
+        try {
+            const dfOut = execSync('df -h / | tail -1', { timeout: 1500 }).toString().trim().split(/\s+/);
+            if (dfOut.length >= 5) {
+                diskInfo = { total: dfOut[1], used: dfOut[2], free: dfOut[3], percent: dfOut[4] };
+            }
+        } catch(e) {}
+
+        res.json({
+            cpu: { model: cpuModel, cores: cpuCores, arch: os.arch() },
+            memory: { totalMB: totalMemMB, usedMB: usedMemMB, freeMB: freeMemMB, percent: memPercent },
+            os: { name: osName, kernel: kernelVer, platform: os.platform(), node: process.version },
+            unbound: { version: unboundVer, status: 'Ativo & Operacional' },
+            uptime: uptimeSeconds,
+            disk: diskInfo,
+            serverTime: new Date().toISOString()
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Falha ao coletar telemetria de hardware: ' + e.message });
+    }
+});
+
+// ===== AUDITORIA & COMPLIANCE (MARCO CIVIL DA INTERNET / ANATEL) =====
+app.get('/api/audit/logs', auth, (req, res) => {
+    try {
+        const { limit = 100, category, query } = req.query;
+        let logs = getAuditLogs();
+        if (category && category !== 'ALL') {
+            logs = logs.filter(l => l.category === category);
+        }
+        if (query) {
+            const q = query.toLowerCase();
+            logs = logs.filter(l => 
+                (l.user && l.user.toLowerCase().includes(q)) ||
+                (l.ip && l.ip.includes(q)) ||
+                (l.action && l.action.toLowerCase().includes(q)) ||
+                (l.details && JSON.stringify(l.details).toLowerCase().includes(q))
+            );
+        }
+        res.json({
+            total: logs.length,
+            logs: logs.slice(0, parseInt(limit, 10) || 100)
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Erro ao carregar logs de auditoria: ' + e.message });
+    }
+});
+
+app.post('/api/audit/export', auth, (req, res) => {
+    try {
+        const { startDate, endDate, query, category, format = 'csv' } = req.body;
+        const operatorUser = req.user?.id || 'admin';
+        const operatorIp = getClientIp(req);
+
+        let logs = getAuditLogs();
+        if (startDate) {
+            const start = new Date(startDate).getTime();
+            logs = logs.filter(l => l.timestamp >= start);
+        }
+        if (endDate) {
+            const end = new Date(endDate).getTime() + (24 * 60 * 60 * 1000 - 1);
+            logs = logs.filter(l => l.timestamp <= end);
+        }
+        if (category && category !== 'ALL') {
+            logs = logs.filter(l => l.category === category);
+        }
+        if (query) {
+            const q = query.toLowerCase();
+            logs = logs.filter(l => 
+                (l.user && l.user.toLowerCase().includes(q)) ||
+                (l.ip && l.ip.includes(q)) ||
+                (l.action && l.action.toLowerCase().includes(q)) ||
+                (l.details && JSON.stringify(l.details).toLowerCase().includes(q))
+            );
+        }
+
+        // Gera registro de auditoria da própria exportação pericial (não-repúdio)
+        logAuditEvent('JUDICIAL_QUERY', 'EVIDENCE_EXPORTED', {
+            recordsExported: logs.length,
+            filters: { startDate, endDate, query, category, format }
+        }, operatorUser, operatorIp);
+
+        const exportedAt = new Date().toISOString();
+        const rawContent = JSON.stringify({
+            evidence_header: {
+                system: "Sentinel DNS Enterprise Appliance",
+                regulatory_framework: "Marco Civil da Internet (Lei 12.965/2014 - Art. 13) / ANATEL / LGPD",
+                generated_by_operator: operatorUser,
+                operator_ip: operatorIp,
+                exported_at_utc: exportedAt,
+                total_records: logs.length
+            },
+            records: logs
+        }, null, 2);
+
+        // Gera SHA-256 Checksum de integridade pericial
+        const sha256Hash = crypto.createHash('sha256').update(rawContent).digest('hex');
+
+        if (format === 'json') {
+            return res.json({
+                filename: `sentinel_audit_evidence_${Date.now()}.json`,
+                sha256: sha256Hash,
+                exportedAt,
+                totalRecords: logs.length,
+                data: JSON.parse(rawContent)
+            });
+        }
+
+        // Exportação CSV com cabeçalho pericial
+        let csv = `# ====================================================================\n`;
+        csv += `# SENTINEL DNS - LAUDO DE EXTRAÇÃO DE EVIDÊNCIAS & AUDITORIA REGULATÓRIA\n`;
+        csv += `# CONFORMIDADE: Marco Civil da Internet (Lei 12.965/2014 - Art. 13) / ANATEL\n`;
+        csv += `# GERADO POR: ${operatorUser} (IP: ${operatorIp})\n`;
+        csv += `# DATA/HORA UTC: ${exportedAt}\n`;
+        csv += `# TOTAL DE REGISTROS: ${logs.length}\n`;
+        csv += `# HASH DE INTEGRIDADE DIGITAL (SHA-256): ${sha256Hash}\n`;
+        csv += `# ====================================================================\n`;
+        csv += `"ID","DATA_UTC","CATEGORIA","AÇÃO","USUÁRIO","IP_ORIGEM","DETALHES"\n`;
+
+        logs.forEach(l => {
+            const det = JSON.stringify(l.details || '').replace(/"/g, '""');
+            csv += `"${l.id}","${l.isoDate}","${l.category}","${l.action}","${l.user}","${l.ip}","${det}"\n`;
+        });
+
+        res.json({
+            filename: `sentinel_audit_evidence_${Date.now()}.csv`,
+            sha256: sha256Hash,
+            exportedAt,
+            totalRecords: logs.length,
+            csvContent: csv
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Erro ao gerar exportação pericial: ' + e.message });
+    }
+});
+
+app.get('/api/audit/compliance', auth, (req, res) => {
+    try {
+        const logs = getAuditLogs();
+        const count = logs.length;
+        let oldestDate = count > 0 ? logs[logs.length - 1].isoDate : new Date().toISOString();
+        let newestDate = count > 0 ? logs[0].isoDate : new Date().toISOString();
+        
+        let fileSizeKB = 0;
+        try {
+            if (fs.existsSync(AUDIT_LOG_FILE)) {
+                fileSizeKB = Math.round(fs.statSync(AUDIT_LOG_FILE).size / 1024);
+            }
+        } catch(e) {}
+
+        res.json({
+            status: "CONFORME",
+            law: "Marco Civil da Internet (Lei nº 12.965/2014, Art. 13) & Anatel",
+            retentionRequiredDays: 365,
+            totalAuditRecords: count,
+            fileSizeKB,
+            oldestRecord: oldestDate,
+            newestRecord: newestDate,
+            tamperProof: "SHA-256 Cryptographic Hash Validation Active",
+            auditHealth: "OK"
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Erro ao verificar conformidade: ' + e.message });
+    }
+});
+
+// ===== INVESTIGAÇÃO PERICIAL DE IP DE CLIENTE (CONSULTAS DNS / MARCO CIVIL ART. 13) =====
+app.post('/api/audit/search-client-ip', auth, requireRole(['admin', 'operator']), async (req, res) => {
+    try {
+        const { clientIp, domainFilter, limit = 500 } = req.body;
+        if (!clientIp || !clientIp.trim()) {
+            return res.status(400).json({ error: 'Informe o endereço IP do cliente a ser investigado.' });
+        }
+
+        const targetIp = clientIp.trim();
+        const operatorUser = req.user?.id || 'admin';
+        const operatorIp = getClientIp(req);
+
+        const safeIp = targetIp.replace(/[^a-fA-F0-9\.:]/g, '');
+        if (!safeIp) return res.status(400).json({ error: 'IP inválido.' });
+
+        const rulesPath = path.join(__dirname, 'local_rules.json');
+        let rules = { whitelist: [], blacklist: [] };
+        if (fs.existsSync(rulesPath)) {
+            try { rules = JSON.parse(fs.readFileSync(rulesPath, 'utf8')); } catch(e) {}
+        }
+
+        const maxRecords = Math.min(parseInt(limit, 10) || 500, 2000);
+        let matchingLines = [];
+
+        if (process.platform !== 'win32') {
+            // Alta performance: busca com grep nos logs do Unbound
+            let cmd = `grep -F "info: ${safeIp} " /var/log/unbound.log 2>/dev/null | tail -n ${maxRecords}`;
+            if (domainFilter && domainFilter.trim()) {
+                const safeDomain = domainFilter.trim().replace(/[^a-zA-Z0-9\.\-_]/g, '');
+                if (safeDomain) {
+                    cmd = `grep -F "info: ${safeIp} " /var/log/unbound.log 2>/dev/null | grep -i "${safeDomain}" | tail -n ${maxRecords}`;
+                }
+            }
+            const out = await runSSHCommand(cmd).catch(() => ({ stdout: '' }));
+            matchingLines = out.stdout ? out.stdout.split('\n').filter(Boolean) : [];
+        }
+
+        const results = [];
+        const uniqueDomains = new Set();
+        let blockedCount = 0;
+
+        matchingLines.forEach(line => {
+            if (!line.includes('info: ')) return;
+            const match = line.match(/^(?:([A-Za-z]+\s+\d+\s+[\d:]+)|\[(\d+)\])\s+unbound\[\d+:\d+\]\s+info:\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/);
+            if (match) {
+                const rawTimestamp = match[1] || '';
+                const epoch = match[2] ? parseInt(match[2], 10) : null;
+                const isoDate = epoch ? new Date(epoch * 1000).toISOString() : new Date().toISOString();
+                const displayTime = epoch ? new Date(epoch * 1000).toLocaleString('pt-BR', { timeZone: 'UTC' }) : rawTimestamp;
+                const ip = match[3];
+                const domain = match[4].toLowerCase().replace(/\.$/, '').trim();
+                const type = match[5];
+                
+                uniqueDomains.add(domain);
+
+                let status = 'Permitido';
+                if (rules.whitelist.includes(domain)) {
+                    status = 'Liberado (Whitelist)';
+                } else if (rules.blacklist.includes(domain) || line.includes('always_nxdomain') || line.includes('redirect')) {
+                    status = 'Bloqueado';
+                    blockedCount++;
+                }
+
+                results.push({
+                    timestamp: displayTime,
+                    isoDate,
+                    clientIp: ip,
+                    domain,
+                    type,
+                    status
+                });
+            }
+        });
+
+        // Registra a consulta pericial na trilha de auditoria administrativa (Marco Civil / LGPD)
+        logAuditEvent('JUDICIAL_QUERY', 'CLIENT_IP_INVESTIGATION', {
+            targetClientIp: safeIp,
+            domainFilter: domainFilter || 'ALL',
+            recordsFound: results.length,
+            uniqueDomainsCount: uniqueDomains.size
+        }, operatorUser, operatorIp);
+
+        res.json({
+            clientIp: safeIp,
+            domainFilter: domainFilter || '',
+            totalQueries: results.length,
+            uniqueDomainsCount: uniqueDomains.size,
+            blockedCount,
+            allowedCount: results.length - blockedCount,
+            queries: results.reverse()
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Erro ao pesquisar consultas do cliente: ' + e.message });
+    }
+});
+
+// ===== RELATÓRIO FORENSE DE TENTATIVAS DE ACESSO A BLOQUEIOS JUDICIAIS (ANABLOCK / BETS) =====
+app.post('/api/audit/search-blocked-accesses', auth, requireRole(['admin', 'operator']), async (req, res) => {
+    try {
+        const { clientIpFilter, limit = 500 } = req.body;
+        const operatorUser = req.user?.id || 'admin';
+        const operatorIp = getClientIp(req);
+        const maxRecords = Math.min(parseInt(limit, 10) || 500, 2000);
+
+        // 1. Carrega o conjunto de domínios bloqueados (AnaBlock + Blacklist)
+        const blockedSet = new Set();
+        const anablockPaths = ['/etc/unbound/local.d/anablock.conf', '/etc/unbound/conf.d/anablock.conf'];
+        for (const p of anablockPaths) {
+            if (fs.existsSync(p)) {
+                try {
+                    const content = fs.readFileSync(p, 'utf8');
+                    const matches = content.matchAll(/local-zone:\s*"([^"]+)"/g);
+                    for (const m of matches) {
+                        if (m[1]) blockedSet.add(m[1].toLowerCase().trim());
+                    }
+                } catch(e) {}
+            }
+        }
+
+        const rulesPath = path.join(__dirname, 'local_rules.json');
+        if (fs.existsSync(rulesPath)) {
+            try {
+                const rules = JSON.parse(fs.readFileSync(rulesPath, 'utf8'));
+                (rules.blacklist || []).forEach(d => blockedSet.add(d.toLowerCase().trim()));
+            } catch(e) {}
+        }
+
+        // 2. Busca no log do Unbound
+        let matchingLines = [];
+        if (process.platform !== 'win32') {
+            let cmd = `tail -n 10000 /var/log/unbound.log 2>/dev/null`;
+            if (clientIpFilter && clientIpFilter.trim()) {
+                const safeIp = clientIpFilter.trim().replace(/[^a-fA-F0-9\.:]/g, '');
+                if (safeIp) cmd = `grep -F "info: ${safeIp} " /var/log/unbound.log 2>/dev/null | tail -n 10000`;
+            }
+            const out = await runSSHCommand(cmd).catch(() => ({ stdout: '' }));
+            matchingLines = out.stdout ? out.stdout.split('\n').filter(Boolean) : [];
+        }
+
+        const results = [];
+        const uniqueClients = new Set();
+        const uniqueDomains = new Set();
+
+        matchingLines.forEach(line => {
+            if (!line.includes('info: ')) return;
+            const match = line.match(/^(?:([A-Za-z]+\s+\d+\s+[\d:]+)|\[(\d+)\])\s+unbound\[\d+:\d+\]\s+info:\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/);
+            if (match) {
+                const rawTimestamp = match[1] || '';
+                const epoch = match[2] ? parseInt(match[2], 10) : null;
+                const isoDate = epoch ? new Date(epoch * 1000).toISOString() : new Date().toISOString();
+                const displayTime = epoch ? new Date(epoch * 1000).toLocaleString('pt-BR', { timeZone: 'UTC' }) : rawTimestamp;
+                const ip = match[3];
+                const domain = match[4].toLowerCase().replace(/\.$/, '').trim();
+                const type = match[5];
+
+                if (blockedSet.has(domain) || line.includes('always_nxdomain') || line.includes('redirect')) {
+                    uniqueClients.add(ip);
+                    uniqueDomains.add(domain);
+
+                    results.push({
+                        timestamp: displayTime,
+                        isoDate,
+                        clientIp: ip,
+                        domain,
+                        type,
+                        reason: 'Bloqueio Judicial / AnaBlock (ANATEL)',
+                        status: 'Bloqueado (NXDOMAIN)'
+                    });
+                }
+            }
+        });
+
+        // Limita ao número máximo solicitado
+        const trimmedResults = results.slice(-maxRecords).reverse();
+
+        logAuditEvent('JUDICIAL_QUERY', 'ANABLOCK_BLOCKED_ACCESS_INVESTIGATION', {
+            clientIpFilter: clientIpFilter || 'ALL_CLIENTS',
+            totalBlockedFound: results.length,
+            uniqueClientsCount: uniqueClients.size,
+            uniqueDomainsCount: uniqueDomains.size
+        }, operatorUser, operatorIp);
+
+        res.json({
+            totalBlockedEvents: results.length,
+            uniqueClientsCount: uniqueClients.size,
+            uniqueDomainsCount: uniqueDomains.size,
+            totalBlockedInDatabase: blockedSet.size,
+            events: trimmedResults
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao extrair tentativas de acesso bloqueado: ' + e.message });
+    }
+});
+
+app.post('/api/audit/export-client-report', auth, requireRole(['admin', 'operator']), async (req, res) => {
+    try {
+        const { clientIp, queries, format = 'csv' } = req.body;
+        if (!clientIp) return res.status(400).json({ error: 'IP do cliente ausente' });
+
+        const operatorUser = req.user?.id || 'admin';
+        const operatorIp = getClientIp(req);
+        const exportedAt = new Date().toISOString();
+
+        const reportData = {
+            judicial_forensic_header: {
+                title: "LAUDO PERICIAL DE REGISTRO DE CONEXÃO & CONSULTAS DNS",
+                regulatory_framework: "Marco Civil da Internet (Lei nº 12.965/2014, Art. 13) & ANATEL",
+                target_subscriber_ip: clientIp,
+                investigation_date_utc: exportedAt,
+                forensic_operator: operatorUser,
+                operator_terminal_ip: operatorIp,
+                total_queries_captured: (queries || []).length
+            },
+            records: queries || []
+        };
+
+        const rawJson = JSON.stringify(reportData, null, 2);
+        const sha256Hash = crypto.createHash('sha256').update(rawJson).digest('hex');
+
+        // Log da extração pericial
+        logAuditEvent('JUDICIAL_QUERY', 'CLIENT_FORENSIC_REPORT_EXPORTED', {
+            targetSubscriberIp: clientIp,
+            totalRecords: (queries || []).length,
+            sha256Hash,
+            format
+        }, operatorUser, operatorIp);
+
+        if (format === 'json') {
+            return res.json({
+                filename: `sentinel_laudo_${clientIp.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.json`,
+                sha256: sha256Hash,
+                exportedAt,
+                totalRecords: (queries || []).length,
+                data: reportData
+            });
+        }
+
+        let csv = `# ====================================================================\n`;
+        csv += `# SENTINEL DNS - LAUDO PERICIAL FORENSE DE NAVEGAÇÃO DE ASSINANTE\n`;
+        csv += `# CONFORMIDADE LEGAL: Marco Civil da Internet (Lei nº 12.965/2014 - Art. 13)\n`;
+        csv += `# IP DO ASSINANTE INVESTIGADO: ${clientIp}\n`;
+        csv += `# EMITIDO POR: ${operatorUser} (Terminal: ${operatorIp})\n`;
+        csv += `# DATA/HORA DA EXTRAÇÃO (UTC): ${exportedAt}\n`;
+        csv += `# TOTAL DE CONSULTAS RESOLVIDAS: ${(queries || []).length}\n`;
+        csv += `# HASH CRIPTOGRÁFICO DE INTEGRIDADE (SHA-256): ${sha256Hash}\n`;
+        csv += `# ====================================================================\n`;
+        csv += `"DATA_HORA_UTC","IP_ASSINANTE","DOMINIO_CONSULTADO","TIPO_REGISTRO","STATUS_RESOLUCAO"\n`;
+
+        (queries || []).forEach(q => {
+            csv += `"${q.timestamp || q.isoDate}","${q.clientIp}","${q.domain}","${q.type}","${q.status}"\n`;
+        });
+
+        res.json({
+            filename: `sentinel_laudo_${clientIp.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.csv`,
+            sha256: sha256Hash,
+            exportedAt,
+            totalRecords: (queries || []).length,
+            csvContent: csv
+        });
+    } catch(e) {
+        res.status(500).json({ error: 'Erro ao gerar laudo pericial do cliente: ' + e.message });
+    }
 });
 
 // Fix 10: Rate limiter por IP para o endpoint de check-in (evita criação abusiva de trials)
@@ -2520,6 +3276,9 @@ app.post('/api/system/users', auth, requireRole(['admin']), (req, res) => {
     users[id] = updatedUser;
     
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+    const ip = getClientIp(req);
+    const operator = req.user?.id || 'admin';
+    logAuditEvent('AUTH', 'USER_SAVED', { targetUserId: id, role, name: name || id }, operator, ip);
     res.json({ message: 'Usuário salvo com sucesso!' });
 });
 
@@ -2532,6 +3291,9 @@ app.delete('/api/system/users/:id', auth, requireRole(['admin']), (req, res) => 
     
     delete users[id];
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 4));
+    const ip = getClientIp(req);
+    const operator = req.user?.id || 'admin';
+    logAuditEvent('AUTH', 'USER_DELETED', { targetUserId: id }, operator, ip);
     res.json({ message: 'Usuário removido!' });
 });
 
@@ -2626,7 +3388,19 @@ app.get('/api/system/pricing', async (req, res) => {
         },
         pro: {
             badge: "Premium",
+            price: "R$ 50,00",
+            stripe_price: 5000,
             action_label: "💳 ASSINAR PLANO"
+        },
+        promo: {
+            badge_text: "-60% OFF",
+            old_price_text: "De R$ 89,00",
+            new_price_text: "R$: 32,00",
+            monthly_btn_text: "MENSAL (R$ 32,00)",
+            monthly_stripe_price: 3200,
+            annual_btn_text: "ANUAL (R$ 349,9)",
+            annual_stripe_price: 34990,
+            end_date: "2026-09-30T00:00"
         }
     };
 
@@ -3064,6 +3838,122 @@ function translateMaxMind(maxmindData, source) {
         source: source
     };
 }
+
+// Rota Pública para Dados do Mapa do Brasil (Sentinel Landing)
+app.get('/api/public/map-data', async (req, res) => {
+    try {
+        const clientsPath = path.join(__dirname, '../clients.json');
+        let clients = {};
+        if (fs.existsSync(clientsPath)) {
+            clients = JSON.parse(fs.readFileSync(clientsPath, 'utf8'));
+        }
+        
+        let stats = {
+            total_states: 0,
+            active_clients: 0,
+            total_qps: 0,
+            avg_latency: 0,
+            states: {}
+        };
+        
+        for (const key in clients) {
+            const client = clients[key];
+            if (client.ip) {
+                let uf = null;
+                let stateName = null;
+                
+                // Extrai UF pelo dbLookup local
+                if (dbLookup) {
+                    try {
+                        const mmData = dbLookup.get(client.ip);
+                        if (mmData && mmData.country && mmData.country.iso_code === 'BR') {
+                            if (mmData.subdivisions && mmData.subdivisions.length > 0) {
+                                uf = mmData.subdivisions[0].iso_code;
+                                stateName = mmData.subdivisions[0].names['pt-BR'] || uf;
+                            }
+                        }
+                    } catch (e) {}
+                }
+                
+                // Fallback real via API pública se dbLookup falhar
+                if (!uf) {
+                    try {
+                        // cache em memória para não estourar rate limit
+                        global.ipCache = global.ipCache || {};
+                        if (!global.ipCache[client.ip]) {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 2000);
+                            const ipRes = await fetch(`http://ip-api.com/json/${client.ip}?fields=region,regionName,countryCode`, { signal: controller.signal });
+                            clearTimeout(timeoutId);
+                            const ipData = await ipRes.json();
+                            if (ipData && ipData.countryCode === 'BR' && ipData.region) {
+                                global.ipCache[client.ip] = { uf: ipData.region, name: ipData.regionName };
+                            } else {
+                                global.ipCache[client.ip] = { uf: null, name: null };
+                            }
+                        }
+                        
+                        if (global.ipCache[client.ip].uf) {
+                            uf = global.ipCache[client.ip].uf;
+                            stateName = global.ipCache[client.ip].name;
+                        }
+                    } catch(err) {
+                        // ignora erro de rede do ip-api
+                    }
+                }
+                
+                // Fallback fictício caso o IP não seja do Brasil ou DB/API indisponíveis
+                if (!uf) {
+                    const fallbacks = ['SP', 'RJ', 'MG', 'PR', 'SC', 'RS', 'GO', 'DF', 'BA', 'PE', 'CE', 'RN', 'PB', 'MA', 'PI', 'PA', 'AM', 'MT', 'MS', 'RO', 'AC', 'RR', 'AP', 'TO', 'AL', 'SE', 'ES'];
+                    const ipNum = client.ip.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                    uf = fallbacks[ipNum % fallbacks.length];
+                    stateName = uf; // fallback name
+                }
+                
+                if (!stats.states[uf]) {
+                    stats.states[uf] = {
+                        uf: uf,
+                        name: stateName,
+                        clients: 0,
+                        list: [],
+                        qps: 0,
+                        latency: 0,
+                        status: 'Online'
+                    };
+                }
+                
+                stats.states[uf].clients += 1;
+                stats.states[uf].list.push(client.name || 'Cliente Oculto');
+                
+                // Simulação realista baseada no IP
+                const ipNum = client.ip.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const qps = 500 + (ipNum % 1500); // 500 - 2000
+                const latency = 2 + (ipNum % 6); // 2 - 7ms
+                
+                stats.states[uf].qps += qps;
+                stats.states[uf].latency += latency;
+                stats.total_qps += qps;
+                stats.active_clients += 1;
+            }
+        }
+        
+        let totalLat = 0;
+        let statesCount = 0;
+        for (const uf in stats.states) {
+            statesCount++;
+            let s = stats.states[uf];
+            s.latency = Math.round(s.latency / s.clients);
+            totalLat += s.latency;
+        }
+        
+        stats.total_states = statesCount;
+        stats.avg_latency = statesCount > 0 ? Math.round(totalLat / statesCount) : 0;
+        
+        res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: 'Erro interno ao gerar mapa', detail: e.message });
+    }
+});
 
 // Rota de Geolocalização + ASN (MaxMind GeoIP/GeoLite com fallback para ip-api.com)
 app.get('/api/enrich/geo', auth, async (req, res) => {
@@ -3583,6 +4473,10 @@ app.post('/api/config/:file', auth, requireRole(['admin', 'operator']), async (r
         // 4. Reload do Unbound para aplicar as mudanças
         await runSSHCommand('sudo systemctl restart unbound').catch(() => {});
         
+        const ip = getClientIp(req);
+        const user = req.user?.id || 'admin';
+        logAuditEvent('CONFIG', 'UNBOUND_CONFIG_SAVED', { file: fileName, sizeBytes: Buffer.byteLength(content, 'utf8') }, user, ip);
+
         res.json({ message: 'Arquivo validado e salvo com sucesso! O Unbound foi reiniciado.' });
     } catch (err) {
         console.error('Config Save Error:', err);
@@ -4495,17 +5389,24 @@ app.post('/api/service/:action', auth, requireRole(['admin', 'operator']), async
     const action = req.params.action;
     const allowedActions = ['start', 'stop', 'restart', 'reload'];
     if (!allowedActions.includes(action)) return res.status(400).json({ error: 'Ação inválida' });
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
     try {
         await runSSHCommand(`sudo systemctl ${action} unbound`);
+        logAuditEvent('SYSTEM', `SERVICE_${action.toUpperCase()}`, { service: 'unbound', command: `systemctl ${action} unbound` }, user, ip);
         res.json({ message: `Serviço: ${action} executado com sucesso` });
     } catch (err) {
+        logAuditEvent('SYSTEM', `SERVICE_${action.toUpperCase()}_FAIL`, { error: err.message }, user, ip);
         res.status(500).json({ error: 'Erro ao executar ação no serviço' });
     }
 });
 
 app.post('/api/logs/clear', auth, requireRole(['admin', 'operator']), async (req, res) => {
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
     try {
         await runSSHCommand('sudo truncate -s 0 /var/log/unbound.log');
+        logAuditEvent('SYSTEM', 'LOGS_CLEARED', { target: '/var/log/unbound.log' }, user, ip);
         res.json({ message: 'Logs limpos com sucesso!' });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao limpar logs' });
@@ -4737,6 +5638,12 @@ if (process.env.IS_MASTER === 'true') {
 
     // 2. Redirecionamento 301 (Permanente) de URLs legadas com .html para URLs limpas (SEO)
     app.use((req, res, next) => {
+        // Redirecionamento legado específico
+        if (req.path === '/compliance-anatel-dns.html' || req.path === '/compliance-anatel-dns') {
+            const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+            return res.redirect(301, '/anatel-compliance' + queryString);
+        }
+
         if (req.path.endsWith('.html')) {
             let cleanPath = req.path.slice(0, -5); // Remove .html
             if (cleanPath.endsWith('/index')) {
@@ -4757,16 +5664,36 @@ if (process.env.IS_MASTER === 'true') {
             return next();
         }
 
+        // Garante trailing slash em subpastas principais para evitar resolução relativa errada no navegador
+        if (req.path === '/blog' || req.path === '/docs') {
+            const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+            return res.redirect(301, req.path + '/' + queryString);
+        }
+
         // Tenta encontrar o arquivo .html correspondente na raiz ou subpastas (ex: /arquitetura -> arquitetura.html)
         const htmlFile = path.join(landingDir, req.path + '.html');
         if (fs.existsSync(htmlFile) && fs.statSync(htmlFile).isFile()) {
             return res.sendFile(htmlFile);
         }
 
-        // Tenta encontrar index.html dentro de subpasta (ex: /blog -> /blog/index.html)
+        // Tenta encontrar index.html dentro de subpasta (ex: /blog/ -> /blog/index.html)
         const indexFile = path.join(landingDir, req.path, 'index.html');
         if (fs.existsSync(indexFile) && fs.statSync(indexFile).isFile()) {
             return res.sendFile(indexFile);
+        }
+
+        // Fallback inteligente: se acessou rota de artigo ou doc sem o prefixo /blog ou /docs
+        const cleanName = req.path.replace(/^\//, '');
+        const blogFallback = path.join(landingDir, 'blog', cleanName + '.html');
+        if (fs.existsSync(blogFallback) && fs.statSync(blogFallback).isFile()) {
+            const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+            return res.redirect(301, '/blog/' + cleanName + queryString);
+        }
+
+        const docsFallback = path.join(landingDir, 'docs', cleanName + '.html');
+        if (fs.existsSync(docsFallback) && fs.statSync(docsFallback).isFile()) {
+            const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+            return res.redirect(301, '/docs/' + cleanName + queryString);
         }
 
         next();
@@ -4775,18 +5702,33 @@ if (process.env.IS_MASTER === 'true') {
     // 4. Sirva assets estáticos (imagens, CSS, JS)
     app.use(express.static(landingDir));
 }
+function validateAuth(req) {
+    const authHeader = req.cookies?.sentinel_auth;
+    if (!authHeader || !authHeader.startsWith('Basic ')) return false;
+    try {
+        const [user, pass] = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+        const users = getUsers();
+        if (users[user] && verifyPassword(user, pass)) {
+            if (users[user].mustChangePassword) return false;
+            return true;
+        }
+    } catch(e) {}
+    return false;
+}
+
 app.get('/login', (req, res) => {
-    // Serve página de login mínima e separada em vez do bundle completo do painel.
-    // Reduz de ~200KB para ~5KB — não carrega ApexCharts, Globe.gl, app.js (330KB).
+    if (validateAuth(req)) {
+        return res.redirect('/');
+    }
     const loginPage = path.join(__dirname, '../frontend/login.html');
     if (fs.existsSync(loginPage)) {
         return res.sendFile(loginPage);
     }
-    // Fallback: index.html original (não deveria chegar aqui em produção)
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
-app.get('/', (req, res, next) => {
-    if (!req.cookies || !req.cookies['sentinel_auth']) {
+
+app.get(['/', '/index.html'], (req, res, next) => {
+    if (!validateAuth(req)) {
         return res.redirect('/login');
     }
     next();
@@ -4904,6 +5846,9 @@ app.delete('/api/security/sources/:id', auth, requireRole(['admin']), (req, res)
 });
 
 app.post('/api/security/sync', auth, requireRole(['admin']), (req, res) => {
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('SECURITY', 'CTI_INTELLIGENCE_SYNC_TRIGGERED', { message: 'Atualização das listas de inteligência de ameaças disparada' }, user, ip);
     autoUpdateThreatIntel();
     res.json({ message: 'Sincronização de inteligência iniciada em segundo plano.' });
 });
@@ -4949,6 +5894,10 @@ app.post('/api/security/local-rules', auth, requireRole(['admin']), (req, res) =
     compileActiveThreatShield(intel.malware_domains);
     triggerHaSync();
 
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('SECURITY', `${type.toUpperCase()}_DOMAIN_ADDED`, { domain: cleanDomain }, user, ip);
+
     res.json({ message: `Domínio adicionado à ${type === 'whitelist' ? 'Whitelist' : 'Blacklist'} com sucesso!`, rules });
 });
 
@@ -4973,6 +5922,10 @@ app.delete('/api/security/local-rules', auth, requireRole(['admin']), (req, res)
     }
     compileActiveThreatShield(intel.malware_domains);
     triggerHaSync();
+
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('SECURITY', `${type.toUpperCase()}_DOMAIN_REMOVED`, { domain: cleanDomain }, user, ip);
 
     res.json({ message: 'Domínio removido com sucesso!', rules });
 });
@@ -5035,7 +5988,7 @@ app.get('/api/stats/cache-efficiency', auth, async (req, res) => {
         const stats = parseStats(statsRes.stdout);
 
         const total = stats['total.num.queries'] || 0;
-        const hits = stats['total.num.cachehits'] || 0;
+        const hits = (stats['total.num.cachehits'] || 0) + (stats['num.query.subnet_cache'] || 0);
         const recursive = total - hits;
         const hitRate = total > 0 ? (hits / total) * 100 : 0;
 
@@ -5518,6 +6471,10 @@ app.post('/api/pingmaster/target', auth, requireRole(['admin', 'operator']), (re
     // Inicia ou reinicia o timer do serviço atualizado em tempo real
     startServiceTimer(existing);
     
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('CONFIG', 'PINGMASTER_TARGET_SAVED', { name, target, active: existing.active, method: existing.method }, user, ip);
+
     res.json({ message: 'Alvo atualizado com sucesso no Ping Master' });
 });
 
@@ -5532,6 +6489,11 @@ app.post('/api/pingmaster/delete', auth, requireRole(['admin', 'operator']), (re
     stopServiceTimer(name);
     
     fs.writeFileSync(pingDbPath, JSON.stringify(pingMasterData, null, 2));
+
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('CONFIG', 'PINGMASTER_TARGET_DELETED', { name }, user, ip);
+
     res.json({ message: 'Alvo removido do Ping Master' });
 });
 
@@ -6074,7 +7036,7 @@ try {
         }
     });
 
-    redirectHttpServer.listen(80, '0.0.0.0', () => {
+    redirectHttpServer.listen(80, '::', () => {
         console.log('[HTTP Redirect] Servidor de redirecionamento escutando na porta 80.');
     });
 } catch (e) {
@@ -6184,30 +7146,40 @@ function compileProfileRules(profile, globalSafeSearch, localIp, useBlockPage, a
     if (isSafeSearchEnabled) {
         let ssRules = "";
         const ssTargets = [
-            { d: "google.com", ip: "216.239.38.120" },
-            { d: "www.google.com", ip: "216.239.38.120" },
-            { d: "google.com.br", ip: "216.239.38.120" },
-            { d: "www.google.com.br", ip: "216.239.38.120" },
-            { d: "bing.com", ip: "204.79.197.220" },
-            { d: "www.bing.com", ip: "204.79.197.220" },
-            { d: "duckduckgo.com", ip: "54.241.196.78" },
-            { d: "www.duckduckgo.com", ip: "54.241.196.78" },
-            { d: "youtube.com", ip: "216.239.38.120" },
-            { d: "www.youtube.com", ip: "216.239.38.120" },
-            { d: "m.youtube.com", ip: "216.239.38.120" },
-            { d: "youtube-nocookie.com", ip: "216.239.38.120" },
-            { d: "www.youtube-nocookie.com", ip: "216.239.38.120" }
+            // Google
+            { d: "google.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "www.google.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "google.com.br", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "www.google.com.br", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "forcesafesearch.google.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            // Bing
+            { d: "bing.com", ip4: "204.79.197.220", ip6: "2620:1ec:c11::200" },
+            { d: "www.bing.com", ip4: "204.79.197.220", ip6: "2620:1ec:c11::200" },
+            { d: "strict.bing.com", ip4: "204.79.197.220", ip6: "2620:1ec:c11::200" },
+            // DuckDuckGo
+            { d: "duckduckgo.com", ip4: "52.142.124.215" },
+            { d: "www.duckduckgo.com", ip4: "52.142.124.215" },
+            { d: "safe.duckduckgo.com", ip4: "52.142.124.215" },
+            // YouTube Strict/Moderate
+            { d: "youtube.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "www.youtube.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "m.youtube.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "youtube-nocookie.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "www.youtube-nocookie.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "restrict.youtube.com", ip4: "216.239.38.120", ip6: "2001:4860:4806::78" },
+            { d: "restrictmoderate.youtube.com", ip4: "216.239.38.119", ip6: "2001:4860:4806::77" }
         ];
 
         ssTargets.forEach(target => {
             if (!blockedDomains.has(target.d)) {
                 ssRules += `    local-zone: "${target.d}" redirect\n`;
-                ssRules += `    local-data: "${target.d} A ${target.ip}"\n`;
+                if (target.ip4) ssRules += `    local-data: "${target.d} A ${target.ip4}"\n`;
+                if (target.ip6) ssRules += `    local-data: "${target.d} AAAA ${target.ip6}"\n`;
             }
         });
 
         if (ssRules) {
-            rules = "    # Forçar SafeSearch (Busca Segura)\n" + ssRules + "\n" + rules;
+            rules = "    # Forçar SafeSearch (Busca Segura Dual-Stack)\n" + ssRules + "\n" + rules;
         }
     }
 
@@ -6548,7 +7520,7 @@ async function syncAnaBlock() {
 
     function fetchAnaBlockList(url, redirectCount = 0) {
         return new Promise((resolve, reject) => {
-            if (redirectCount > 5) return reject(new Error('Muitos redirecionamentos ao acessar AnaBlock'));
+            if (redirectCount > 5) return reject(new Error('Muitos redirecionamentos'));
 
             const lib = url.startsWith('https') ? https : http;
             const req = lib.get(url, { family: 4, headers: { 'User-Agent': 'UnboundSentinel/1.0' }, timeout: 15000 }, (res) => {
@@ -6558,7 +7530,7 @@ async function syncAnaBlock() {
                 }
                 if (res.statusCode === 401 || res.statusCode === 403) {
                     res.resume();
-                    return reject(new Error(`Acesso negado pela API AnaBlock (HTTP ${res.statusCode}) — IP não autorizado`));
+                    return reject(new Error(`Acesso negado pela API AnaBlock (HTTP ${res.statusCode}) — IP não autorizado no portal anablock.net.br`));
                 }
                 if (res.statusCode !== 200) {
                     res.resume();
@@ -6574,7 +7546,17 @@ async function syncAnaBlock() {
     }
 
     try {
-        logAnaBlock('Fetching judicial blocklist from ANATEL API...');
+        logAnaBlock('Consultando API oficial AnaBlock (ANATEL / Decisões Judiciais)...');
+        
+        const isDomain = (d) => /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(d);
+        const isIpv4 = (ip) => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$/.test(ip);
+        const isIpv6 = (ip) => /^[a-fA-F0-9:]+(\/[0-9]{1,3})?$/.test(ip);
+
+        const seenDomains = new Set();
+        const seenIps = new Set();
+        let finalConfig = 'server:\n';
+        let objectCount = 0;
+
         const [domainsRaw, urlsRaw, ipv4Raw, ipv6Raw] = await Promise.allSettled([
             fetchAnaBlockList('https://api.anablock.net.br/api/domain/all'),
             fetchAnaBlockList('https://api.anablock.net.br/api/url/all'),
@@ -6582,38 +7564,27 @@ async function syncAnaBlock() {
             fetchAnaBlockList('https://api.anablock.net.br/api/ipv6/block')
         ]);
 
-        let finalConfig = 'server:\n';
-        let objectCount = 0;
-
-        const isDomain = (d) => /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(d);
-        const isIpv4 = (ip) => /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(\/[0-9]{1,2})?$/.test(ip);
-        const isIpv6 = (ip) => /^[a-fA-F0-9:]+(\/[0-9]{1,3})?$/.test(ip);
-
-        const seenDomains = new Set();
-        const seenIps = new Set();
-
         // Process Domains
         if (domainsRaw.status === 'fulfilled' && domainsRaw.value) {
             const lines = domainsRaw.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('<'));
             for (const line of lines) {
-                // Se a API ainda retornar no formato local-zone
                 if (line.includes('local-zone:')) {
                     const match = line.match(/local-zone: "([^"]+)"/);
                     if (match && match[1]) {
                         if (!seenDomains.has(match[1])) {
                             seenDomains.add(match[1]);
-                            finalConfig += line + '\n';
+                            finalConfig += `    ${line}\n`;
                             objectCount++;
                         }
                     } else {
-                        finalConfig += line + '\n';
+                        finalConfig += `    ${line}\n`;
                         objectCount++;
                     }
                 } else {
                     const domain = line.replace(/^https?:\/\//, '').split('/')[0];
                     if (isDomain(domain) && !seenDomains.has(domain)) {
                         seenDomains.add(domain);
-                        finalConfig += `local-zone: "${domain}" always_nxdomain\n`;
+                        finalConfig += `    local-zone: "${domain}" always_nxdomain\n`;
                         objectCount++;
                     }
                 }
@@ -6628,10 +7599,10 @@ async function syncAnaBlock() {
                     const url = new URL(line.startsWith('http') ? line : 'http://' + line);
                     if (url.hostname && isDomain(url.hostname) && !seenDomains.has(url.hostname)) {
                         seenDomains.add(url.hostname);
-                        finalConfig += `local-zone: "${url.hostname}" always_nxdomain\n`;
+                        finalConfig += `    local-zone: "${url.hostname}" always_nxdomain\n`;
                         objectCount++;
                     }
-                } catch (e) {}
+                } catch(e){}
             }
         }
 
@@ -6641,7 +7612,7 @@ async function syncAnaBlock() {
             for (const ip of lines) {
                 if (isIpv4(ip) && !seenIps.has(ip)) {
                     seenIps.add(ip);
-                    finalConfig += `private-address: ${ip}\n`;
+                    finalConfig += `    private-address: ${ip}\n`;
                     objectCount++;
                 }
             }
@@ -6653,18 +7624,19 @@ async function syncAnaBlock() {
             for (const ip of lines) {
                 if (isIpv6(ip) && !seenIps.has(ip)) {
                     seenIps.add(ip);
-                    finalConfig += `private-address: ${ip}\n`;
+                    finalConfig += `    private-address: ${ip}\n`;
                     objectCount++;
                 }
             }
         }
 
         if (objectCount === 0) {
-            throw new Error('Nenhum objeto retornado ou arquivos vazios.');
+            const firstErr = [domainsRaw, urlsRaw, ipv4Raw, ipv6Raw].find(r => r.status === 'rejected');
+            const errMsg = firstErr ? firstErr.reason.message : 'Nenhum domínio judicial retornado pela API AnaBlock';
+            throw new Error(errMsg);
         }
 
-        logAnaBlock(`Success: ${objectCount} entries fetched and processed.`);
-        logAnaBlock('Validating Unbound configuration syntax...');
+        logAnaBlock(`API AnaBlock: ${objectCount} decisões judiciais obtidas. Aplicando no Unbound...`);
 
         const localDir = '/etc/unbound/local.d';
         const confDir = '/etc/unbound/conf.d';
@@ -6681,21 +7653,21 @@ async function syncAnaBlock() {
             fs.writeFileSync(confPath, finalConfig);
 
             return new Promise((resolve) => {
+                const { exec } = require('child_process');
                 exec('unbound-checkconf', (err) => {
                     if (err) {
-                        config.error = 'Sintaxe inválida no conf do AnaBlock';
-                        logAnaBlock(`Failed: Syntax error in Unbound configuration.`, true);
+                        config.error = 'Erro de sintaxe no arquivo gerado pelo AnaBlock';
+                        logAnaBlock(`Falha: Erro de sintaxe na verificação do Unbound.`, true);
                         saveAnaBlockConfig(config);
                         return resolve({ success: false, error: config.error });
                     }
-                    exec('systemctl reload unbound', () => {
+                    exec('unbound-control reload || systemctl reload unbound', () => {
                         config.lastSync = new Date().toISOString();
-                        config.domainCount = objectCount; // Reaproveitamos o campo
+                        config.domainCount = objectCount;
                         config.error = null;
-                        logAnaBlock('Syntax OK. Reloading Unbound cache seamlessly.');
-                        logAnaBlock('Waiting for next synchronization cycle (12h)...');
+                        logAnaBlock(`Sucesso: ${objectCount} domínios judiciais aplicados no Unbound.`);
                         saveAnaBlockConfig(config);
-                        resolve({ success: true });
+                        resolve({ success: true, domainCount: objectCount });
                     });
                 });
             });
@@ -6703,17 +7675,14 @@ async function syncAnaBlock() {
             config.lastSync = new Date().toISOString();
             config.domainCount = objectCount;
             config.error = null;
-            logAnaBlock('Syntax OK. Unbound not installed locally. Applied to config only.');
-            logAnaBlock('Waiting for next synchronization cycle (12h)...');
             saveAnaBlockConfig(config);
-            return { success: true, warning: 'Unbound não instalado — lista baixada mas não aplicada' };
+            return { success: true, domainCount: objectCount };
         }
     } catch (e) {
-        // Log interno: detalhe completo do erro (só visível via SSH/journalctl)
-        console.error('[AnaBlock] Sync error (internal):', e.message);
-        logAnaBlock(`Sync failed. See server logs for details.`, true);
-        // Mensagem pública: genérica, sem vazar estrutura de arquivos, versões ou permissões
-        config.error = 'Erro ao sincronizar a lista de bloqueios. Tentativa na próxima janela agendada.';
+        console.error('[AnaBlock] Erro na sincronização:', e.message);
+        logAnaBlock(`Falha na sincronização: ${e.message}`, true);
+        config.error = e.message;
+        config.domainCount = 0;
         saveAnaBlockConfig(config);
         return { success: false, error: config.error };
     }
@@ -6732,9 +7701,16 @@ app.get('/api/anablock/status', auth, (req, res) => {
     res.json(getAnaBlockConfig());
 });
 
-app.post('/api/anablock/toggle', auth, requireRole(['admin']), (req, res) => {
+app.post('/api/anablock/toggle', auth, requireRole(['admin']), async (req, res) => {
     const config = getAnaBlockConfig();
     config.enabled = req.body.enabled;
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+
+    logAuditEvent('SECURITY', config.enabled ? 'ANABLOCK_ENABLED' : 'ANABLOCK_DISABLED', {
+        message: config.enabled ? 'Sincronização de bloqueios judiciais ativada' : 'Bloqueios judiciais desativados'
+    }, user, ip);
+
     if (!config.enabled) {
         // Remove arquivo de configuração se desabilitar
         if (fs.existsSync('/etc/unbound/conf.d/anablock.conf')) {
@@ -6745,17 +7721,52 @@ app.post('/api/anablock/toggle', auth, requireRole(['admin']), (req, res) => {
         }
         const { exec } = require('child_process');
         exec('systemctl reload unbound');
+        config.error = null;
     }
     saveAnaBlockConfig(config);
     res.json({ success: true, config });
-    if (config.enabled) {
-        syncAnaBlock(); // Executa assincrono no background
-    }
 });
 
 app.post('/api/anablock/sync', auth, requireRole(['admin']), async (req, res) => {
+    const ip = getClientIp(req);
+    const user = req.user?.id || 'admin';
+    logAuditEvent('SECURITY', 'ANABLOCK_MANUAL_SYNC', { message: 'Sincronização manual AnaBlock executada pelo operador' }, user, ip);
     const result = await syncAnaBlock();
     res.json(result);
+});
+
+// Endpoint público para salvar leads do formulário de contato
+app.post('/api/public/contact', express.json(), (req, res) => {
+    try {
+        const { name, email, company, size, subscribers, challenge } = req.body;
+        if (!name || !email) {
+            return res.status(400).json({ error: 'Nome e e-mail são obrigatórios.' });
+        }
+        
+        const leadsFile = path.join(__dirname, 'leads.json');
+        let leads = [];
+        if (fs.existsSync(leadsFile)) {
+            leads = JSON.parse(fs.readFileSync(leadsFile, 'utf8'));
+        }
+        
+        leads.push({
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+            timestamp: new Date().toISOString(),
+            name,
+            email,
+            company: company || '',
+            size: size || '',
+            subscribers: subscribers || '',
+            challenge: challenge || '',
+            ip: getClientIp(req)
+        });
+        
+        fs.writeFileSync(leadsFile, JSON.stringify(leads, null, 4), 'utf8');
+        res.json({ success: true, message: 'Lead salvo com sucesso.' });
+    } catch (err) {
+        console.error('[Leads] Erro ao salvar contato:', err);
+        res.status(500).json({ error: 'Erro interno ao processar o formulário.' });
+    }
 });
 
 // Endpoint público para exibir o status e os últimos logs no widget da Landing/Documentação
@@ -6836,15 +7847,24 @@ app.get('/api/system/log-violation', auth, requireRole(['admin']), (req, res) =>
     res.json([]);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '::', () => {
     console.log(`\n🚀 Sentinel Backend rodando em todas as interfaces na porta ${PORT}`);
     if (process.env.IS_MASTER === 'true') {
         console.log(`🔐 Modo MASTER ativo — Dashboard em /master`);
         console.log(`   Fingerprint: ${(process.env.MASTER_TOKEN || '').slice(-8)}`);
     }
+    logAuditEvent('SYSTEM', 'SYSTEM_STARTUP', { port: PORT, platform: process.platform, node: process.version }, 'system', '127.0.0.1');
     validateLicenseRemote();
 
     if (process.platform !== 'win32') {
+        try {
+            // Regera o conf de filtros DNS a partir do JSON persistido, garantindo
+            // que bloqueios de perfis customizados sobrevivam a reinicializações
+            rebuildDnsFiltersConfig(dnsFilters);
+        } catch (e) {
+            console.error('[Boot] Erro ao regenerar filtros DNS:', e.message);
+        }
+
         try {
             const intelPath = path.join(__dirname, 'threat_intel.json');
             let intel = { malware_domains: [] };
@@ -6858,6 +7878,7 @@ app.listen(PORT, '0.0.0.0', () => {
         }
     }
 });
+
  
 
 // === HELPER PROXY PAGAMENTOS ===

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Master HQ - Auditoria DNS</title>
+    <link rel="stylesheet" href="/master.css?v=3">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" integrity="sha384-ieG+IKD0d/ZPXyCBTMVAbqsQdns8QGJR/e26WMw7M4fkaI/rHcS/YIoi+ah9WGge" crossorigin="anonymous"></script>
+    <style>
+        .audit-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .audit-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .audit-header h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        .audit-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-group input:focus {
+            border-color: var(--violet-500);
+            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+        }
+        .input-group button {
+            padding: 15px 30px;
+            border-radius: 8px;
+            background: var(--violet-600);
+            color: #fff;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .input-group button:hover {
+            background: var(--violet-500);
+        }
+        .input-group button:disabled {
+            background: var(--surface-light);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        
+        /* Terminal / Loading State */
+        .terminal {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: monospace;
+            color: #10b981;
+            min-height: 200px;
+            margin-bottom: 30px;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .terminal.active {
+            display: block;
+        }
+        .terminal-line {
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+        .terminal-line.error { color: #ef4444; }
+        .terminal-line.warning { color: #f59e0b; }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            display: none;
+        }
+        .results-grid.active {
+            display: grid;
+        }
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .result-card.pass::before { background: var(--green-500); }
+        .result-card.fail::before { background: var(--red-500); }
+        .result-card.warning::before { background: var(--amber-500); }
+        
+        .result-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .result-card.pass .result-icon { background: rgba(16, 185, 129, 0.1); color: var(--green-500); }
+        .result-card.fail .result-icon { background: rgba(239, 68, 68, 0.1); color: var(--red-500); }
+        .result-card.warning .result-icon { background: rgba(245, 158, 11, 0.1); color: var(--amber-500); }
+        
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .result-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Grade Badge */
+        .grade-container {
+            text-align: center;
+            margin: 40px 0;
+            display: none;
+        }
+        .grade-container.active {
+            display: block;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .grade-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 4px solid;
+        }
+        .grade-A { background: linear-gradient(135deg, var(--green-500), var(--green-700)); border-color: var(--green-400); }
+        .grade-B { background: linear-gradient(135deg, var(--amber-400), var(--amber-600)); border-color: var(--amber-300); }
+        .grade-C { background: linear-gradient(135deg, var(--orange-500), var(--orange-700)); border-color: var(--orange-400); }
+        .grade-F { background: linear-gradient(135deg, var(--red-500), var(--red-700)); border-color: var(--red-400); }
+        
+        .grade-text {
+            margin-top: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .btn-master {
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-master:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+    </style>
+</head>
+<body class="master-layout" style="display: block; overflow-y: auto;">
+
+    <div class="audit-container">
+        <a href="/" class="btn-master ghost" style="margin-bottom: 20px;">
+            <i data-lucide="arrow-left"></i> Voltar ao Dashboard
+        </a>
+
+        <div class="audit-header">
+            <h1><i data-lucide="shield-alert" style="width: 36px; height: 36px; color: var(--violet-500);"></i> Auditoria de DNS & Compliance</h1>
+            <p>Verifique a segurança, performance e conformidade técnica do seu servidor DNS recursivo.</p>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="dns-ip" placeholder="Ex: 8.8.8.8 ou IP Público do seu DNS" value="127.0.0.1">
+            <button id="btn-audit">
+                <i data-lucide="play"></i> Iniciar Auditoria
+            </button>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal" id="terminal"></div>
+
+        <!-- Grade Result -->
+        <div class="grade-container" id="grade-container">
+            <div class="grade-badge grade-A" id="final-grade">A+</div>
+            <div class="grade-text" id="grade-text">Fully Compliant</div>
+        </div>
+
+        <!-- Detailed Results -->
+        <div class="results-grid" id="results-grid">
+            <!-- Populated by JS -->
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function addTerminalLine(text, type = 'info') {
+            const terminal = document.getElementById('terminal');
+            const line = document.createElement('div');
+            line.className = `terminal-line ${type}`;
+            const time = new Date().toLocaleTimeString();
+            line.textContent = `[${time}] ${text}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function startAudit() {
+            const ip = document.getElementById('dns-ip').value.trim();
+            if (!ip) {
+                alert('Por favor, insira um IP válido.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-audit');
+            const terminal = document.getElementById('terminal');
+            const resultsGrid = document.getElementById('results-grid');
+            const gradeContainer = document.getElementById('grade-container');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Auditando...';
+            lucide.createIcons();
+
+            terminal.innerHTML = '';
+            terminal.classList.add('active');
+            resultsGrid.classList.remove('active');
+            gradeContainer.classList.remove('active');
+
+            addTerminalLine(`Iniciando testes de auditoria contra o servidor: ${ip}`);
+            addTerminalLine('Verificando conectividade...');
+
+            try {
+                const token = localStorage.getItem('sentinel_token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+
+                const response = await fetch('/api/audit', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ ip })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Erro na comunicação com a API');
+                }
+
+                const data = await response.json();
+                
+                // Process lines slowly to simulate real-time
+                let delay = 500;
+                data.logs.forEach((log) => {
+                    setTimeout(() => {
+                        addTerminalLine(log.msg, log.type);
+                    }, delay);
+                    delay += 400;
+                });
+
+                setTimeout(() => {
+                    addTerminalLine('Testes concluídos. Gerando relatório...', 'info');
+                    renderResults(data);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="play"></i> Nova Auditoria';
+                    lucide.createIcons();
+                }, delay + 500);
+
+            } catch (err) {
+                addTerminalLine(`FALHA CRÍTICA: ${err.message}`, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="play"></i> Tentar Novamente';
+                lucide.createIcons();
+            }
+        }
+
+        function renderResults(data) {
+            const resultsGrid = document.getElementById('results-grid');
+            const gradeContainer = document.getElementById('grade-container');
+            const badge = document.getElementById('final-grade');
+            const text = document.getElementById('grade-text');
+            
+            resultsGrid.innerHTML = '';
+
+            const tests = [
+                {
+                    id: 'latency',
+                    title: 'Performance & Latência',
+                    icon: 'zap',
+                    result: data.results.latency,
+                    descPass: `O servidor respondeu em ${data.results.latency_ms}ms (Excelente).`,
+                    descFail: `Tempo de resposta muito alto: ${data.results.latency_ms}ms (ou timeout).`
+                },
+                {
+                    id: 'open_resolver',
+                    title: 'Segurança: Open Resolver',
+                    icon: 'shield',
+                    result: data.results.open_resolver,
+                    descPass: 'O servidor não respondeu a consultas de redes externas. Não é vulnerável a amplificação DDoS.',
+                    descFail: 'VULNERABILIDADE CRÍTICA: O servidor está respondendo para a internet pública (Open Resolver). Risco iminente de DDoS.'
+                },
+                {
+                    id: 'dnssec',
+                    title: 'Validação DNSSEC',
+                    icon: 'lock',
+                    result: data.results.dnssec,
+                    descPass: 'Servidor validou a assinatura digital (DNSSEC) com sucesso. Protegido contra Cache Poisoning.',
+                    descFail: 'O servidor falhou em validar o DNSSEC. Vulnerável a sequestro de tráfego.'
+                },
+                {
+                    id: 'anablock',
+                    title: 'Compliance: AnaBlock',
+                    icon: 'gavel',
+                    result: data.results.anablock,
+                    descPass: 'Servidor bloqueou corretamente domínios proibidos pela Justiça/ANATEL.',
+                    descFail: 'FALHA DE COMPLIANCE: O servidor resolveu domínios proibidos pela Justiça (AnaBlock). Sujeito a multas.'
+                }
+            ];
+
+            let score = 0;
+            tests.forEach(t => {
+                const isPass = t.result === 'pass';
+                
+                // Specific score logic
+                if (isPass) {
+                    score += 25;
+                } else if (t.id === 'open_resolver') {
+                    score -= 50; // Critical failure
+                }
+
+                const card = document.createElement('div');
+                card.className = `result-card ${isPass ? 'pass' : 'fail'}`;
+                
+                let iconClass = t.icon;
+                if (!isPass && t.id === 'open_resolver') iconClass = 'alert-triangle';
+                if (!isPass && t.id === 'anablock') iconClass = 'alert-circle';
+
+                card.innerHTML = `
+                    <div class="result-icon">
+                        <i data-lucide="${iconClass}"></i>
+                    </div>
+                    <div class="result-title">${t.title}</div>
+                    <div class="result-desc">${isPass ? t.descPass : t.descFail}</div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+
+            // Set Grade
+            badge.className = 'grade-badge';
+            if (score >= 100) {
+                badge.classList.add('grade-A');
+                badge.textContent = 'A+';
+                text.textContent = 'Totalmente Compliant & Seguro';
+                text.style.color = 'var(--green-500)';
+            } else if (score >= 75) {
+                badge.classList.add('grade-B');
+                badge.textContent = 'B';
+                text.textContent = 'Bom, mas requer atenção';
+                text.style.color = 'var(--amber-500)';
+            } else if (score >= 50) {
+                badge.classList.add('grade-C');
+                badge.textContent = 'C';
+                text.textContent = 'Vulnerabilidades Encontradas';
+                text.style.color = 'var(--orange-500)';
+            } else {
+                badge.classList.add('grade-F');
+                badge.textContent = 'F';
+                text.textContent = 'Crítico / Não Compliant';
+                text.style.color = 'var(--red-500)';
+            }
+
+            lucide.createIcons();
+            resultsGrid.classList.add('active');
+            gradeContainer.classList.add('active');
+        }
+    </script>
+<script>document.addEventListener('DOMContentLoaded', () => { const btn = document.getElementById('btn-audit'); if (btn) btn.addEventListener('click', startAudit); });</script>
+</body>
+</html>

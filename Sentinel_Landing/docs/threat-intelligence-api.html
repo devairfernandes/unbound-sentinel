@@ -13,42 +13,16 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentação Sentinel DNS | Guias, Instalação e API</title>
-    <meta name="description" content="Documentação oficial do Sentinel DNS: guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock, DoH/DoT e API REST. Para ISPs e datacenters.">
+    <title>Threat Intelligence API - Sentinel DNS</title>
+    <meta name="description" content="Documentação oficial: Threat Intelligence API. Acesse guias, tutoriais e manuais completos para configurar, otimizar e extrair o máximo de desempenho e segurança do Sentinel DNS.">
     <link rel="icon" type="image/webp" href="../Logo.webp">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/docs/">
+    <link rel="stylesheet" crossorigin href="../assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/docs/threat-intelligence-api.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/docs/">
-    <meta property="og:title" content="Documentação Sentinel DNS | Guias, Instalação e API">
-    <meta property="og:description" content="Guias de instalação, configuração de RPZ, Threat Intelligence, AnaBlock e API REST para ISPs e datacenters.">
-    <meta property="og:image" content="https://sentineldns.net/Logo.webp">
-    <meta property="og:locale" content="pt_BR">
-    <meta property="og:site_name" content="Sentinel DNS">
-
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Documentação Sentinel DNS | Guias e API">
-    <meta name="twitter:description" content="Documentação oficial: instalação, RPZ, AnaBlock, DoH/DoT e API REST do Sentinel DNS.">
-    <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
-    <!-- Schema.org: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Documentação", "item": "https://sentineldns.net/docs/"}
-      ]
-    }
-    </script>
 </head>
 <body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
@@ -151,154 +125,142 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 pt-8 pb-24 md:pl-10">
-            <div class="prose prose-invert max-w-3xl">
-                <h1 class="text-4xl font-bold mb-4">Introdução ao Sentinel DNS</h1>
-                <p class="text-xl text-gray-400 mb-8">Bem-vindo à documentação oficial. Aprenda a instalar, configurar e escalar seu cluster de DNS seguro.</p>
-                
-                <hr class="border-gray-800 my-8">
-                
-                <h2 class="text-2xl font-bold mb-4">O que é?</h2>
-                <p class="text-gray-300 leading-relaxed mb-6">O Sentinel DNS é um resolvedor recursivo de alta performance focado em ISPs, Datacenters e cenários corporativos críticos. Diferente de softwares generalistas, ele foi construído do zero com foco em <strong>segurança por design</strong> e <strong>eficiência I/O</strong>.</p>
-                
-                <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-8">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5"></i>
-                        <p class="text-sm text-blue-100 m-0">Recomendamos sempre utilizar a versão LTS em ambientes de produção que exijam uptime de 99.999%.</p>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold mb-4">Instalação via ISO (Recomendado)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel DNS é empacotado nativamente como um appliance em Rocky Linux. A forma mais rápida e segura de instalar é utilizando nossa ISO otimizada para Bare Metal ou Hypervisors (Proxmox, VMware):</p>
-                
-                <div class="space-y-4 mb-8">
-                    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                        <h3 class="font-semibold text-white mb-2">Passos para Instalação</h3>
-                        <ol class="list-decimal list-inside text-gray-400 space-y-2 text-sm">
-                            <li>Baixe a ISO mais recente na nossa <a href="../download.html" class="text-blue-400 hover:underline">página de downloads</a>.</li>
-                            <li>Faça o boot da ISO em uma máquina virtual (ex: Proxmox) ou grave em um pendrive (Rufus).</li>
-                            <li>Siga o assistente de instalação automatizado (detecta rede e discos automaticamente).</li>
-                            <li>Após o reboot, acesse o painel através do IP exibido na tela do terminal.</li>
-                        </ol>
-                    </div>
-                </div>
-
-                <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 class="font-semibold text-white mb-2">Integração AnaBlock</h3>
-                    <ul class="list-disc list-inside text-gray-400 space-y-2 text-sm">
-                        <li><strong>Como Funciona:</strong> Quando habilitado, o Sentinel consome a API Judicial da AnaBlock (verificando os endpoints <code>domains/all</code>, <code>url/all</code>, <code>ipv4/block</code> e <code>ipv6/block</code>).</li>
-                        <li><strong>Frequência:</strong> A atualização ocorre de forma silenciosa e periódica. Se houver timeout ou erro de autorização IP, o sistema notifica nos logs do backend e preserva o cache pré-existente (sem causar downtime).</li>
-                    </ul>
-                </div>
-                
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="dimensionamento">Dimensionamento (Hardware)</h2>
-                <p class="text-gray-300 mb-4">O Sentinel aproveita ao máximo os recursos disponíveis graças ao mecanismo nativo de Auto-Tuning. O hardware recomendado varia conforme o tamanho da rede:</p>
-                
-                <div class="overflow-x-auto mb-8">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="bg-gray-900 border-b border-gray-800">
-                            <tr>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Perfil de Rede</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Clientes Ativos</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">CPU</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">RAM</th>
-                                <th class="px-4 py-3 font-semibold text-gray-300">Disco</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-800">
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Pequeno (Rede Local)</td>
-                                <td class="px-4 py-3 text-gray-400">Até 5.000</td>
-                                <td class="px-4 py-3 text-gray-400">2 a 4 vCPUs</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 GB</td>
-                                <td class="px-4 py-3 text-gray-400">30 GB SSD</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Médio (ISP)</td>
-                                <td class="px-4 py-3 text-gray-400">5.000 a 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">4 a 8 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 GB</td>
-                                <td class="px-4 py-3 text-gray-400">60 GB NVMe</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-3 text-gray-400">Elite (Alto Tráfego)</td>
-                                <td class="px-4 py-3 text-gray-400">Acima de 20.000</td>
-                                <td class="px-4 py-3 text-gray-400">8 a 16 Cores</td>
-                                <td class="px-4 py-3 text-gray-400">16 a 32 GB</td>
-                                <td class="px-4 py-3 text-gray-400">100 GB NVMe Enterprise</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="bg-blue-900/10 border border-blue-500/20 rounded-lg p-5 mb-10">
-                    <h3 class="font-semibold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Dicas de Virtualização (Proxmox/KVM)</h3>
-                    <ul class="list-disc list-inside text-gray-300 text-sm space-y-2">
-                        <li><strong>Processador:</strong> Configure a CPU como <code>host</code> em vez de <code>kvm64</code> para acelerar cálculos do DNSSEC.</li>
-                        <li><strong>Rede:</strong> Utilize sempre a interface <code>VirtIO</code> para eliminar latências UDP.</li>
-                        <li><strong>Clock:</strong> Para DNS recursivo de alta concorrência, o clock do núcleo (GHz) importa mais que a quantidade.</li>
-                    </ul>
-                </div>
-
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="troubleshooting">Troubleshooting Comum & Sysadmin</h2>
-                
-                <div class="space-y-6 mb-10">
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Logs em Tempo Real (Journald)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Monitorar o tráfego e logs de erro do motor Unbound:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            journalctl -u unbound -f
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Validação de Configuração (Checkconf)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Sempre que alterar arquivos em <code>/etc/unbound/</code>, valide a sintaxe:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            unbound-checkconf
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Reprocessar Rede (Modo Emergência)</h3>
-                        <p class="text-sm text-gray-400 mb-2">Para religar o prompt interativo em casos de falha crônica de rede ou mudança de gateway local:</p>
-                        <div class="bg-gray-900 rounded p-4 font-mono text-sm text-emerald-400 border border-gray-800">
-                            rm -f /root/.firstboot_done && /root/firstboot-network.sh
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="border-gray-800 my-10">
-
-                <h2 class="text-2xl font-bold mb-4" id="faq">FAQ Técnico</h2>
-                
-                <div class="space-y-6 mb-12">
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">O Unbound perde cache ao reiniciar?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não. O Sentinel utiliza <em>Persistent Cache</em> invocado no boot via systemd. Ele grava dump na memória antes de desligar e recarrega em milissegundos sem esbarrar no disco, evitando lentidão matinal na rede de ISPs.</p>
-                    </div>
-                    
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Por que algumas atualizações param no plano Vitalício?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">As plataformas PRO Lite possuem a licença de uso do DNS para sempre (nunca expiram), mas o consumo e curadoria de bandas pesadas de feeds de ameaças, malwares frescos e a base MaxMind GeoLite2 exigem custo contínuo de nuvem e inteligência. É preciso manter o <em>Add-on CTI</em> para que as queries à API não retornem limites.</p>
-                    </div>
-
-                    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-                        <h3 class="font-semibold text-white mb-3 text-lg">Posso criar regras de IPtables brutas?</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Não é recomendado contornar o <code>firewalld</code> no Rocky Linux do Sentinel. Use o módulo de Firewall embutido. Ao bloquear tráfego DNS para ranges específicos pelo Firewalld, o motor subjacente desvincula o serviço da zona automaticamente na camada kernel de forma limpa.</p>
-                    </div>
-                </div>
-                
-            </div>
-        </main>
         
+<main class="flex-1 pt-8 pb-24 md:pl-10">
+
+            <div class="prose prose-invert max-w-3xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 text-xs font-semibold bg-red-500/20 text-red-400 rounded-full border border-red-500/30">Cyber Threat Intelligence (CTI)</span>
+                    <span class="px-3 py-1 text-xs font-mono bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">API RESTful</span>
+                </div>
+                
+                <h1 class="text-4xl font-bold mb-4">Threat Intelligence API</h1>
+                <p class="text-xl text-gray-300 leading-relaxed mb-8">A API de Threat Intelligence do Sentinel DNS permite a ingestão, gestão e sincronização programática de Indicadores de Comprometimento (IOCs) para bloqueio proativo na camada DNS via Response Policy Zones (RPZ).</p>
+
+                <hr class="border-gray-800 my-8">
+
+                <h2 class="text-2xl font-bold mb-4 text-white">1. Visão Geral</h2>
+                <p class="text-gray-300 mb-4">O bloqueio na camada DNS é uma das formas mais eficientes de impedir que o tráfego da rede alcance infraestruturas maliciosas (Malware, Phishing, Command & Control e Botnets). A API de Threat Intelligence existe para transformar o Sentinel DNS em um motor dinâmico alimentado por CTI (Cyber Threat Intelligence).</p>
+                <p class="text-gray-300 mb-4">Através da API, administradores e sistemas de automação (SOAR) podem gerenciar os feeds de ameaças de forma rápida, distribuindo os bloqueios instantaneamente para todos os nós Edge sem necessidade de reload do serviço DNS.</p>
+
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">2. Autenticação</h2>
+                <p class="text-gray-300 mb-4">A API utiliza autenticação baseada em Bearer Token estático. O token deve ser enviado no cabeçalho HTTP <code>Authorization</code> ou <code>x-sentinel-token</code> de todas as requisições.</p>
+                <div class="bg-gray-900 p-4 rounded-lg border border-gray-800 mb-4 overflow-x-auto">
+                    <pre><code class="text-sm text-gray-300">Authorization: Bearer seu_token_de_acesso_aqui</code></pre>
+                </div>
+                <p class="text-gray-300 mb-6 text-sm text-yellow-400/90"><i data-lucide="alert-triangle" class="w-4 h-4 inline mb-0.5"></i> O token de API pode ser gerado no painel administrativo master em <strong>Configurações > Segurança da API</strong>.</p>
+
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">3. Endpoints Principais</h2>
+
+                <div class="space-y-6">
+                    <!-- GET /api/v1/threats -->
+                    <div class="border border-gray-800 rounded-lg p-5 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-1 text-xs font-bold bg-blue-500/20 text-blue-400 rounded">GET</span>
+                            <code class="text-gray-200">/api/v1/threats</code>
+                        </div>
+                        <p class="text-sm text-gray-400">Lista os domínios e IOCs atualmente bloqueados no motor de resolução.</p>
+                        <p class="text-sm text-gray-400 mt-2"><strong>Parâmetros (Query):</strong> <code>?page=1</code>, <code>?limit=100</code>, <code>?type=phishing</code></p>
+                    </div>
+
+                    <!-- POST /api/v1/threats -->
+                    <div class="border border-gray-800 rounded-lg p-5 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-1 text-xs font-bold bg-green-500/20 text-green-400 rounded">POST</span>
+                            <code class="text-gray-200">/api/v1/threats</code>
+                        </div>
+                        <p class="text-sm text-gray-400">Adiciona um novo indicador (domínio, IP ou URL) manualmente à blacklist global em tempo real.</p>
+                    </div>
+
+                    <!-- DELETE /api/v1/threats/{id} -->
+                    <div class="border border-gray-800 rounded-lg p-5 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-1 text-xs font-bold bg-red-500/20 text-red-400 rounded">DELETE</span>
+                            <code class="text-gray-200">/api/v1/threats/{id}</code>
+                        </div>
+                        <p class="text-sm text-gray-400">Remove um indicador de ameaça previamente cadastrado (útil para liberação rápida de falsos positivos).</p>
+                    </div>
+
+                    <!-- GET /api/v1/threats/feed/status -->
+                    <div class="border border-gray-800 rounded-lg p-5 bg-gray-900/50">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-1 text-xs font-bold bg-blue-500/20 text-blue-400 rounded">GET</span>
+                            <code class="text-gray-200">/api/v1/threats/feed/status</code>
+                        </div>
+                        <p class="text-sm text-gray-400">Retorna o status de integridade e o timestamp da última sincronização bem-sucedida com os feeds externos configurados.</p>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4 mt-10 text-white">4. Exemplo de Request / Response</h2>
+                
+                <h3 class="text-lg font-semibold text-gray-200 mb-2 mt-4">Adicionando um Domínio Malicioso</h3>
+                
+                <div class="bg-[#1e1e1e] rounded-lg border border-gray-800 overflow-hidden mb-4">
+                    <div class="bg-gray-800/50 px-4 py-2 border-b border-gray-800 text-xs text-gray-400 font-mono">cURL Request</div>
+                    <div class="p-4 overflow-x-auto">
+<pre class="text-sm text-gray-300 font-mono leading-relaxed">curl -X POST https://api.sentineldns.net/api/v1/threats \
+  -H "Authorization: Bearer sk_live_exemplo123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "indicator": "malware-dist-example.com",
+    "type": "domain",
+    "category": "malware",
+    "tlp": "amber",
+    "description": "Distribuição de trojan bancário identificado pelo SOC"
+  }'</pre>
+                    </div>
+                </div>
+
+                <div class="bg-[#1e1e1e] rounded-lg border border-gray-800 overflow-hidden mb-6">
+                    <div class="bg-gray-800/50 px-4 py-2 border-b border-gray-800 text-xs text-gray-400 font-mono">JSON Response (201 Created)</div>
+                    <div class="p-4 overflow-x-auto">
+<pre class="text-sm text-[#4ec9b0] font-mono leading-relaxed">{
+  <span class="text-[#9cdcfe]">"status"</span>: <span class="text-[#ce9178]">"success"</span>,
+  <span class="text-[#9cdcfe]">"data"</span>: {
+    <span class="text-[#9cdcfe]">"id"</span>: <span class="text-[#ce9178]">"thr_9x8c7v6b5"</span>,
+    <span class="text-[#9cdcfe]">"indicator"</span>: <span class="text-[#ce9178]">"malware-dist-example.com"</span>,
+    <span class="text-[#9cdcfe]">"category"</span>: <span class="text-[#ce9178]">"malware"</span>,
+    <span class="text-[#9cdcfe]">"propagated"</span>: <span class="text-[#569cd6]">true</span>,
+    <span class="text-[#9cdcfe]">"created_at"</span>: <span class="text-[#ce9178]">"2026-07-25T14:30:00Z"</span>
+  }
+}</pre>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4 mt-10 text-white">5. Rate Limits e Boas Práticas</h2>
+                <ul class="list-disc pl-6 space-y-3 text-gray-300 mb-8">
+                    <li><strong>Rate Limiting:</strong> A API de ingestão de ameaças permite até <strong>60 requisições por minuto</strong> por IP autenticado, utilizando o algoritmo de Token Bucket. Se o limite for excedido, a API retornará o código HTTP <code>429 Too Many Requests</code>.</li>
+                    <li><strong>Operações em Lote (Bulk):</strong> Ao invés de enviar centenas de requisições individuais <code>POST</code> (e consumir o limite rápido), prefira o endpoint <code>POST /api/v1/threats/bulk</code> para enviar arrays com até 1.000 indicadores por vez.</li>
+                    <li><strong>Cache e TTL:</strong> O Sentinel propaga automaticamente os IOCs na memória dos nós Edge. Evite reenviar domínios que já estejam registrados.</li>
+                </ul>
+
+                <h2 class="text-2xl font-bold mb-4 mt-8 text-white">6. Fontes Suportadas (Feeds)</h2>
+                <p class="text-gray-300 mb-4">Além da gestão customizada via API, o módulo CTI do Sentinel já possui integrações nativas para sincronizar listas das seguintes fontes, requerendo apenas a configuração no painel Master:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <div class="bg-gray-900/40 p-4 rounded-lg border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">OSINT Públicos</h4>
+                        <ul class="text-sm text-gray-400 space-y-1">
+                            <li>• Abuse.ch (URLhaus / Feodo Tracker)</li>
+                            <li>• PhishTank</li>
+                            <li>• AlienVault OTX</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-900/40 p-4 rounded-lg border border-gray-800">
+                        <h4 class="font-bold text-gray-200 mb-1">Comerciais & CERTs</h4>
+                        <ul class="text-sm text-gray-400 space-y-1">
+                            <li>• Spamhaus (RPZ Zone)</li>
+                            <li>• MISP (Malware Information Sharing Platform)</li>
+                            <li>• Feeds institucionais (Gov / CERT-BR)</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        
+</main>
+
     </div>
 
-    
     <!-- Footer -->
     
         <!-- Footer -->
@@ -413,9 +375,71 @@
     </footer>
 
 
-    <!-- Initialize Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
     <script>
         lucide.createIcons();
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('anablockLog', () => ({
+                logs: [],
+                status: 'INACTIVE',
+                lastSync: null,
+                domainCount: 0,
+                loading: true,
+                
+                async init() {
+                    try {
+                        const res = await fetch('/api/public/anablock-log');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.logs = data.logs;
+                            this.status = data.status;
+                            this.lastSync = data.lastSync;
+                            this.domainCount = data.domainCount;
+                        }
+                    } catch (e) {
+                        console.error('Erro ao carregar log', e);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                get statusText() {
+                    if (this.loading) return 'CARREGANDO';
+                    if (this.status === 'ACTIVE') return 'ACTIVE';
+                    if (this.status === 'DELAYED') return 'DELAYED (ALERTA)';
+                    return 'INACTIVE';
+                },
+                
+                get statusClass() {
+                    if (this.loading) return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+                    if (this.status === 'ACTIVE') return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    if (this.status === 'DELAYED') return 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                },
+                
+                formatLog(line) {
+                    const match = line.match(/^\[(.*?)\] (.*)$/);
+                    if (!match) return line;
+                    const time = new Date(match[1]).toLocaleTimeString('pt-BR');
+                    let msg = match[2];
+                    
+                    let color = 'text-gray-300';
+                    if (msg.includes('ERROR') || msg.includes('Failed')) color = 'text-red-400 font-medium';
+                    else if (msg.includes('Success') || msg.includes('Syntax OK')) color = 'text-emerald-400';
+                    else if (msg.includes('Fetching') || msg.includes('Validating')) color = 'text-blue-400';
+                    
+                    return `<span class="text-blue-500/70 mr-2">[${time}]</span> <span class="${color}">${msg}</span>`;
+                },
+                
+                formatDate(dateStr) {
+                    if (!dateStr) return 'Nunca';
+                    return new Date(dateStr).toLocaleString('pt-BR');
+                }
+            }));
+        });
     </script>
 </body>
 </html>

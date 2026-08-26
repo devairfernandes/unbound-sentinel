@@ -13,31 +13,33 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Servidor DNS Recursivo Enterprise - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Conheça o servidor DNS recursivo projetado para altíssimo desempenho, segurança nativa e latência ultrabaixa para redes críticas.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <meta name="keywords" content="DNS recursivo, servidor DNS recursivo, resolução de nomes">
+    <link rel="canonical" href="https://sentineldns.net/dns-recursivo.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/dns-recursivo.html">
+    <meta property="og:title" content="DNS Recursivo para ISPs e Provedores | Sentinel DNS">
+    <meta property="og:description" content="Saiba como o Sentinel DNS funciona como resolvedor recursivo de alta performance para ISPs, provedores e datacenters com RPZ e Threat Intelligence.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="DNS Recursivo para ISPs e Provedores | Sentinel DNS">
+    <meta name="twitter:description" content="Saiba como o Sentinel DNS funciona como resolvedor recursivo de alta performance para ISPs, provedores e datacenters com RPZ e Threat Intelligence.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
+
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
     {
@@ -45,12 +47,11 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "DNS Recursivo para ISPs e Provedores", "item": "https://sentineldns.net/dns-recursivo.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,67 +122,44 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Servidor DNS Recursivo Enterprise</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">A espinha dorsal da navegação rápida e segura. Um resolver capaz de sustentar operações de missão crítica sem pestanejar.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
-            
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
+        <div class="flex flex-col md:flex-row gap-12 items-center mb-16">
+            <div class="flex-1">
+                <h2 class="text-3xl font-bold text-white mb-6">O Poder da Resolução Local</h2>
+                <p class="text-gray-400 mb-4">Um servidor DNS recursivo é o primeiro sistema acionado quando um usuário acessa qualquer site, aplicativo ou serviço. Depender de recursivos lentos significa degradar a experiência do usuário, independentemente da velocidade do link contratado.</p>
+                <p class="text-gray-400 mb-6">Com o Sentinel DNS, você traz a recursão para dentro da sua infraestrutura. Nosso motor utiliza cache agressivo, pre-fetching inteligente de registros (TTL) e conexões persistentes aos Root Servers para garantir que a maioria das resoluções ocorra em menos de 2 milissegundos.</p>
+                <ul class="space-y-3 text-gray-300">
+                    <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> Suporte a DNSSEC nativo</li>
+                    <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> Prevenção contra DNS Amplification Attacks</li>
+                    <li class="flex items-center gap-3"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> Cache Hierárquico de alta eficiência</li>
+                </ul>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
+            <div class="flex-1 w-full glass-card p-6 rounded-xl border border-gray-800">
+                <div class="border-b border-gray-800 pb-4 mb-4">
+                    <h4 class="text-sm uppercase tracking-wider text-gray-500 font-semibold">Métrica de Resolução (Cache Hit)</h4>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
+                <div class="text-5xl font-black text-white mb-2">1.37<span class="text-2xl text-gray-400">ms</span></div>
+                <p class="text-sm text-gray-500">Latência média testada via dnsperf</p>
+                <a href="/comparativo.html" class="text-blue-400 text-sm hover:underline mt-4 inline-block">Ver metodologia do benchmark</a>
             </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
         </div>
-    </main>
+    
+
+                <h2 class="text-3xl font-bold mb-6 text-white mt-12">Alta Performance em Resolução Recursiva</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    O papel de um DNS recursivo é buscar os IPs definitivos consultando a árvore hierárquica global da Internet. O Sentinel DNS conta com algoritmos de pré-busca (prefetching), onde registros próximos da expiração são renovados de forma invisível.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    Aliado à aceleração por hardware (kernel bypass parcial) e uma estrutura agressiva de cache em memória (persistent cache), o tempo de resposta em cache (cache hit) atinge o patamar sub-milissegundo, resultando em uma internet que parece carregar instantaneamente.
+                </p>
+    
+</main>
 
     
     

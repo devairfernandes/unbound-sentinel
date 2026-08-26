@@ -7,36 +7,33 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-SV6F8DEZ12');
     </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Planos e Preços | Sentinel DNS para ISPs e Datacenters</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Planos e preços do Sentinel DNS para ISPs, provedores e datacenters. Solução enterprise com SLA, suporte técnico dedicado e licença flexível por nós.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
-    <!-- Ahrefs Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
+    <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
+    <link rel="canonical" href="https://sentineldns.net/precos.html">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/precos.html">
+    <meta property="og:title" content="Planos e Preços | Sentinel DNS para ISPs e Datacenters">
+    <meta property="og:description" content="Planos e preços do Sentinel DNS para ISPs, provedores e datacenters. Enterprise SLA, suporte técnico e licença flexível.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="Planos e Preços | Sentinel DNS para ISPs e Datacenters">
+    <meta name="twitter:description" content="Planos enterprise com SLA para ISPs e datacenters. Preços flexíveis por nós.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
@@ -45,23 +42,21 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "Preços", "item": "https://sentineldns.net/precos.html"}
       ]
     }
     </script>
+    <!-- Ahrefs Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 </head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="pricingPage()" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
-        <!-- Navigation -->
-    
-    
-    
-    
-        <nav class="fixed w-full z-50 bg-[#020408]/80 backdrop-blur-md border-b border-gray-800 transition-all duration-300" x-data="{ mobileMenuOpen: false }">
+    <!-- Navigation -->
+    <nav :class="{ 'glass': scrolled, 'bg-transparent border-transparent': !scrolled }" class="fixed w-full z-50 transition-all duration-300 border-b border-[#1f2937]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-3">
-                    <img src="/Logo.webp" alt="Sentinel DNS" class="h-10 w-10 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <img src="./Logo.webp" alt="Sentinel DNS" class="h-10 w-10 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
                     <span class="text-xl font-bold tracking-tight text-white">Sentinel DNS</span>
                 </div>
                 
@@ -123,75 +118,76 @@
 
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Planos Transparentes, <span class="text-blue-500">Zero Surpresas</span></h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Escolha o plano ideal para a sua infraestrutura. Nossa precificação é baseada em recursos de NOC e suporte, e não em volume de queries.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
+        <div x-show="loading" class="flex justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+
+        <div x-show="!loading" class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start" x-cloak>
             
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
-            </div>
+            <!-- Dynamic Cards via Alpine -->
+            <template x-for="plan in orderedPlans" :key="plan.id">
+                <div class="relative bg-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 flex flex-col transition-all duration-300 hover:bg-gray-900/80"
+                     :class="plan.id === 'pro' ? 'border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/50 md:-translate-y-2' : 'border-gray-800 hover:border-blue-500/50'">
+                    
+                    <div x-show="plan.badge" class="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <span class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg tracking-wider" x-text="plan.badge"></span>
+                    </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
-            </div>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-bold text-white mb-2" x-text="plan.id === 'pro' ? 'PRO' : (plan.id === 'pro_lite' ? 'PRO Lite' : 'FREE')"></h3>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-extrabold text-white" x-text="plan.price"></span>
+                            <template x-if="plan.id === 'pro_lite'">
+                                <span class="text-gray-400">Vitalício</span>
+                            </template>
+                            <template x-if="plan.id === 'pro'">
+                                <span class="text-gray-400">/mês</span>
+                            </template>
+                            <template x-if="plan.id === 'free'">
+                                <span class="text-gray-400">Sempre</span>
+                            </template>
+                        </div>
+                    </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
-            </div>
+                    <ul class="space-y-4 mb-8 flex-grow">
+                        <template x-for="feature in plan.hardcodedFeatures" :key="feature.name">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 flex-shrink-0">
+                                    <template x-if="feature.included">
+                                        <i data-lucide="check" class="w-5 h-5 text-blue-500"></i>
+                                    </template>
+                                    <template x-if="!feature.included">
+                                        <i data-lucide="x" class="w-5 h-5 text-gray-700"></i>
+                                    </template>
+                                </div>
+                                <span :class="feature.included ? 'text-gray-300' : 'text-gray-600'" x-text="feature.name"></span>
+                            </li>
+                        </template>
+                    </ul>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
+                    <div class="mt-auto pt-6">
+                        <a href="/download.html" 
+                           class="w-full py-3 px-4 rounded-lg font-medium text-center transition-colors flex items-center justify-center gap-2"
+                           :class="plan.id === 'pro' ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]' : 'bg-white/5 hover:bg-white/10 border border-white/10 text-white'">
+                            <span x-text="plan.action_label"></span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                        
+                        <template x-if="plan.id === 'pro_lite'">
+                            <p class="text-xs text-gray-500 text-center mt-4">Contribuição única vitalícia (sem mensalidade)</p>
+                        </template>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
-            </div>
-
+            </template>
         </div>
     </main>
 
-    
-    
-    
-    
-    
     <!-- Footer -->
-    
-        <!-- Footer -->
-    <footer class="border-t border-gray-800 bg-[#030712] pt-16 pb-12 relative z-10" id="sentinel-footer">
+    <footer class="border-t border-gray-800 bg-[#030712] pt-16 pb-12 relative z-10 mt-24" id="sentinel-footer">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="footer-links-grid mb-12">
                 <!-- Coluna 1: Produto -->
@@ -301,10 +297,105 @@
         </style>
     </footer>
 
+    <!-- Schema.org for Pricing Page -->
+    <script id="pricing-schema" type="application/ld+json">
+    </script>
 
-    <!-- Initialize Icons -->
     <script>
-        lucide.createIcons();
+        function pricingPage() {
+            const featureList = [
+                { key: 'globe', name: 'Resolução DNS / GeoIP' },
+                { key: 'config', name: 'Acesso a Configurações Web' },
+                { key: 'update', name: 'Atualizações Zero-Day' },
+                { key: 'charts', name: 'Gráficos e Relatórios' },
+                { key: 'benchmark', name: 'Monitoramento de Latência' },
+                { key: 'tv', name: 'Painel NOC TV' },
+                { key: 'cti', name: 'Threat Intelligence API' }
+            ];
+
+            const featureMatrix = {
+                'free': { globe: true, config: false, update: false, charts: false, benchmark: false, tv: false, cti: false },
+                'pro_lite': { globe: true, config: true, update: true, charts: true, benchmark: true, tv: false, cti: false },
+                'pro': { globe: true, config: true, update: true, charts: true, benchmark: true, tv: true, cti: true }
+            };
+
+            return {
+                mobileMenuOpen: false,
+                scrolled: false,
+                loading: true,
+                plansData: {},
+                orderedPlans: [],
+                init() {
+                    // Update scrolled on init
+                    this.scrolled = window.pageYOffset > 20;
+                    
+                    fetch('/api/public/pricing')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data || Object.keys(data).length === 0) {
+                                console.error('Sem dados de preços');
+                                return;
+                            }
+                            this.plansData = data;
+                            // Força a ordem: Free, PRO Lite, PRO
+                            const order = ['free', 'pro_lite', 'pro'];
+                            this.orderedPlans = order.map(id => {
+                                if (!data[id] && id !== 'free') return null; // If API completely dropped free, we still want it? Actually let's just map it.
+                                let plan = data[id] ? { ...data[id], id } : { id, price: 'Grátis', action_label: 'Download Grátis' };
+                                
+                                // Override price and badges exactly as requested
+                                if (id === 'free') plan.price = 'Grátis';
+                                if (id === 'pro') plan.badge = 'MAIS POPULAR';
+                                if (id === 'pro_lite') plan.badge = null; // Removed from top, put as footer
+                                
+                                plan.hardcodedFeatures = featureList.map(f => ({
+                                    name: f.name,
+                                    included: featureMatrix[id][f.key]
+                                }));
+                                
+                                return plan;
+                            }).filter(Boolean);
+                            
+                            this.loading = false;
+                            
+                            // Re-init lucide icons after DOM update
+                            this.$nextTick(() => {
+                                lucide.createIcons();
+                                this.injectSchema();
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Erro ao buscar preços:', err);
+                            this.loading = false;
+                        });
+                },
+                injectSchema() {
+                    const proPlan = this.plansData['pro'];
+                    if (!proPlan) return;
+                    
+                    // Converte "R$ 80,00" para "80.00"
+                    const priceValue = proPlan.price.replace(/[^\d.,]/g, '').replace(',', '.');
+                    
+                    const schema = {
+                        "@context": "https://schema.org",
+                        "@type": "SoftwareApplication",
+                        "name": "Sentinel DNS",
+                        "applicationCategory": "SecurityApplication",
+                        "offers": {
+                            "@type": "Offer",
+                            "price": priceValue,
+                            "priceCurrency": "BRL"
+                        }
+                    };
+                    
+                    document.getElementById('pricing-schema').textContent = JSON.stringify(schema, null, 2);
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>

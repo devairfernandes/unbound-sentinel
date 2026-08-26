@@ -13,30 +13,30 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arquitetura - Sentinel DNS</title>
+    <title>Perguntas Frequentes (FAQ) Técnicas - Sentinel DNS</title>
     <link rel="icon" type="image/webp" href="./Logo.webp">
-    <meta name="description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta name="description" content="Respostas diretas sobre segurança, migração, compliance ANATEL e performance do Sentinel DNS. FAQ técnico para equipes de engenharia de redes.">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" crossorigin href="./assets/style-BeSmX_RE.css">
-    <link rel="canonical" href="https://sentineldns.net/arquitetura.html">
+    <link rel="canonical" href="https://sentineldns.net/faq.html">
     <!-- Ahrefs Analytics -->
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="ANaBkJDni+l2EQk/xuZVRw" async></script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://sentineldns.net/arquitetura.html">
-    <meta property="og:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta property="og:description" content="Arquitetura escalável e transparente do Sentinel DNS: baseado em Unbound e Valkey, com suporte a Anycast, RPZ e baixíssima latência para ISPs e datacenters.">
+    <meta property="og:url" content="https://sentineldns.net/faq.html">
+    <meta property="og:title" content="FAQ Técnico | Sentinel DNS — Segurança, Migração e Compliance">
+    <meta property="og:description" content="Respostas diretas sobre segurança, migração, compliance ANATEL e performance do Sentinel DNS para engenheiros de redes.">
     <meta property="og:image" content="https://sentineldns.net/Logo.webp">
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Sentinel DNS">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Arquitetura do Sentinel DNS | Unbound, Anycast e RPZ">
-    <meta name="twitter:description" content="Arquitetura escalável e transparente: Unbound, Valkey, Anycast e RPZ para ISPs e datacenters.">
+    <meta name="twitter:title" content="FAQ Técnico | Sentinel DNS">
+    <meta name="twitter:description" content="Respostas sobre segurança, migração, ANATEL e performance do Sentinel DNS para ISPs.">
     <meta name="twitter:image" content="https://sentineldns.net/Logo.webp">
     <!-- Schema.org: BreadcrumbList -->
     <script type="application/ld+json">
@@ -45,12 +45,60 @@
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": "Início", "item": "https://sentineldns.net/"},
-        {"@type": "ListItem", "position": 2, "name": "Arquitetura", "item": "https://sentineldns.net/arquitetura.html"}
+        {"@type": "ListItem", "position": 2, "name": "FAQ", "item": "https://sentineldns.net/faq.html"}
       ]
     }
     </script>
-</head>
-<body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+    <!-- Schema.org: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "E se o Unbound (motor base) tiver uma falha de segurança descoberta (0-day)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O Sentinel DNS é construído de forma que a sua interface e seus módulos (AnaBlock, RPZ Engine) são isolados do processo daemon do Unbound. Se uma CVE crítica for lançada para o Unbound, nós empacotamos e disparamos um patch de atualização na mesma hora. Você pode atualizar o core daemon com um único comando sem quebrar os módulos customizados."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como vocês garantem alta disponibilidade durante um ataque DDoS massivo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O Sentinel DNS foi desenhado para ser implantado usando roteamento Anycast (BGP), com no mínimo 2 nós geolocalizados. Em caso de ataque contra um nó, o BGP descarta a rota daquele POP e o tráfego flui para o nó secundário. Há também rate-limiting configurável por IP para barrar ataques de ampliação DNS."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O que acontece se a lista da ANATEL corromper ou atualizar errado?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O módulo AnaBlock nunca injeta regras diretas no daemon sem antes passar por um ambiente de staging interno com validação via unbound-checkconf. Se houver qualquer caractere inválido, o script aborta, gera log de erro, notifica o admin e mantém a lista anterior intacta. Zero downtime."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "É possível migrar do BIND ou PowerDNS sem downtime?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. Você sobe o Sentinel DNS com um novo IP como recursivo secundário, desvia uma fração do tráfego (ex: 10%), analisa logs e gráficos, e depois migra 100%. Nenhuma queda para o cliente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qual o custo do suporte empresarial para Provedores (ISP)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O core do Sentinel DNS é Open Source. Para datacenters e operadoras que precisam de SLA enterprise, os planos são adaptados ao volume da malha (quantidade de nós Anycast). Entre em contato via WhatsApp ou e-mail para uma proposta personalizada."
+          }
+        }
+      ]
+    }
+    </script>
+</head><body class="bg-[#030712] text-gray-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white" x-data="{ mobileMenuOpen: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
 
         <!-- Navigation -->
     
@@ -121,66 +169,52 @@
         </div>
     </nav>
 
+    
     <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Transparência Total.<br/>Nenhuma Caixa Preta.</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Entenda exatamente como um pacote viaja desde o roteador do seu cliente até a resolução final. Construído com performance extrema e segurança by-design.</p>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">Perguntas Frequentes (FAQ)</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Comunicação clara, madura e transparente para equipes de engenharia de redes.</p>
         </div>
 
-        <!-- Detailed Flow -->
-        <div class="space-y-12">
+        <div class="max-w-4xl mx-auto space-y-6">
             
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-blue-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="users" class="w-8 h-8 text-blue-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">1. Clientes & Dispositivos</h3>
-                    <p class="text-gray-400 leading-relaxed">A requisição DNS nasce nos dispositivos dos clientes finais ou roteadores residenciais. Suportamos IPv4 e IPv6 nativamente, interceptando as chamadas na porta 53, ou via protocolos criptografados como DoH (DNS over HTTPS) e DoT.</p>
-                </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="help-circle" class="w-5 h-5"></i> E se o Unbound (motor base) tiver uma falha de segurança descoberta (0-day)?</h3>
+                <p class="text-gray-300">
+                    O Sentinel DNS é construído de forma que a sua interface e seus módulos (AnaBlock, RPZ Engine) são isolados do processo daemon do Unbound. Se uma CVE crítica for lançada para o Unbound, nós empacotamos e disparamos um patch de atualização na mesma hora. Você pode atualizar o core daemon com um único comando sem quebrar os módulos customizados da Sentinel em volta.
+                </p>
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-emerald-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="network" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">2. Anycast & BGP</h3>
-                    <p class="text-gray-400 leading-relaxed">Para ISPs e grandes Datacenters, o Sentinel DNS integra-se perfeitamente com BGP. Anunciamos o mesmo IP (Anycast) em múltiplos nós do seu backbone. Se um nó falhar, o roteamento BGP envia a requisição para o próximo nó disponível instantaneamente. Zero downtime.</p>
-                </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="help-circle" class="w-5 h-5"></i> Como vocês garantem alta disponibilidade durante um ataque DDoS massivo?</h3>
+                <p class="text-gray-300">
+                    Um ataque DDoS volumétrico frita a banda antes mesmo de chegar à CPU do servidor. Para garantir uptime, o Sentinel DNS foi desenhado para ser implantado usando roteamento Anycast (BGP). Nós recomendamos no mínimo 2 nós geolocalizados. Em caso de ataque contra um nó, o próprio BGP descarta a rota daquele POP se ele cair, e o tráfego dos usuários flui silenciosamente para o nó secundário. O Sentinel em si tem rate-limiting configurável por IP para barrar ataques de ampliação (DNS Amplification) e Water Torture localmente.
+                </p>
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-purple-500">
-                <div class="w-16 h-16 bg-blue-900/40 rounded-full flex-shrink-0 flex items-center justify-center border border-blue-500/50">
-                    <i data-lucide="shield-check" class="w-8 h-8 text-blue-500"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">3. Cluster Sentinel & Threat Intelligence</h3>
-                    <p class="text-gray-400 leading-relaxed">Assim que o pacote atinge nossos nós, o motor de Threat Intelligence entra em ação em memória (RAM). Ele compara as requisições contra milhões de domínios maliciosos. Usamos RPZ (Response Policy Zones) e listas de bloqueio atualizadas via API para dropar conexões com C2, Botnets e Phishing em microssegundos.</p>
-                </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="help-circle" class="w-5 h-5"></i> O que acontece se a lista da ANATEL corromper ou atualizar errado e meu servidor DNS cair?</h3>
+                <p class="text-gray-300">
+                    Isso não acontece. Nosso módulo <strong>AnaBlock</strong> nunca injeta regras diretas no daemon sem antes passar por um ambiente de staging interno. O script baixa a lista, formata para RPZ, e roda uma bateria local usando <code>unbound-checkconf</code>. Se houver sequer um caractere inválido (ex: um domínio mal formatado na API do governo), o script aborta, gera um log de erro, notifica o admin e mantém a lista de bloqueio anterior intacta. Zero downtime.
+                </p>
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-yellow-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="database" class="w-8 h-8 text-yellow-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">4. L1/L2 Cache Engine</h3>
-                    <p class="text-gray-400 leading-relaxed">Domínios já resolvidos e limpos não precisam ir para a internet. O Sentinel possui um cache multinível altamente otimizado. Taxas de Hit (Cache Hit Ratio) superam 90% em redes de operadoras, devolvendo o IP ao cliente em menos de 1ms e economizando tráfego de uplink.</p>
-                </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="help-circle" class="w-5 h-5"></i> É possível migrar minha base atual do BIND ou PowerDNS sem nenhum downtime?</h3>
+                <p class="text-gray-300">
+                    Sim, 100%. A migração é indolor. Você sobe a instância do Sentinel DNS com um novo IP. Configura ele como recursivo secundário na malha DHCP/PPPoE do seu MikroTik ou BNG, ou usa redirecionamento NAT (DST-NAT) de forma fracionada. Você pode desviar 10% do tráfego para o Sentinel, analisar os logs e gráficos, e depois virar 100%. Nenhuma queda para o cliente.
+                </p>
             </div>
 
-            <div class="glass-card p-8 flex flex-col md:flex-row gap-8 items-start border-l-4 border-l-gray-500">
-                <div class="w-16 h-16 bg-gray-800 rounded-full flex-shrink-0 flex items-center justify-center border border-gray-700">
-                    <i data-lucide="globe-2" class="w-8 h-8 text-gray-400"></i>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">5. Resolvedor Recursivo & Internet</h3>
-                    <p class="text-gray-400 leading-relaxed">Para novos domínios, o módulo recursivo do Sentinel DNS (compatível com Root Servers mundiais) sai para a Internet para realizar as queries iterativas necessárias. Todas as validações DNSSEC ocorrem nesta etapa para garantir que a resposta não foi adulterada (DNS Spoofing).</p>
-                </div>
+            <div class="glass-card p-6 rounded-xl border border-gray-800">
+                <h3 class="text-lg font-bold text-blue-400 mb-3 flex items-center gap-2"><i data-lucide="help-circle" class="w-5 h-5"></i> Qual o custo do suporte empresarial para Provedores (ISP)?</h3>
+                <p class="text-gray-300">
+                    O core do Sentinel DNS é Open Source. Contudo, para datacenters e operadoras que não podem perder um único segundo de operação e não têm engenheiros seniores 24/7 dedicados a DNS, oferecemos planos Enterprise SLA. Os valores são adaptados ao volume da sua malha (quantidade de nós Anycast), iniciando com setups focados no NOC. Fale diretamente com nossa equipe via WhatsApp ou E-mail para desenhar sua arquitetura técnica e o modelo ideal.
+                </p>
             </div>
 
         </div>
+    </main>
     </main>
 
     
