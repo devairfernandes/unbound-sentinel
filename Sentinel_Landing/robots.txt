@@ -1,6 +1,0 @@
-# Sentinel DNS — robots.txt
-
-User-agent: *
-Allow: /
-
-Sitemap: https://sentineldns.net/sitemap.xml
